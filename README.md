@@ -29,35 +29,7 @@ This project demonstrates a **full-stack web architecture** with a RESTful API, 
 - TailwindCSS for styling and dark mode support
 
 ---
-## 🏗️ Project Structure
 
-online-auction-app/
-│
-├── client/ # React + TailwindCSS frontend
-│ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── pages/ # Page-level components (Home, Product, Profile)
-│ │ ├── hooks/ # Custom React hooks
-│ │ ├── utils/ # Helper functions
-│ │ ├── App.jsx
-│ │ └── main.jsx
-│ ├── public/
-│ ├── package.json
-│ └── ...
-│
-├── server/ # Node.js + Express + MongoDB backend
-│ ├── models/ # Mongoose models
-│ ├── routes/ # Express routes (auth, auctions, bids)
-│ ├── controllers/ # Route logic and DB operations
-│ ├── middleware/ # Authentication and error handling
-│ ├── config/ # Database connection, environment setup
-│ ├── server.js # Entry point
-│ ├── .env.example
-│ └── package.json
-│
-├── .gitignore
-├── README.md
-└── package.json
 ---
 
 ## ⚙️ Tech Stack
