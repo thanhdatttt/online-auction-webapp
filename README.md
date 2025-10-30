@@ -29,7 +29,6 @@ This project demonstrates a **full-stack web architecture** with a RESTful API, 
 - TailwindCSS for styling and dark mode support
 
 ---
-
 ## 🏗️ Project Structure
 
 online-auction-app/
@@ -59,10 +58,6 @@ online-auction-app/
 ├── .gitignore
 ├── README.md
 └── package.json
-
-markdown
-Sao chép mã
-
 ---
 
 ## ⚙️ Tech Stack
