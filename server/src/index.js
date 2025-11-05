@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import http from 'http';
+import cookieParser from "cookie-parser";
 import { config } from './configs/config.js';
 import authRoute from './routes/auth.route.js';
 
@@ -10,6 +11,7 @@ const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 // app.get("/", (req, res) => {
 //     res.json({ message: "Server is running and reachable!" });
 // });
