@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema(
             maxlength: 150,
             default: null,
         },
+        address: {
+            type: String,
+            trim: true,
+            maxlength: 150,
+            default: null,
+        },
         birth: {
             type: Date,
             default: null
