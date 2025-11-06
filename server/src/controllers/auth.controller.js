@@ -1,13 +1,17 @@
 import jwt from "jsonwebtoken";
+import {OAuth2Client} from "google-auth-library";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
+
+const ACCESS_TOKEN_TTL = "1h";
+const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // generates access and refresh token
 const genAccessToken = (user) => {
     return jwt.sign(
         {id: user._id, role: user.role},
         config.JWT_SECRET,
-        {expiresIn: "1h"},
+        {expiresIn: ACCESS_TOKEN_TTL},
     );
 }
 
@@ -41,9 +45,9 @@ export const register = async (req, res) => {
         // save refresh token to cookie
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: REFRESH_TOKEN_TTL,
         });
         res.status(201).json({
             message: "Register and login successfully",
@@ -86,9 +90,9 @@ export const login = async (req, res) => {
         // save refresh token to cookie
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            maxAge: REFRESH_TOKEN_TTL,
         });
         res.status(201).json({
             message: "Login successfully",
@@ -111,7 +115,7 @@ export const logout = async (req, res) => {
     // clear cookie
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "strict",
     });
 
@@ -128,8 +132,8 @@ export const logout = async (req, res) => {
 // refresh token
 export const refreshToken = async (req, res) => {
     try {
-        // get token from cookie
-        const {refreshToken} = req.cookies.refreshToken;
+        // get refresh token from cookie
+        const refreshToken = req.cookies.refreshToken;
         // check if there is token
         if (!refreshToken) {
             return res.status(400).json({message: "Missing refresh token"});
@@ -154,4 +158,73 @@ export const refreshToken = async (req, res) => {
     } catch (err) {
         res.status(400).json({message: err.message});
     }
+}
+
+// google authentication
+const client = new OAuth2Client({
+    clientId: config.GOOGLE_CLIENT_ID,
+    clientSecret: config.GOOGLE_CLIENT_SECRET,
+    redirectUri: "http://localhost:5000/api/auth/google/callback",
+});
+
+export const getGoogleUrl = (req, res) => {
+    const url = client.generateAuthUrl({
+        access_type: "offline",
+        prompt: "consent",
+        scope: ["email", "profile"],
+    });
+    res.json({url});
+}
+
+// get the google callback
+export const googleCallback = async (req, res) => {
+    // get the code
+    const code = req.query.code;
+
+    // get tokens and verify from code
+    const {tokens} = await client.getToken(code) ;
+    const ticket = client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: config.GOOGLE_CLIENT_ID,
+    });
+
+    // authen from payload
+    const payload = ticket.getPayload();
+    // check if user already exists
+    let user = await User.findOne({"providers.google.id": payload.sub});
+    if (!user) {
+        // check if email already used
+        user = await User.findOne({email: payload.email});
+        if (user) {
+            user.providers.google = {id: payload.sub};
+            await user.save();
+        } else {
+            user = await User.create({
+                email: payload.email,
+                providers: { google: { id: payload.sub } },
+                firstName: payload.given_name,
+                lastName: payload.family_name,
+                avatar_url: payload.picture
+            })
+        }
+    }
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+        message: "Login with Google successfully",
+        accessToken,
+        refreshToken,
+        user,
+    });
 }
