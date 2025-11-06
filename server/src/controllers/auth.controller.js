@@ -25,24 +25,28 @@ const genRefreshToken = (user) => {
 }
 // reuse for forgot password
 const generateOTP = async (email, username = "", hashPassword = "") => {
+    try {
+        const existsOTP = await OTP.findOne({ email });
 
-    const existsEmailOTP = await OTP.findOne({ email });
+        if (existsOTP) {
 
-    if (existsEmailOTP) {
+            const timeDiff = (Date.now() - existsOTP.createdAt.getTime()) / 1000 // for avoiding spamming
 
-        const timeDiff = (Date.now() - existsEmailOTP.createdAt.getTime()) / 1000 // for avoiding spamming
+            if (timeDiff < 60)
+                throw new Error(`Please wait for ${Math.ceil(60 - timeDiff)} second(s) before sending a new OTP request.`);
 
-        if (timeDiff < 60)
-            throw new Error(`Please wait for ${Math.ceil(60 - timeDiff)} second(s) before sending a new OTP request.`);
+            await OTP.deleteOne({ email });
+        }
 
-        await OTP.deleteOne({ email });
+        const randomCode = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+
+        const newOTP = await OTP.create({ email, username, hashPassword, otp: randomCode})
+
+        return newOTP;
+    } catch(err) {
+        res.status(400).json({message: err.message});
     }
 
-    const randomCode = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-
-    const newOTP = await OTP.create({ email, username, hashPassword, otp: randomCode})
-
-    return newOTP;
 }
 
 // reuse for forgot password
@@ -64,9 +68,35 @@ const sendOTP = async (newOTP, subject, contentHTML) => {
         };
         await transporter.sendMail(mailOptions);
     } catch (error) {
-        throw new Error("Error occured when trying to send OTP to email.");
+        throw new Error("Error occured when trying to send an OTP to email.");
     }
 }
+
+
+// encap the whole process of generate OTP and send OTP
+// cuz sometime users want to re-send......
+const emailverificationOTP = async (email, username="", hashPassword="") => {
+    // generate a new OTP and we also want to store draft username and password for propagation... 
+    const newOTP = await generateOTP(email, username, hashPassword);
+
+    // set up mail for sending OTP
+    const subject = "[Auctiz] Verify your email address";
+
+    const contentHTML = `
+            <p>Hello,</p>
+
+            <p>Thank you for registering on <strong>Auctiz</strong>!</p>
+            <p>To complete your registration, please verify your email address by entering the OTP code below in the Auctiz verification page:</p>
+
+            <h2 style="text-align:center; color:#2F4F4F;">${newOTP.otp}</h2>
+
+            <p>If you did not request this, please ignore this email.</p>
+
+            <p>Best regards,<br>The Auctiz Team.</p>`;
+
+    await sendOTP(newOTP, subject, contentHTML);
+}
+
 
 // register
 export const register = async (req, res) => {
@@ -87,35 +117,16 @@ export const register = async (req, res) => {
         // for securing password in OTP table 
         const hashPassword = await bcrypt.hash(password, 10);
 
-        // generate a new OTP and we also want to store draft username and password for propagation... 
-        const newOTP = await generateOTP(email, username, hashPassword);
+        emailverificationOTP(email, username, hashPassword);
 
-        // set up mail for sending OTP
-
-        const subject = "[Auctiz] Verify your email address";
-
-        const contentHTML = `
-                <p>Hello,</p>
-
-                <p>Thank you for registering on <strong>Auctiz</strong>!</p>
-                <p>To complete your registration, please verify your email address by entering the OTP code below in the Auctiz verification page:</p>
-
-                <h2 style="text-align:center; color:#2F4F4F;">${newOTP.otp}</h2>
-
-                <p>If you did not request this, please ignore this email.</p>
-
-                <p>Best regards,<br>The Auctiz Team.</p>`;
-
-
-        await sendOTP(newOTP, subject, contentHTML);
-
-        res.status(200).json({ message: "Send a OTP successfully. Please check your email." });
+        res.status(200).json({ message: "Send an OTP successfully. Please check your email." });
 
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 }
 
+// verify successfully then save user account
 export const verifyAndSave = async (req, res) => {
     try {
 
