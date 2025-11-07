@@ -59,13 +59,13 @@ const userSchema = new mongoose.Schema(
 );
 
 // hash password before saving to database
-// userSchema.pre("save", async function(next) {
-//     if (!this.isModified("passwordHash"))
-//         return next();
-//     // hash password
-//     this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
-//     next();
-// });
+userSchema.pre("save", async function(next) {
+    if (!this.isModified("passwordHash"))
+        return next();
+    // hash password
+    this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
+    next();
+});
 
 // compare password
 userSchema.methods.comparePassword = function(text) {

@@ -8,14 +8,6 @@ const OTPSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  username: {
-    type: String,             
-    required: false     // reuse for forgot password     
-  },
-  hashPassword: {       // we dont need to store username and password if we forgot password
-    type: String,
-    required: false    // reuse for forgot password
-  },
   otp: {
     type: String,
     required: true,
