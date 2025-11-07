@@ -17,7 +17,6 @@ const userSchema = new mongoose.Schema(
         providers: {
             google: {
                 id: { type: String, unique: true, sparse: true },
-                refreshToken: { type: String, default: null },
             },
             facebook: {
                 id: { type: String, unique: true, sparse: true },

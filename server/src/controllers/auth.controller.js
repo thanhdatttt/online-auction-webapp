@@ -183,7 +183,7 @@ export const googleCallback = async (req, res) => {
 
     // get tokens and verify from code
     const {tokens} = await client.getToken(code) ;
-    const ticket = client.verifyIdToken({
+    const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
         audience: config.GOOGLE_CLIENT_ID,
     });
@@ -199,7 +199,19 @@ export const googleCallback = async (req, res) => {
             user.providers.google = {id: payload.sub};
             await user.save();
         } else {
+            // gen username from email
+            let baseUserName = payload.email.split("@")[0];
+            let count = 1;
+            while (await User.findOne({username: baseUserName})) {
+                baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
+                count++;
+                if (count > 10)
+                    break;
+            }
+
+            // create new user
             user = await User.create({
+                username: baseUserName,
                 email: payload.email,
                 providers: { google: { id: payload.sub } },
                 firstName: payload.given_name,
