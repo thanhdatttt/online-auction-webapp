@@ -3,6 +3,8 @@ import { register, login, logout, refreshToken, verifyOTP, createUser } from "..
 
 const router = express.Router();
 
+// register -> verify-otp -> create-user
+
 router.post("/register", register);
 router.post("/create-user", createUser);
 router.post("/verify-otp", verifyOTP);
