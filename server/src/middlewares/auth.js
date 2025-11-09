@@ -18,8 +18,8 @@ export const auth = (req, res, next) => {
             if (err) {
                 return res.status(400).json({message: "Expired or invalid token"});
             }
-    
-            const user = User.findById(decoded.userId).select('-hashedPassword');
+            
+            const user =  await User.findById(decoded.id).select("-hashedPassword");
             if (!user) {
                 return res.status(400).json({message: "User not found"});
             }

@@ -9,6 +9,8 @@ export const config = {
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "my_super_refresh_secret_key",
     GOOGLE_CLIENT_ID:  process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
     FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID,
     FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET,
+    FACEBOOK_REDIRECT_URI: process.env.FACEBOOK_REDIRECT_URI,
 };

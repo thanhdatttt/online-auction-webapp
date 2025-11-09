@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import axios from "axios";
 import {OAuth2Client} from "google-auth-library";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
@@ -164,7 +165,7 @@ export const refreshToken = async (req, res) => {
 const client = new OAuth2Client({
     clientId: config.GOOGLE_CLIENT_ID,
     clientSecret: config.GOOGLE_CLIENT_SECRET,
-    redirectUri: "http://localhost:5000/api/auth/google/callback",
+    redirectUri: config.GOOGLE_REDIRECT_URI,
 });
 
 export const getGoogleUrl = (req, res) => {
@@ -182,7 +183,7 @@ export const googleCallback = async (req, res) => {
     const code = req.query.code;
 
     // get tokens and verify from code
-    const {tokens} = await client.getToken(code) ;
+    const {tokens} = await client.getToken(code);
     const ticket = await client.verifyIdToken({
         idToken: tokens.id_token,
         audience: config.GOOGLE_CLIENT_ID,
@@ -240,3 +241,73 @@ export const googleCallback = async (req, res) => {
         user,
     });
 }
+
+// facebook authentication
+export const getFacebookUrl = (req, res) => {
+    const url = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${config.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(config.FACEBOOK_REDIRECT_URI)}&scope=email,public_profile`;
+    res.json({url});
+}
+
+export const facebookCallback = async (req, res) => {
+    const code = req.query.code;
+
+    // get callback info
+    const tokenRes = await axios.get(`https://graph.facebook.com/v12.0/oauth/access_token`, {
+        params: {
+            client_id: config.FACEBOOK_CLIENT_ID,
+            client_secret: config.FACEBOOK_CLIENT_SECRET,
+            redirect_uri: config.FACEBOOK_REDIRECT_URI,
+            code,
+        }
+    });
+
+    // use fb access token to get info
+    const fbAccesstoken = tokenRes.data.access_token;
+    const profileRes = await axios.get(`https://graph.facebook.com/me`, {
+        params: {
+            fields: "id,name,email,picture",
+            access_token: fbAccesstoken,
+        },
+    });
+
+    
+    const profile = profileRes.data;
+    let user = await User.findOne({"providers.facebook.id": profile.id});
+    if (!user) {
+        // check if email already used
+        user = await User.findOne({email: profile.email});
+        if (user) {
+            user.providers.facebook = {id: profile.id};
+            await user.save();
+        } else {
+            // create new user
+            user = await User.create({
+                username: profile.name,
+                email: profile.email,
+                providers: { facebook: { id: profile.id } },
+                firstName: profile.name?.split(" ")[0] || "",
+                lastName: profile.name?.split(" ").slice(1).join(" ") || "",
+                avatar_url: profile.picture?.data?.url || null
+            })
+        }  
+    }
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+        message: "Login with Facebook successfully",
+        accessToken,
+        refreshToken,
+        user,
+    });
+} 
