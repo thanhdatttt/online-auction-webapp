@@ -24,6 +24,14 @@ const genRefreshToken = (user) => {
     );
 }
 
+const genOTPToken = (user) => {
+    return jwt.sign(
+        { id: user._id, role: user.role },
+        config.JWT_SECRET,
+        { expiresIn: "5m" },
+    );
+}
+
 // reuse for forgot password
 const generateOTP = async (email) => {
     try {
@@ -50,7 +58,6 @@ const generateOTP = async (email) => {
         throw new Error("Error occured when trying to generate an OTP");
     }
 
-    
 }
 
 // reuse for forgot password
@@ -122,7 +129,6 @@ export const register = async (req, res) => {
 
 }
 
-
 // can be used for verifying OTP
 export const verifyOTP = async (req, res) => {
     try {
@@ -139,12 +145,13 @@ export const verifyOTP = async (req, res) => {
         if (isExpired)
             return res.status(400).json({ message: "Your OTP is already expired." });
 
+        const user = await User.findOne({ email });
 
+        const OTPToken = genOTPToken(user);
         // delete record if verifying successfully.
         await OTP.deleteOne({ email: existsOTP.email });
 
-
-        res.status(200).json({ message: "Verify OTP successfully." });
+        res.status(200).json({ message: "Verify OTP successfully.", OTPToken: OTPToken });
 
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -296,3 +303,90 @@ export const refreshToken = async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 }
+
+export const changePassword = async (req, res) => {
+    try{
+        const { oldPassword, newPassword } = req.body;
+    
+        const user = await User.findById(req.user.id).select('+passwordHash');
+    
+        if (!(await user.comparePassword(oldPassword))) {
+            return res.status(401).json({ message: 'Your old password is not matched.' });
+        }
+    
+        // const accessToken = genAccessToken(user);
+        // const refreshToken = genRefreshToken(user);
+        // user.refreshToken = refreshToken;
+
+        // Save new password
+        user.passwordHash = newPassword;
+        await user.save();
+    
+        res.status(200).json({ message: 'Password changed successfully.' });
+    } catch(e) {
+        res.status(500).json({ message: e.message });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+
+    const email = req.body.email;
+    const user = await User.findOne({ email });
+    
+    // Fake sent OTP even if email doesn't exist
+    if (!user) {
+      return res.status(200).json({
+        message: 'An OTP has been sent.',
+      });
+    }
+
+    const generatedOTP = await generateOTP(email);
+
+    const subject = "[Auctiz] Verify your email address";
+
+    const contentHTML = `
+        <p>Hello,</p>
+
+        <p>Thank you for registering on <strong>Auctiz</strong>!</p>
+        <p>To complete your registration, please verify your email address by entering the OTP code below in the Auctiz verification page:</p>
+
+        <h2 style="text-align:center; color:#2F4F4F;">${generatedOTP.otp}</h2>
+
+        <p>If you did not request this, please ignore this email.</p>
+
+        <p>Best regards,<br>The Auctiz Team.</p>`;
+
+    await sendOTP(generatedOTP, subject, contentHTML);
+
+    res.status(200).json({ message: "Proceed to the verification process" });
+
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      return res.status(401).json({ message: 'Invalid or expired token.' });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    
+    user.passwordHash = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been reset successfully.' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};

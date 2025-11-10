@@ -3,7 +3,7 @@ import { config } from "../configs/config.js";
 
 export const auth = (req, res, next) => {
     const header = req.headers.authorization;
-    if (!header || !header.startWith("Bearer ")) {
+    if (!header || !header.startsWith("Bearer ")) {
         return res.status(400).json({message: "No token provided"});
     }
 
