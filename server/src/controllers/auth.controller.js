@@ -32,7 +32,6 @@ const genRefreshToken = (user) => {
 // reuse for forgot password
 const generateOTP = async (email) => {
     try {
-
         const existsOTP = await OTP.findOne({ email });
 
         if (existsOTP) {
@@ -62,7 +61,6 @@ const generateOTP = async (email) => {
 // custom subject and contentHTML
 const sendOTP = async (newOTP, subject, contentHTML) => {
     try {
-    
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -90,7 +88,6 @@ const sendOTP = async (newOTP, subject, contentHTML) => {
 export const register = async (req, res) => {
 
     try {
-
         const { email } = req.body;
 
         // checking if email exists before sending OTP....
@@ -131,7 +128,6 @@ export const register = async (req, res) => {
 // can be used for verifying OTP
 export const verifyOTP = async (req, res) => {
     try {
-
         const { email, otp } = req.body;
 
         const existsOTP = await OTP.findOne({ email });
@@ -160,7 +156,6 @@ export const verifyOTP = async (req, res) => {
 export const createUser = async (req, res) => {
 
     try {
-
         const { email, username, password } = req.body;
 
         // check if user exists
@@ -205,7 +200,6 @@ export const createUser = async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 }
-
 
 // login
 export const login = async (req, res) => {
@@ -254,21 +248,25 @@ export const login = async (req, res) => {
 
 // logout
 export const logout = async (req, res) => {
-    // clear cookie
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-    });
-
-    // clear refresh token
-    const user = await User.findOne({ refreshToken: req.cookies.refreshToken });
-    if (user) {
-        user.refreshToken = null;
-        await user.save();
+    try {
+        // clear cookie
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+        });
+    
+        // clear refresh token
+        const user = await User.findOne({ refreshToken: req.cookies.refreshToken });
+        if (user) {
+            user.refreshToken = null;
+            await user.save();
+        }
+    
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        res.status(400).json({message: error.message});
     }
-
-    res.status(200).json({ message: "Logged out successfully" });
 };
 
 // refresh token
@@ -323,64 +321,68 @@ export const googleCallback = async (req, res) => {
     // get the code
     const code = req.query.code;
 
-    // get tokens and verify from code
-    const {tokens} = await client.getToken(code);
-    const ticket = await client.verifyIdToken({
-        idToken: tokens.id_token,
-        audience: config.GOOGLE_CLIENT_ID,
-    });
-
-    // authen from payload
-    const payload = ticket.getPayload();
-    // check if user already exists
-    let user = await User.findOne({"providers.google.id": payload.sub});
-    if (!user) {
-        // check if email already used
-        user = await User.findOne({email: payload.email});
-        if (user) {
-            user.providers.google = {id: payload.sub};
-            await user.save();
-        } else {
-            // gen username from email
-            let baseUserName = payload.email.split("@")[0];
-            let count = 1;
-            while (await User.findOne({username: baseUserName})) {
-                baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
-                count++;
-                if (count > 10)
-                    break;
+    try {
+        // get tokens and verify from code
+        const {tokens} = await client.getToken(code);
+        const ticket = await client.verifyIdToken({
+            idToken: tokens.id_token,
+            audience: config.GOOGLE_CLIENT_ID,
+        });
+    
+        // authen from payload
+        const payload = ticket.getPayload();
+        // check if user already exists
+        let user = await User.findOne({"providers.google.id": payload.sub});
+        if (!user) {
+            // check if email already used
+            user = await User.findOne({email: payload.email});
+            if (user) {
+                user.providers.google = {id: payload.sub};
+                await user.save();
+            } else {
+                // gen username from email
+                let baseUserName = payload.email.split("@")[0];
+                let count = 1;
+                while (await User.findOne({username: baseUserName})) {
+                    baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
+                    count++;
+                    if (count > 10)
+                        break;
+                }
+    
+                // create new user
+                user = await User.create({
+                    username: baseUserName,
+                    email: payload.email,
+                    providers: { google: { id: payload.sub } },
+                    firstName: payload.given_name,
+                    lastName: payload.family_name,
+                    avatar_url: payload.picture
+                })
             }
-
-            // create new user
-            user = await User.create({
-                username: baseUserName,
-                email: payload.email,
-                providers: { google: { id: payload.sub } },
-                firstName: payload.given_name,
-                lastName: payload.family_name,
-                avatar_url: payload.picture
-            })
         }
+    
+        // create tokens
+        const accessToken = genAccessToken(user);
+        const refreshToken = genRefreshToken(user);
+        user.refreshToken = refreshToken;
+        await user.save();
+    
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: REFRESH_TOKEN_TTL,
+        });
+        res.status(201).json({
+            message: "Login with Google successfully",
+            accessToken,
+            refreshToken,
+            user,
+        });
+    } catch (error) {
+        res.status(400).json({message: error.message});
     }
-
-    // create tokens
-    const accessToken = genAccessToken(user);
-    const refreshToken = genRefreshToken(user);
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: REFRESH_TOKEN_TTL,
-    });
-    res.status(201).json({
-        message: "Login with Google successfully",
-        accessToken,
-        refreshToken,
-        user,
-    });
 }
 
 // facebook authentication
@@ -389,66 +391,71 @@ export const getFacebookUrl = (req, res) => {
     res.json({url});
 }
 
+// get the fb callback
 export const facebookCallback = async (req, res) => {
     const code = req.query.code;
 
-    // get callback info
-    const tokenRes = await axios.get(`https://graph.facebook.com/v12.0/oauth/access_token`, {
-        params: {
-            client_id: config.FACEBOOK_CLIENT_ID,
-            client_secret: config.FACEBOOK_CLIENT_SECRET,
-            redirect_uri: config.FACEBOOK_REDIRECT_URI,
-            code,
-        }
-    });
-
-    // use fb access token to get info
-    const fbAccesstoken = tokenRes.data.access_token;
-    const profileRes = await axios.get(`https://graph.facebook.com/me`, {
-        params: {
-            fields: "id,name,email,picture",
-            access_token: fbAccesstoken,
-        },
-    });
-
+    try {
+        // get callback info
+        const tokenRes = await axios.get(`https://graph.facebook.com/v12.0/oauth/access_token`, {
+            params: {
+                client_id: config.FACEBOOK_CLIENT_ID,
+                client_secret: config.FACEBOOK_CLIENT_SECRET,
+                redirect_uri: config.FACEBOOK_REDIRECT_URI,
+                code,
+            }
+        });
     
-    const profile = profileRes.data;
-    let user = await User.findOne({"providers.facebook.id": profile.id});
-    if (!user) {
-        // check if email already used
-        user = await User.findOne({email: profile.email});
-        if (user) {
-            user.providers.facebook = {id: profile.id};
-            await user.save();
-        } else {
-            // create new user
-            user = await User.create({
-                username: profile.name,
-                email: profile.email,
-                providers: { facebook: { id: profile.id } },
-                firstName: profile.name?.split(" ")[0] || "",
-                lastName: profile.name?.split(" ").slice(1).join(" ") || "",
-                avatar_url: profile.picture?.data?.url || null
-            })
-        }  
+        // use fb access token to get info
+        const fbAccesstoken = tokenRes.data.access_token;
+        const profileRes = await axios.get(`https://graph.facebook.com/me`, {
+            params: {
+                fields: "id,name,email,picture",
+                access_token: fbAccesstoken,
+            },
+        });
+    
+        
+        const profile = profileRes.data;
+        let user = await User.findOne({"providers.facebook.id": profile.id});
+        if (!user) {
+            // check if email already used
+            user = await User.findOne({email: profile.email});
+            if (user) {
+                user.providers.facebook = {id: profile.id};
+                await user.save();
+            } else {
+                // create new user
+                user = await User.create({
+                    username: profile.name,
+                    email: profile.email,
+                    providers: { facebook: { id: profile.id } },
+                    firstName: profile.name?.split(" ")[0] || "",
+                    lastName: profile.name?.split(" ").slice(1).join(" ") || "",
+                    avatar_url: profile.picture?.data?.url || null
+                })
+            }  
+        }
+    
+        // create tokens
+        const accessToken = genAccessToken(user);
+        const refreshToken = genRefreshToken(user);
+        user.refreshToken = refreshToken;
+        await user.save();
+    
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: REFRESH_TOKEN_TTL,
+        });
+        res.status(201).json({
+            message: "Login with Facebook successfully",
+            accessToken,
+            refreshToken,
+            user,
+        });
+    } catch (error) {
+        res.status(400).json({message: error.message});
     }
-
-    // create tokens
-    const accessToken = genAccessToken(user);
-    const refreshToken = genRefreshToken(user);
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: REFRESH_TOKEN_TTL,
-    });
-    res.status(201).json({
-        message: "Login with Facebook successfully",
-        accessToken,
-        refreshToken,
-        user,
-    });
 } 
