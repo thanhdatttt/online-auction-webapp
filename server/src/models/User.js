@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: ["active", "banned", "pending"],
-            default: "pending"
+            default: "active"
         },
         email: {
             type: String,
@@ -49,7 +49,11 @@ const userSchema = new mongoose.Schema(
         avatar_url: {
             type: String,
             default: null
-        }
+        },
+        refreshToken: {
+            type: String,
+            default: null
+        },
     },
     { timestamps: true } // => auto adds createdAt & updatedAt
 );
