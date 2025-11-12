@@ -32,17 +32,17 @@ const SignInForm = () => {
     }
 
     return (
-        <div className="bg-[#24232A] flex overflow-hidden rounded-2xl shadow-2xl">
+        <div className="bg-dark flex overflow-hidden rounded-2xl shadow-2xl">
             {/* left part */}
             <div className="w-1/2 p-10 flex flex-col justify-center h-full">
                 {/* title */}
-                <h2 className="text-5xl font-semibold mb-6">Sign in</h2>
+                <h2 className="text-6xl font-lora mb-6">Sign in</h2>
                 {/* sign in form */}
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
-                        <label htmlFor="username" className="block mb-1 text-3xl">Username</label>
+                        <label htmlFor="username" className="block mb-1 font-lora text-3xl">Username</label>
                         <input 
-                            className={`w-full rounded-md p-2 text-black text-2xl bg-white ${errors.username ? "border-red-500" : "border-gray-500"} focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                            className={`w-full rounded-md p-2 text-black text-2xl bg-white ${errors.username ? "border-red-500" : "border-gray-500"} focus:outline-none focus:ring-2 focus:ring-primary`}
                             type="text" 
                             id="username"
                             placeholder="Username"
@@ -55,9 +55,9 @@ const SignInForm = () => {
                         )}
                     </div>
                     <div>
-                        <label htmlFor="password" className="block mb-1 text-3xl">Password</label>
+                        <label htmlFor="password" className="block mb-1 font-lora text-3xl">Password</label>
                         <input 
-                            className={`w-full rounded-md p-2 text-black text-2xl bg-white ${errors.password ? "border-red-500" : "border-gray-500"} focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                            className={`w-full rounded-md p-2 text-black text-2xl bg-white ${errors.password ? "border-red-500" : "border-gray-500"} focus:outline-none focus:ring-2 focus:ring-primary`}
                             type="password"
                             id="password" 
                             placeholder="Password"
@@ -70,11 +70,11 @@ const SignInForm = () => {
                         )}
                     </div>
                     <div className="text-right mt-1">
-                        <a className="text-lg text-gray-300 hover:underline cursor-pointer">Forgot password?</a>
+                        <a className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">Forgot password?</a>
                     </div>
-                    <button type="submit" className="w-full bg-yellow-500 text-3xl text-white font-semibold rounded-3xl py-2 mt-4 hover:bg-yellow-600 transition cursor-pointer" disabled={isSubmitting}>Sign in</button>
-                    <p className="text-lg mt-3 text-gray-300">Don't have an account?{" "}
-                        <a onClick={() => navigate("/signup")} className="text-yellow-400 hover:underline cursor-pointer">Sign up</a>
+                    <button type="submit" className="w-full bg-primary text-3xl text-white font-semibold rounded-3xl py-2 mt-4 hover:bg-accent hover:text-black transition cursor-pointer" disabled={isSubmitting}>Sign in</button>
+                    <p className="text-lg mt-3 text-gray-300 font-semibold font-lora">Don't have an account?{" "}
+                        <a onClick={() => navigate("/signup")} className="text-accent hover:underline cursor-pointer">Sign up</a>
                     </p>
                 </form>
             </div>
@@ -82,16 +82,16 @@ const SignInForm = () => {
             {/* middle part */}
             <div className="flex items-center justify-center w-10 relative">
                 <div className="w-1 h-full bg-gray-300"></div>
-                <span className="absolute bottom-25 px-2 py-2 text-4xl bg-[#24232A] text-gray-200">or</span>
+                <span className="absolute bottom-25 px-2 py-2 text-4xl bg-dark text-gray-200 font-lora font-semibold">or</span>
             </div>
 
             {/* right part */}
             <div className="w-1/2 p-10 flex flex-col justify-center items-center">
-                <h1 className="text-9xl font-serif italic mb-4 text-center text-white">Auctiz</h1>
-                <p className="text-2xl text-center leading-relaxed mb-10">Your gateway to thousands of exciting auctions. Sign in and place your bid!</p>
+                <h1 className="text-9xl font-lora font-semibold italic mb-4 text-center text-white">Auctiz</h1>
+                <p className="text-2xl text-center font-lora leading-relaxed mb-10">Your gateway to thousands of exciting auctions. Sign in and place your bid!</p>
                 <div>
-                    <button className="w-full py-2 px-4 mb-8 text-3xl flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer"> <FcGoogle size={30}></FcGoogle> Continue with Google</button>
-                    <button className="w-full py-2 px-4 text-3xl flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer"> <FaFacebook size={30} color="blue"></FaFacebook> Continue with Facebook</button>
+                    <button className="w-full py-2 px-8 mb-8 text-2xl font-lora font-semibold flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer"> <FcGoogle size={30}></FcGoogle> Continue with Google</button>
+                    <button className="w-full py-2 px-8 text-2xl font-lora font-semibold flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer"> <FaFacebook size={30} color="blue"></FaFacebook> Continue with Facebook</button>
                 </div>
             </div>
         </div>
