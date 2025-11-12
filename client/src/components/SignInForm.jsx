@@ -1,4 +1,5 @@
 import {ReCAPTCHA} from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
 import {z} from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -16,6 +17,9 @@ const signInSchema = z.object({
 });
 
 const SignInForm = () => {
+    // navigate page
+    const navigate = useNavigate();
+
     // validate form
     const {register, handleSubmit, formState: {errors, isSubmitting}} = useForm({
         resolver: zodResolver(signInSchema),
@@ -70,7 +74,7 @@ const SignInForm = () => {
                     </div>
                     <button type="submit" className="w-full bg-yellow-500 text-3xl text-white font-semibold rounded-3xl py-2 mt-4 hover:bg-yellow-600 transition cursor-pointer" disabled={isSubmitting}>Sign in</button>
                     <p className="text-lg mt-3 text-gray-300">Don't have an account?{" "}
-                        <a className="text-yellow-400 hover:underline cursor-pointer">Sign up</a>
+                        <a onClick={() => navigate("/signup")} className="text-yellow-400 hover:underline cursor-pointer">Sign up</a>
                     </p>
                 </form>
             </div>
