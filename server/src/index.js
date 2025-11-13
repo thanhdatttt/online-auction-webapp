@@ -8,10 +8,12 @@ import { auth } from './middlewares/auth.js';
 import authRoute from './routes/auth.route.js';
 import userRoute from './routes/user.route.js';
 
+// create server
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+// set up server
+app.use(cors({origin: process.env.CLIENT_URL, credentials: true}));
 app.use(express.json());
 app.use(cookieParser());
 

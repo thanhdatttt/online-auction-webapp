@@ -2,6 +2,7 @@ import {ReCAPTCHA} from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import {z} from "zod";
 import {useForm} from "react-hook-form";
+import { useAuthStore } from "../stores/useAuth.store.js";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {FcGoogle} from "react-icons/fc";
 import {FaFacebook} from "react-icons/fa6";
@@ -20,15 +21,25 @@ const SignInForm = () => {
     // navigate page
     const navigate = useNavigate();
 
+    // get api
+    const {login} = useAuthStore();
+
     // validate form
     const {register, handleSubmit, formState: {errors, isSubmitting}} = useForm({
         resolver: zodResolver(signInSchema),
     });
 
     // send data to server
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
         console.log(data);
+
         // backend
+        try {
+            const {username, password} = data;
+            await login(username, password);
+        } catch (err) {
+            throw err;
+        }
     }
 
     return (
