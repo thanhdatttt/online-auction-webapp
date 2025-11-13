@@ -7,7 +7,16 @@ export const authService = {
             const res = await api.post("/auth/login", { username, password });
             return res.data;
         } catch (err) {
-            throw err;
+            console.log(err);
         }
     },
+
+    logout: async () => {
+        try {
+            const res = await api.post("/auth/logout", {}, {withCredentials: true});
+            return res.data;
+        } catch (err) {
+            console.log(err);
+        }
+    }
 }

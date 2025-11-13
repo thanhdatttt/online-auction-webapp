@@ -9,7 +9,9 @@ import {ReCAPTCHA} from "react-google-recaptcha";
 
 // create schemas for validating each steps
 const step1Schema = z.object({
-    email: z.email("Email is not valid"),
+    email: z
+        .string().min(1, "Email is required")
+        .email("Email is not valid")
 });
 
 const step2Schema = z.object({

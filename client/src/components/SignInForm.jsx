@@ -37,8 +37,9 @@ const SignInForm = () => {
         try {
             const {username, password} = data;
             await login(username, password);
+            navigate("/home");
         } catch (err) {
-            throw err;
+            console.log(err);
         }
     }
 
