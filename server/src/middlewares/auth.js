@@ -32,3 +32,29 @@ export const auth = (req, res, next) => {
         return res.status(400).json({message: 'System error when JWT authenticating'});
     }
 }
+
+export const authOTP = (req, res, next) => {
+    try {
+        // get header
+        const header = req.headers.authorization;
+        if (!header) {
+            return res.status(400).json({message: "No token provided"});
+        }
+    
+        // get token
+        const token = header.split(" ")[1];
+    
+        // verify token
+        jwt.verify(token, config.JWT_REGISTER, async (err, decoded) => {
+            if (err) {
+                return res.status(400).json({message: "Expired or invalid token"});
+            }
+
+            req.email= decoded.email;
+            next();
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({message: 'System error when JWT authenticating'});
+    }
+}
