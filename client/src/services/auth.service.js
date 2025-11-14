@@ -52,12 +52,12 @@ export const authService = {
     try {
       const res = await api.get("/auth/google/url");
       const { url } = res.data;
+      console.log(url);
       if (url) {
-        window.open(url, "_blank", "noopener,noreferrer");
+        window.location.href = url;
       } else {
         throw new Error("Something went wrong. Can not get Google URL.");
       }
-      return res.data;
     } catch (err) {
       throw err;
     }

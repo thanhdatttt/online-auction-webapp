@@ -11,6 +11,8 @@ export const useAuthStore = create((set, get) => ({
   clearState: () => {
     set({ accessToken: null, user: null, loading: false });
   },
+  setAccessToken: (token) => set({ accessToken: token }),
+  setUser: (user) => set({ user: user }),
 
   // call apis
   login: async ({ username, password, captcha }) => {

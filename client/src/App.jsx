@@ -7,8 +7,9 @@ import {
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
-import HomePage from "./components/HomePage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 
 function App() {
   return (
@@ -20,8 +21,11 @@ function App() {
           {/* routes */}
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route element={<ProtectedRoute />}>
-              <Route path="/home" element={<HomePage />}/>
+
+          <Route path="/auth/success" element={<AuthSuccessPage />} />
+
+          <Route element={<ProtectedRoute/>}>
+            <Route path="/home" element={<HomePage />}/>
           </Route>
 
         {/* Not found*/}

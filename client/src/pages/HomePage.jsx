@@ -1,5 +1,5 @@
 import React from 'react'
-import Logout from './Logout.jsx';
+import Logout from '../components/Logout.jsx';
 
 const HomePage = () => {
     return (
