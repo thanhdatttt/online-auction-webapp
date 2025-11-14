@@ -4,8 +4,8 @@ import { OAuth2Client } from "google-auth-library";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
 import OTP from "../models/OTP.js";
-import { generateOTP, sendOTP } from "../utils/otp.service.js";
-
+import { generateOTP, sendOTP } from "../utils/otp.utils.js";
+import { verify_captcha } from "../utils/captcha.utils.js";
 const ACCESS_TOKEN_TTL = "1h";
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
@@ -27,7 +27,19 @@ const genRefreshToken = (user) => {
 // only used for register verification
 export const register = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, captcha } = req.body;
+
+    if (!captcha)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "Please verify the Captcha" });
+
+    const success = verify_captcha(captcha);
+
+    if (!success)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "OTP verification failed" });
 
     // checking if email exists before sending OTP....
     const existEmail = await User.findOne({ email });
@@ -87,7 +99,7 @@ export const verifyOTP = async (req, res) => {
     await OTP.deleteOne({ email: existsOTP.email });
 
     const token = jwt.sign({ email }, config.JWT_REGISTER, {
-      expiresIn: "10m",
+      expiresIn: "5m",
     });
 
     res
@@ -177,7 +189,20 @@ export const createUser = async (req, res) => {
 // login
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, captcha } = req.body;
+
+    if (!captcha)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "Please verify the Captcha" });
+
+    const success = verify_captcha(captcha);
+
+    if (!success)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "OTP verification failed" });
+
     // check if user exists
     const user = await User.findOne({ username });
 
@@ -190,7 +215,6 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid username or password." });
     }
-
     // create tokens
     const accessToken = genAccessToken(user);
     const refreshToken = genRefreshToken(user);

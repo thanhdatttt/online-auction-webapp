@@ -29,4 +29,7 @@ export const config = {
   FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID,
   FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET,
   FACEBOOK_REDIRECT_URI: process.env.FACEBOOK_REDIRECT_URI,
+
+  SITE_KEY: process.env.SITE_KEY,
+  SECRET_KEY: process.env.SECRET_KEY,
 };
