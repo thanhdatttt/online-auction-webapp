@@ -33,7 +33,9 @@ export const register = async (req, res) => {
     const existEmail = await User.findOne({ email });
 
     if (existEmail)
-      return res.status(400).json({ message: "Email is already in use." });
+      return res
+        .status(400)
+        .json({ field: "email", error: "Email is already in use." });
 
     // set up subject and content for sending OTP
 
@@ -56,7 +58,7 @@ export const register = async (req, res) => {
     await sendOTP(generatedOTP, subject, contentHTML);
     res.status(200).json({ message: "Proceed to the verification process" });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -68,25 +70,33 @@ export const verifyOTP = async (req, res) => {
     const existsOTP = await OTP.findOne({ email });
 
     if (!existsOTP || otp !== existsOTP.otp)
-      return res.status(400).json({ message: "Invalid OTP." });
+      return res
+        .status(400)
+        .json({ field: "otp", error: "Your OTP is invalid." });
 
     const isExpired = (Date.now() - existsOTP.createdAt) / 1000 > 300;
 
     if (isExpired)
-      return res.status(400).json({ message: "Your OTP is already expired." });
+      return res.status(400).json({
+        field: "otp",
+        error: "Your OTP is already expired.",
+        status: 402,
+      });
 
     // delete record if verifying successfully.
     await OTP.deleteOne({ email: existsOTP.email });
 
     const token = jwt.sign({ email }, config.JWT_REGISTER, {
-      expiresIn: "15m",
+      expiresIn: "10m",
     });
 
-    res.status(200).json({ message: "Verify OTP successfully.", token });
+    res
+      .status(200)
+      .json({ message: "Verify OTP successfully.", token, status: 200 });
 
     // propagation for creating user
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -97,24 +107,28 @@ export const createUser = async (req, res) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json({ message: "Missing token." });
+      return res.status(400).json({ error: "Missing token." });
     }
 
     const token = authHeader.split(" ")[1];
 
     const { email } = jwt.verify(token, config.JWT_REGISTER);
 
-    const { username, password } = req.body;
+    const { username, password, firstName, lastName, address } = req.body;
 
     // check if user exists
     const existUser = await User.findOne({ username });
     if (existUser) {
-      return res.status(400).json({ message: "Username is already in use." });
+      return res
+        .status(400)
+        .json({ field: "username", error: "Username is already in use." });
     }
-
     const user = await User.create({
       username: username,
       passwordHash: password,
+      firstName: firstName,
+      lastName: lastName,
+      address: address,
       email: email,
     });
 
@@ -138,11 +152,25 @@ export const createUser = async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
         role: user.role,
       },
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err.name === "TokenExpiredError") {
+      return res
+        .status(400)
+        .json({ error: "Your register session is already out of date." });
+    }
+
+    if (err.name === "JsonWebTokenError") {
+      return res
+        .status(400)
+        .json({ error: "Your register session is invalid." });
+    }
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -152,14 +180,15 @@ export const login = async (req, res) => {
     const { username, password } = req.body;
     // check if user exists
     const user = await User.findOne({ username });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ error: "Invalid username or password." });
     }
 
     // check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Password is not matched" });
+      return res.status(400).json({ error: "Invalid username or password." });
     }
 
     // create tokens
@@ -186,7 +215,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -292,7 +321,7 @@ export const googleCallback = async (req, res) => {
         while (await User.findOne({ username: baseUserName })) {
           baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
           count++;
-          if (count > 10) break;
+          if (count > 100) break;
         }
 
         // create new user
