@@ -3,7 +3,7 @@ import RoleRequest from "../models/RoleRequest.js";
 
 export const requestRole = async (req, res) => {
     try {
-        const userId = res.user._id;
+        const userId = req.user._id;
 
         const user = await User.findById(userId);
 
@@ -22,7 +22,8 @@ export const requestRole = async (req, res) => {
         })
 
         return res.status(201).json({
-            message: "Successfully created a request"
+            message: "Successfully created a request",
+            request: newRequest
         })
     } catch (error) {
         return res.status(400).json({message: error.message});

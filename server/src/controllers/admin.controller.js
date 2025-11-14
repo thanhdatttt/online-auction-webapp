@@ -14,7 +14,7 @@ export const getUsers = async (req, res) => {
 
         const [users, total] = await Promise.all([
             User.find(filter)
-                .select("_id email avatar_url role status createdAt")
+                .select("_id username email avatar_url role status createdAt")
                 .sort({createdAt: -1})
                 .skip(skip)
                 .limit(limit),
@@ -57,6 +57,44 @@ export const promoteAdmin = async (req, res) => {
 
         res.status(200).json({
             message: "User promoted to admin successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        return res.status(400).json({message: error.message});
+    }
+}
+
+export const demoteSeller = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ message: "Missing userId" });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role === "bidder") {
+            return res.status(400).json({ message: "User is already a bidder" });
+        }
+
+        if (user.role === "admin") {
+            return res.status(400).json({ message: "Can't demote an admin" });
+        }
+
+        user.role = "bidder";
+        await user.save();
+
+        res.status(200).json({
+            message: "User demoted to bidder successfully",
             user: {
                 id: user._id,
                 username: user.username,
@@ -115,7 +153,7 @@ export const approveRoleRequest = async (req, res) => {
 
         request.status = "approved";
         request.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        await request.save();
+        await RoleRequest.findByIdAndDelete(requestId);
 
         await User.findByIdAndUpdate(request.userId, { role: "seller" });
 
@@ -140,7 +178,7 @@ export const denyRoleRequest = async (req, res) => {
         // Deny
         request.status = "denied";
         request.expiresAt = null;
-        await request.save();
+        await RoleRequest.findByIdAndDelete(requestId);
 
         res.json({ message: "Role request denied." });
     } catch (err) {
