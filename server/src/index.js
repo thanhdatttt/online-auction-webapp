@@ -7,6 +7,7 @@ import { connectDB } from './libs/db.js';
 import { auth } from './middlewares/auth.js';
 import authRoute from './routes/auth.route.js';
 import userRoute from './routes/user.route.js';
+import adminRoute from "./routes/admin.route.js";
 
 // create server
 const app = express();
@@ -22,6 +23,8 @@ app.use("/api/auth", authRoute);
 
 app.use(auth);
 app.use("/api/users", userRoute);
+
+app.use("/api/admin", adminRoute);
 
 // run server
 connectDB()
