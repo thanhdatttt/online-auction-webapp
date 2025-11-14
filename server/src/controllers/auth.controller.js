@@ -24,7 +24,7 @@ const genRefreshToken = (user) => {
   );
 };
 
-// only used for register verification
+// only used for register verification 
 export const register = async (req, res) => {
   try {
     const { email } = req.body;
@@ -103,18 +103,8 @@ export const verifyOTP = async (req, res) => {
 // bypass login for register.....
 export const createUser = async (req, res) => {
   try {
-    // store email in jwt token
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json({ error: "Missing token." });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    const { email } = jwt.verify(token, config.JWT_REGISTER);
-
     const { username, password, firstName, lastName, address } = req.body;
+    const email = req.email;
 
     // check if user exists
     const existUser = await User.findOne({ username });
@@ -437,5 +427,81 @@ export const facebookCallback = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+    try{
+        const { oldPassword, newPassword } = req.body;
+    
+        const user = await User.findById(req.user.id).select('+passwordHash');
+    
+        if (!(await user.comparePassword(oldPassword))) {
+            return res.status(401).json({ message: 'Your old password is not matched.' });
+        }
+    
+        // Save new password
+        user.passwordHash = newPassword;
+        await user.save();
+    
+        res.status(200).json({ message: 'Password changed successfully.' });
+    } catch(e) {
+        res.status(500).json({ message: e.message });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+
+    const email = req.body.email;
+    const user = await User.findOne({ email: email });
+    
+    // Fake sent OTP even if email doesn't exist
+    if (!user) {
+      return res.status(200).json({
+        message: 'An OTP has been sent.',
+      });
+    }
+
+    const generatedOTP = await generateOTP(email);
+
+    const subject = "[Auctiz] Verify your email address";
+
+    const contentHTML = `
+        <p>Hello,</p>
+
+        <p>Thank you for registering on <strong>Auctiz</strong>!</p>
+        <p>To complete your registration, please verify your email address by entering the OTP code below in the Auctiz verification page:</p>
+
+        <h2 style="text-align:center; color:#2F4F4F;">${generatedOTP.otp}</h2>
+
+        <p>If you did not request this, please ignore this email.</p>
+
+        <p>Best regards,<br>The Auctiz Team.</p>`;
+
+    await sendOTP(generatedOTP, subject, contentHTML);
+
+    res.status(200).json({ message: "Proceed to the verification process" });
+
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    const user = await User.findOne({ email: req.email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    user.passwordHash = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been reset successfully.' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
 };
