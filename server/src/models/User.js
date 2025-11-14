@@ -8,11 +8,19 @@ const userSchema = new mongoose.Schema(
             required: true,
             unique: true,
             trim: true,
-            maxlength: 100
+            maxlength: 150
         },
         passwordHash: {
             type: String,
-            required: true
+            default: null
+        },
+        providers: {
+            google: {
+                id: { type: String, unique: true, sparse: true },
+            },
+            facebook: {
+                id: { type: String, unique: true, sparse: true },
+            },
         },
         role: {
             type: String,
@@ -28,9 +36,15 @@ const userSchema = new mongoose.Schema(
             type: String,
             unique: true,
             sparse: true,  // allow null + unique
-            maxlength: 100
+            maxlength: 150
         },
-        fullname: {
+        firstName: {
+            type: String,
+            trim: true,
+            maxlength: 150,
+            default: null,
+        },
+        lastName: {
             type: String,
             trim: true,
             maxlength: 150,

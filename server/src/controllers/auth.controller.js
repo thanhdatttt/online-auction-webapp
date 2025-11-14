@@ -1,36 +1,28 @@
 import jwt from "jsonwebtoken";
+import axios from "axios";
+import { OAuth2Client } from "google-auth-library";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
 import OTP from "../models/OTP.js";
+import { generateOTP, sendOTP } from "../utils/otp.service.js";
 
-import crypto from 'crypto';
-// for sending email
-import nodemailer from 'nodemailer';
+const ACCESS_TOKEN_TTL = "1h";
+const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // generates access and refresh token
 const genAccessToken = (user) => {
-    return jwt.sign(
-        { id: user._id, role: user.role },
-        config.JWT_SECRET,
-        { expiresIn: "1h" },
-    );
-}
+  return jwt.sign({ id: user._id, role: user.role }, config.JWT_SECRET, {
+    expiresIn: ACCESS_TOKEN_TTL,
+  });
+};
 
 const genRefreshToken = (user) => {
-    return jwt.sign(
-        { id: user._id, role: user.role },
-        config.JWT_REFRESH_SECRET,
-        { expiresIn: "7d" },
-    );
-}
-
-const genOTPToken = (user) => {
-    return jwt.sign(
-        { id: user._id, role: user.role },
-        config.JWT_SECRET,
-        { expiresIn: "5m" },
-    );
-}
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    config.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+};
 
 // reuse for forgot password
 const generateOTP = async (email) => {
@@ -90,24 +82,22 @@ const sendOTP = async (newOTP, subject, contentHTML) => {
 
 // only used for register verification 
 export const register = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-    try {
+    // checking if email exists before sending OTP....
+    const existEmail = await User.findOne({ email });
 
-        const { email } = req.body;
+    if (existEmail)
+      return res.status(400).json({ message: "Email is already in use." });
 
-        // checking if email exists before sending OTP....
-        const existEmail = await User.findOne({ email });
+    // set up subject and content for sending OTP
 
-        if (existEmail)
-            return res.status(400).json({ message: "Email is already in use." });
+    const generatedOTP = await generateOTP(email);
 
-        // set up subject and content for sending OTP
+    const subject = "[Auctiz] Verify your email address";
 
-        const generatedOTP = await generateOTP(email);
-
-        const subject = "[Auctiz] Verify your email address";
-
-        const contentHTML = `
+    const contentHTML = `
             <p>Hello,</p>
 
             <p>Thank you for registering on <strong>Auctiz</strong>!</p>
@@ -119,190 +109,352 @@ export const register = async (req, res) => {
 
             <p>Best regards,<br>The Auctiz Team.</p>`;
 
-        await sendOTP(generatedOTP, subject, contentHTML);
-
-        res.status(200).json({ message: "Proceed to the verification process" });
-
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-
-}
+    await sendOTP(generatedOTP, subject, contentHTML);
+    res.status(200).json({ message: "Proceed to the verification process" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // can be used for verifying OTP
 export const verifyOTP = async (req, res) => {
-    try {
+  try {
+    const { email, otp } = req.body;
 
-        const { email, otp } = req.body;
+    const existsOTP = await OTP.findOne({ email });
 
-        const existsOTP = await OTP.findOne({ email });
+    if (!existsOTP || otp !== existsOTP.otp)
+      return res.status(400).json({ message: "Invalid OTP." });
 
-        if (!existsOTP || otp !== existsOTP.otp)
-            return res.status(400).json({ message: "Invalid OTP." });
+    const isExpired = (Date.now() - existsOTP.createdAt) / 1000 > 300;
 
-        const isExpired = ((Date.now() - existsOTP.createdAt) / 1000) > 300;
+    if (isExpired)
+      return res.status(400).json({ message: "Your OTP is already expired." });
 
-        if (isExpired)
-            return res.status(400).json({ message: "Your OTP is already expired." });
+    // delete record if verifying successfully.
+    await OTP.deleteOne({ email: existsOTP.email });
 
-        const user = await User.findOne({ email });
+    const token = jwt.sign({ email }, config.JWT_REGISTER, {
+      expiresIn: "15m",
+    });
 
-        const OTPToken = genOTPToken(user);
-        // delete record if verifying successfully.
-        await OTP.deleteOne({ email: existsOTP.email });
+    res.status(200).json({ message: "Verify OTP successfully.", token });
 
-        res.status(200).json({ message: "Verify OTP successfully.", OTPToken: OTPToken });
-
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-}
+    // propagation for creating user
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // bypass login for register.....
 export const createUser = async (req, res) => {
+  try {
+    const { email, username, password } = req.body;
 
-    try {
-
-        const { email, username, password } = req.body;
-
-        // check if user exists
-        const existUser = await User.findOne({ username });
-        if (existUser) {
-            return res.status(400).json({ message: "Username is already in use." });
-        }
-
-        const user = await User.create(
-            {
-                username: username,
-                passwordHash: password,
-                email: email
-            }
-        );
-
-        // create tokens
-        const accessToken = genAccessToken(user);
-        const refreshToken = genRefreshToken(user);
-        user.refreshToken = refreshToken;
-        await user.save();
-
-        // save refresh token to cookie
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-        res.status(201).json({
-            message: "Register and verify successfully",
-            accessToken,
-            refreshToken,
-            user: {
-                id: user._id,
-                username: user.username,
-                role: user.role
-            }
-        });
-
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+    // check if user exists
+    const existUser = await User.findOne({ username });
+    if (existUser) {
+      return res.status(400).json({ message: "Username is already in use." });
     }
-}
 
+    const user = await User.create({
+      username: username,
+      passwordHash: password,
+      email: email,
+    });
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // save refresh token to cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+      message: "Register and verify successfully",
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // login
 export const login = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        // check if user exists
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(400).json({ message: "User not found" });
-        }
-
-        // check password
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Password is not matched" });
-        }
-
-        // create tokens
-        const accessToken = genAccessToken(user);
-        const refreshToken = genRefreshToken(user);
-        user.refreshToken = refreshToken;
-        await user.save();
-
-        // save refresh token to cookie
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-        res.status(201).json({
-            message: "Login successfully",
-            accessToken,
-            refreshToken,
-            user: {
-                id: user._id,
-                username: user.username,
-                role: user.role
-            }
-        });
-
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+  try {
+    const { username, password } = req.body;
+    // check if user exists
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
     }
-}
+
+    // check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Password is not matched" });
+    }
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // save refresh token to cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+      message: "Login successfully",
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // logout
 export const logout = async (req, res) => {
+  try {
     // clear cookie
     res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
     });
 
     // clear refresh token
     const user = await User.findOne({ refreshToken: req.cookies.refreshToken });
     if (user) {
-        user.refreshToken = null;
-        await user.save();
+      user.refreshToken = null;
+      await user.save();
     }
 
     res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // refresh token
 export const refreshToken = async (req, res) => {
-    try {
-        // get token from cookie
-        const { refreshToken } = req.cookies.refreshToken;
-        // check if there is token
-        if (!refreshToken) {
-            return res.status(400).json({ message: "Missing refresh token" });
-        }
-
-        // check if token is correct
-        const user = await User.findOne({ refreshToken });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid refresh token" });
-        }
-
-        jwt.verify(refreshToken, config.JWT_REFRESH_SECRET, (err, decoded) => {
-            if (err) {
-                return res.status(400).json({ message: "Expired or invalid refresh token" });
-            }
-
-            const newAccessToken = genAccessToken(user);
-            return res.status(200).json({
-                accessToken: newAccessToken,
-            });
-        });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
+  try {
+    // get refresh token from cookie
+    const refreshToken = req.cookies.refreshToken;
+    // check if there is token
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Missing refresh token" });
     }
-}
+
+    // check if token is correct
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid refresh token" });
+    }
+
+    jwt.verify(refreshToken, config.JWT_REFRESH_SECRET, (err, decoded) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "Expired or invalid refresh token" });
+      }
+
+      const newAccessToken = genAccessToken(user);
+      return res.status(200).json({
+        accessToken: newAccessToken,
+      });
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+// google authentication
+const client = new OAuth2Client({
+  clientId: config.GOOGLE_CLIENT_ID,
+  clientSecret: config.GOOGLE_CLIENT_SECRET,
+  redirectUri: config.GOOGLE_REDIRECT_URI,
+});
+
+export const getGoogleUrl = (req, res) => {
+  const url = client.generateAuthUrl({
+    access_type: "offline",
+    prompt: "consent",
+    scope: ["email", "profile"],
+  });
+  res.json({ url });
+};
+
+// get the google callback
+export const googleCallback = async (req, res) => {
+  // get the code
+  const code = req.query.code;
+
+  try {
+    // get tokens and verify from code
+    const { tokens } = await client.getToken(code);
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: config.GOOGLE_CLIENT_ID,
+    });
+
+    // authen from payload
+    const payload = ticket.getPayload();
+    // check if user already exists
+    let user = await User.findOne({ "providers.google.id": payload.sub });
+    if (!user) {
+      // check if email already used
+      user = await User.findOne({ email: payload.email });
+      if (user) {
+        user.providers.google = { id: payload.sub };
+        await user.save();
+      } else {
+        // gen username from email
+        let baseUserName = payload.email.split("@")[0];
+        let count = 1;
+        while (await User.findOne({ username: baseUserName })) {
+          baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
+          count++;
+          if (count > 10) break;
+        }
+
+        // create new user
+        user = await User.create({
+          username: baseUserName,
+          email: payload.email,
+          providers: { google: { id: payload.sub } },
+          firstName: payload.given_name,
+          lastName: payload.family_name,
+          avatar_url: payload.picture,
+        });
+      }
+    }
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+      message: "Login with Google successfully",
+      accessToken,
+      refreshToken,
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// facebook authentication
+export const getFacebookUrl = (req, res) => {
+  const url = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${
+    config.FACEBOOK_CLIENT_ID
+  }&redirect_uri=${encodeURIComponent(
+    config.FACEBOOK_REDIRECT_URI
+  )}&scope=email,public_profile`;
+  res.json({ url });
+};
+
+// get the fb callback
+export const facebookCallback = async (req, res) => {
+  const code = req.query.code;
+
+  try {
+    // get callback info
+    const tokenRes = await axios.get(
+      `https://graph.facebook.com/v12.0/oauth/access_token`,
+      {
+        params: {
+          client_id: config.FACEBOOK_CLIENT_ID,
+          client_secret: config.FACEBOOK_CLIENT_SECRET,
+          redirect_uri: config.FACEBOOK_REDIRECT_URI,
+          code,
+        },
+      }
+    );
+
+    // use fb access token to get info
+    const fbAccesstoken = tokenRes.data.access_token;
+    const profileRes = await axios.get(`https://graph.facebook.com/me`, {
+      params: {
+        fields: "id,name,email,picture",
+        access_token: fbAccesstoken,
+      },
+    });
+
+    const profile = profileRes.data;
+    let user = await User.findOne({ "providers.facebook.id": profile.id });
+    if (!user) {
+      // check if email already used
+      user = await User.findOne({ email: profile.email });
+      if (user) {
+        user.providers.facebook = { id: profile.id };
+        await user.save();
+      } else {
+        // create new user
+        user = await User.create({
+          username: profile.name,
+          email: profile.email,
+          providers: { facebook: { id: profile.id } },
+          firstName: profile.name?.split(" ")[0] || "",
+          lastName: profile.name?.split(" ").slice(1).join(" ") || "",
+          avatar_url: profile.picture?.data?.url || null,
+        });
+      }
+    }
+
+    // create tokens
+    const accessToken = genAccessToken(user);
+    const refreshToken = genRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: REFRESH_TOKEN_TTL,
+    });
+    res.status(201).json({
+      message: "Login with Facebook successfully",
+      accessToken,
+      refreshToken,
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
 export const changePassword = async (req, res) => {
     try{
@@ -314,10 +466,6 @@ export const changePassword = async (req, res) => {
             return res.status(401).json({ message: 'Your old password is not matched.' });
         }
     
-        // const accessToken = genAccessToken(user);
-        // const refreshToken = genRefreshToken(user);
-        // user.refreshToken = refreshToken;
-
         // Save new password
         user.passwordHash = newPassword;
         await user.save();
@@ -332,7 +480,7 @@ export const forgotPassword = async (req, res) => {
   try {
 
     const email = req.body.email;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email });
     
     // Fake sent OTP even if email doesn't exist
     if (!user) {
@@ -368,20 +516,13 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { resetToken, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
-    let decoded;
-    try {
-      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-    } catch (jwtError) {
-      return res.status(401).json({ message: 'Invalid or expired token.' });
-    }
-
-    const user = await User.findById(decoded.id);
+    const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
-    
+
     user.passwordHash = newPassword;
     await user.save();
 
