@@ -11,14 +11,14 @@ export const authService = {
     }
   },
 
-    logout: async () => {
-        try {
-            const res = await api.post("/auth/logout", {}, {withCredentials: true});
-            return res.data;
-        } catch (err) {
-            console.log(err);
-        }
-    }
+  logout: async () => {
+      try {
+          const res = await api.post("/auth/logout", {}, {withCredentials: true});
+          return res.data;
+      } catch (err) {
+          console.log(err);
+      }
+  },
 
   signup: async (data) => {
     try {
@@ -57,8 +57,6 @@ export const authService = {
       } else {
         throw new Error("Something went wrong. Can not get Google URL.");
       }
-
-      return url;
     } catch (err) {
       throw err;
     }
