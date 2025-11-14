@@ -1,4 +1,4 @@
-import { ReCAPTCHA } from "react-google-recaptcha";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -6,7 +6,8 @@ import { useAuthStore } from "../stores/useAuth.store.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
-
+import { Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
 // create schema for validate
 const signInSchema = z.object({
   username: z
@@ -17,6 +18,10 @@ const signInSchema = z.object({
     .string()
     .min(1, "Please enter password")
     .min(6, "Password must be at least 6 characters"),
+  captcha: z.preprocess(
+    (val) => val ?? "", // undefined → ""
+    z.string().nonempty("Please verify the captcha")
+  ),
 });
 
 const SignInForm = () => {
@@ -31,25 +36,51 @@ const SignInForm = () => {
     register,
     handleSubmit,
     setError,
+    control,
+    clearErrors,
+    watch,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(signInSchema),
   });
+  const usernameValue = watch("username");
+  const passwordValue = watch("password");
+
+  useEffect(() => {
+    if (errors.root) {
+      clearErrors("root");
+    }
+  }, [usernameValue, passwordValue]);
 
   // send data to server
   const onSubmit = async (data) => {
     console.log(data);
     // backend
     try {
-      const { username, password } = data;
-      console.log(username, password);
-      await login(username, password);
+      console.log(data);
+      await login(data);
       navigate("/home");
     } catch (err) {
-      setError("root", {
-        type: "backend",
-        message: err.response?.data?.error,
-      });
+      const field = err.response?.data?.field;
+      if (field) {
+        setError(field, {
+          type: "backend",
+          message: err.response?.data?.error,
+        });
+      } else {
+        setError("root", {
+          type: "backend",
+          message: err.response?.data?.error,
+        });
+      }
+    }
+  };
+
+  const handleRoot = () => {
+    if (errors.root) {
+      clearErrors("root");
     }
   };
 
@@ -74,6 +105,11 @@ const SignInForm = () => {
               placeholder="Username"
               {...register("username")}
             />
+            {errors.username && (
+              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
+                {errors.username.message}
+              </div>
+            )}
             {errors.root && (
               <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
                 {errors.root.message}
@@ -93,12 +129,39 @@ const SignInForm = () => {
               placeholder="Password"
               {...register("password")}
             />
+            {errors.password && (
+              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
+                {errors.password.message}
+              </div>
+            )}
           </div>
           <div className="text-right mt-1">
             <a className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
               Forgot password?
             </a>
           </div>
+
+          <div className="w-full flex flex-col justify-center items-center mt-10">
+            <div className="rounded-md overflow-hidden inline-block">
+              <Controller
+                name="captcha"
+                control={control}
+                render={({ field: { onChange } }) => (
+                  <ReCAPTCHA
+                    sitekey="6LdaHwwsAAAAAJv38U44ZcqDczLElUsAAODMz8T7"
+                    onChange={onChange}
+                  />
+                )}
+              />
+              {/* Display errors */}
+              {errors.captcha && (
+                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
+                  {errors.captcha.message}
+                </div>
+              )}
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-primary text-3xl text-white font-semibold rounded-3xl py-2 mt-4 hover:bg-accent hover:text-black transition cursor-pointer"

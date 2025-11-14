@@ -2,22 +2,22 @@ import api from "../utils/axios.js";
 
 // auth apis
 export const authService = {
-  login: async ({ username, password }) => {
+  login: async (data) => {
     try {
-      const res = await api.post("/auth/login", { username, password });
+      const res = await api.post("/auth/login", data);
       return res.data;
     } catch (err) {
-      console.log(err);
+      throw err;
     }
   },
 
   logout: async () => {
-      try {
-          const res = await api.post("/auth/logout", {}, {withCredentials: true});
-          return res.data;
-      } catch (err) {
-          console.log(err);
-      }
+    try {
+      const res = await api.post("/auth/logout", {}, { withCredentials: true });
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
   },
 
   signup: async (data) => {
@@ -43,6 +43,7 @@ export const authService = {
           Authorization: `Bearer ${registerToken}`,
         },
       });
+      return res.data;
     } catch (err) {
       throw err;
     }
@@ -51,12 +52,12 @@ export const authService = {
     try {
       const res = await api.get("/auth/google/url");
       const { url } = res.data;
-      console.log(url);
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
       } else {
         throw new Error("Something went wrong. Can not get Google URL.");
       }
+      return res.data;
     } catch (err) {
       throw err;
     }

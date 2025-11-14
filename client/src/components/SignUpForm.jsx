@@ -5,15 +5,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
-import { ReCAPTCHA } from "react-google-recaptcha";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuthStore } from "../stores/useAuth.store.js";
-import { set } from "zod/v3";
 import { Controller } from "react-hook-form";
 import OtpInput from "react-otp-input";
 import { toast } from "sonner";
 // create schemas for validating each steps
 const step1Schema = z.object({
   email: z.string().min(1, "Email is required").email("Email is not valid"),
+  captcha: z.preprocess(
+    (val) => val ?? "", // undefined → ""
+    z.string().nonempty("Please verify the captcha")
+  ),
 });
 
 const step2Schema = z.object({
@@ -78,16 +81,16 @@ const SignUpForm = () => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(currentSchema),
+    shouldFocusError: false,
   });
 
   // send data
   const onSubmit = async (data) => {
     if (step === 1) {
       try {
-        const { email } = data;
-        await signup(email);
+        console.log(data);
+        await signup(data);
         nextStep();
-        // toast.success("Một mã OTP đã được gửi tới email của bạn!");
       } catch (err) {
         const field = err.response?.data?.field;
         if (field) {
@@ -96,10 +99,7 @@ const SignUpForm = () => {
             message: err.response?.data?.error,
           });
         } else {
-          setError("root", {
-            type: "backend",
-            message: err.response?.data?.error,
-          });
+          toast.error(err.response?.data?.error);
         }
       }
     } else if (step === 2) {
@@ -115,28 +115,31 @@ const SignUpForm = () => {
             message: err.response?.data?.error,
           });
         } else {
-          setError("root", {
-            type: "backend",
-            message: err.response?.data?.error,
-          });
+          toast.error(err.response?.data?.error);
         }
       }
     } else {
       try {
         const { username, password, firstName, lastName, address } = data;
         await create_user(username, password, firstName, lastName, address);
+        navigate("/home");
       } catch (err) {
+        const apiError =
+          err.response?.data?.error || err.response?.data?.message;
+        const localError = err.message;
+
+        toast.error(apiError || localError);
+
         const field = err.response?.data?.field;
         if (field) {
           setError(field, {
             type: "backend",
-            message: err.response?.data?.error,
+            message: apiError,
           });
         } else {
-          setError("root", {
-            type: "backend",
-            message: err.response?.data?.error,
-          });
+          if (localError && localError.includes("token")) {
+            setStep(1);
+          }
         }
       }
     }
@@ -160,7 +163,7 @@ const SignUpForm = () => {
                 </label>
                 <input
                   className={`w-full rounded-md p-2 text-black text-2xl bg-white ${
-                    errors.username ? "border-red-500" : "border-gray-500"
+                    errors.email ? "border-red-500" : "border-gray-500"
                   } focus:outline-none focus:ring-2 focus:ring-primary`}
                   type="email"
                   id="email"
@@ -172,9 +175,30 @@ const SignUpForm = () => {
                     {errors.email.message}
                   </div>
                 )}
+                <div className="w-full flex flex-col justify-center items-center mt-10">
+                  <div className="rounded-md overflow-hidden inline-block">
+                    <Controller
+                      name="captcha"
+                      control={control}
+                      render={({ field: { onChange } }) => (
+                        <ReCAPTCHA
+                          sitekey="6LdaHwwsAAAAAJv38U44ZcqDczLElUsAAODMz8T7"
+                          onChange={onChange}
+                        />
+                      )}
+                    />
+                    {/* Display errors */}
+                    {errors.captcha && (
+                      <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
+                        {errors.captcha.message}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               <button
                 onClick={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
                 className="w-full bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition cursor-pointer"
               >
                 Next
@@ -252,6 +276,7 @@ const SignUpForm = () => {
               <button
                 className="w-1/2 bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition cursor-pointer"
                 onClick={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
               >
                 Next
               </button>
@@ -393,6 +418,7 @@ const SignUpForm = () => {
             <button
               onClick={handleSubmit(onSubmit)}
               className="w-full bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 my-8 rounded-3xl transition cursor-pointer"
+              disabled={isSubmitting}
             >
               Register
             </button>

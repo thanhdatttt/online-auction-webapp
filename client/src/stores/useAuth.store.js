@@ -8,46 +8,46 @@ export const useAuthStore = create((set, get) => ({
   user: null,
   loading: false,
 
-    clearState: () => {
-        set({accessToken: null, user: null, loading: false});
-    },
-
-    // call apis
-    login: async (username, password) => {
-        try {
-            // loading user login
-            set({loading: true});
-
-            // call login api
-            const data = await authService.login({username, password});
-            set({user: data.user});
-            set({accessToken: data.accessToken});
-        } catch (err) {
-            console.log(err);
-        } finally {
-            // finish loading user login
-            set({loading: false});
-        }
-    },
-
-  logout: async () => {
-      try {
-          get().clearState();
-          const data  = await authService.logout();
-          console.log(data);
-      } catch(err) {
-          console.log(err);
-      }
+  clearState: () => {
+    set({ accessToken: null, user: null, loading: false });
   },
 
-  signup: async (email) => {
+  // call apis
+  login: async ({ username, password, captcha }) => {
+    try {
+      // loading user login
+      set({ loading: true });
+
+      // call login api
+      const data = await authService.login({ username, password, captcha });
+      set({ user: data.user });
+      set({ accessToken: data.accessToken });
+    } catch (err) {
+      throw err;
+    } finally {
+      // finish loading user login
+      set({ loading: false });
+    }
+  },
+
+  logout: async () => {
+    try {
+      get().clearState();
+      const data = await authService.logout();
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  signup: async ({ email, captcha }) => {
     try {
       // loading sending register request
+
       set({ loading: true });
       // store it for step 2
       set({ registeredEmail: email });
       // call register api
-      const data = await authService.signup({ email });
+      const data = await authService.signup({ email, captcha });
     } catch (err) {
       throw err;
     } finally {
@@ -110,6 +110,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await authService.continue_with_google();
     } catch (err) {
+      throw err;
     } finally {
       set({ loading: false });
     }
