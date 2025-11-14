@@ -8,27 +8,29 @@ export const useAuthStore = create((set, get) => ({
   user: null,
   loading: false,
 
-    clearState: () => {
-        set({accessToken: null, user: null, loading: false});
-    },
+  setAccessToken: (token) => set({ accessToken: token }),
+  setUser: (user) => set({user: user}),
+  clearState: () => {
+      set({accessToken: null, user: null, loading: false});
+  },
 
-    // call apis
-    login: async (username, password) => {
-        try {
-            // loading user login
-            set({loading: true});
+  // call apis
+  login: async (username, password) => {
+      try {
+          // loading user login
+          set({loading: true});
 
-            // call login api
-            const data = await authService.login({username, password});
-            set({user: data.user});
-            set({accessToken: data.accessToken});
-        } catch (err) {
-            console.log(err);
-        } finally {
-            // finish loading user login
-            set({loading: false});
-        }
-    },
+          // call login api
+          const data = await authService.login({username, password});
+          set({user: data.user});
+          set({accessToken: data.accessToken});
+      } catch (err) {
+          console.log(err);
+      } finally {
+          // finish loading user login
+          set({loading: false});
+      }
+  },
 
   logout: async () => {
       try {

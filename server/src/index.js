@@ -13,7 +13,7 @@ const app = express();
 const server = http.createServer(app);
 
 // set up server
-app.use(cors({origin: process.env.CLIENT_URL, credentials: true}));
+app.use(cors({origin: config.CLIENT_URL, credentials: true}));
 app.use(express.json());
 app.use(cookieParser());
 

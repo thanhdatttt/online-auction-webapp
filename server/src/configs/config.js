@@ -5,6 +5,7 @@ dotenv.config();
 export const config = {
   PORT: process.env.PORT || 5000,
   MONGO_URI: process.env.MONGO_URI || "mongodb://localhost:27017/auctiondb",
+  CLIENT_URL: process.env.CLIENT_URL || "http:/localhost:5000",
   JWT_SECRET:
     process.env.JWT_SECRET ||
     "QDXZLwjpOYSplfPlOi13VjV6XBeexxdzb8Jbhz/tWGoY73Ky//Wtodvf0SKlv5EUqF9mZ7YoGOaz2aszN3uXxw==",

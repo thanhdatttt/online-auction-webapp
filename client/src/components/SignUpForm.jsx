@@ -7,10 +7,8 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import { ReCAPTCHA } from "react-google-recaptcha";
 import { useAuthStore } from "../stores/useAuth.store.js";
-import { set } from "zod/v3";
 import { Controller } from "react-hook-form";
 import OtpInput from "react-otp-input";
-import { toast } from "sonner";
 // create schemas for validating each steps
 const step1Schema = z.object({
   email: z.string().min(1, "Email is required").email("Email is not valid"),

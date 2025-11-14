@@ -53,6 +53,15 @@ const SignInForm = () => {
     }
   };
 
+  const handleGoogle = async () => {
+    try {
+      await continue_with_google();
+      navigate("/home");
+    } catch (err) {
+
+    }
+  }
+
   return (
     <div className="bg-dark flex overflow-hidden rounded-2xl shadow-2xl">
       {/* left part */}
@@ -110,7 +119,7 @@ const SignInForm = () => {
             Don't have an account?{" "}
             <a
               onClick={() => navigate("/signup")}
-              className="text-accent hover:underline cursor-pointer"
+              className="text-primary hover:underline cursor-pointer"
             >
               Sign up
             </a>
