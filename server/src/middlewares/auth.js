@@ -45,14 +45,12 @@ export const authOTP = (req, res, next) => {
         const token = header.split(" ")[1];
     
         // verify token
-        jwt.verify(token, config.JWT_SECRET, async (err, decoded) => {
+        jwt.verify(token, config.JWT_REGISTER, async (err, decoded) => {
             if (err) {
                 return res.status(400).json({message: "Expired or invalid token"});
             }
-            
-            const email = decoded.email;
-    
-            req.email= email;
+
+            req.email= decoded.email;
             next();
         });
     } catch (error) {

@@ -24,62 +24,6 @@ const genRefreshToken = (user) => {
   );
 };
 
-// reuse for forgot password
-const generateOTP = async (email) => {
-    try {
-
-        const existsOTP = await OTP.findOne({ email });
-
-        if (existsOTP) {
-
-            const timeDiff = (Date.now() - existsOTP.createdAt.getTime()) / 1000 // for avoiding spamming
-
-            if (timeDiff < 60)
-                throw new Error(`Please wait for ${Math.ceil(60 - timeDiff)} second(s) before sending a new OTP request.`);
-
-            await OTP.deleteOne({ email });
-        }
-
-        const randomCode = crypto.randomInt(0, 1000000).toString().padStart(6, "0");
-
-        const newOTP = await OTP.create({ email, otp: randomCode })
-
-        return newOTP;
-
-    } catch (err) {
-        throw new Error("Error occured when trying to generate an OTP");
-    }
-
-}
-
-// reuse for forgot password
-// custom subject and contentHTML
-const sendOTP = async (newOTP, subject, contentHTML) => {
-    try {
-    
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: config.EMAIL_APP,
-                pass: config.PASSWORD_EMAIL_APP,
-            },
-        });
-
-        const mailOptions = {
-            from: `"Your Auctiz" <${config.EMAIL_APP}>`,
-            to: newOTP.email,
-            subject: subject,
-            html: contentHTML,
-        };
-
-        await transporter.sendMail(mailOptions);
-
-    } catch (error) {
-        console.error(error);
-        throw new Error(error.message);
-    }
-}
-
 // only used for register verification 
 export const register = async (req, res) => {
   try {
@@ -149,7 +93,8 @@ export const verifyOTP = async (req, res) => {
 // bypass login for register.....
 export const createUser = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { username, password } = req.body;
+    const { email } = req.email;
 
     // check if user exists
     const existUser = await User.findOne({ username });
@@ -516,9 +461,9 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    const { newPassword } = req.body;
 
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email: req.email });
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
