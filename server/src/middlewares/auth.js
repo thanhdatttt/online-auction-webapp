@@ -7,7 +7,7 @@ export const auth = (req, res, next) => {
         // get header
         const header = req.headers.authorization;
         if (!header) {
-            return res.status(400).json({message: "No token provided"});
+            return res.status(401).json({message: "No token provided"});
         }
     
         // get token
@@ -16,12 +16,12 @@ export const auth = (req, res, next) => {
         // verify token
         jwt.verify(token, config.JWT_SECRET, async (err, decoded) => {
             if (err) {
-                return res.status(400).json({message: "Expired or invalid token"});
+                return res.status(403).json({message: "Expired or invalid token"});
             }
             
-            const user =  await User.findById(decoded.id).select("-hashedPassword");
+            const user =  await User.findById(decoded.id).select("-passwordHash -refreshToken");
             if (!user) {
-                return res.status(400).json({message: "User not found"});
+                return res.status(404).json({message: "User not found"});
             }
     
             req.user = user;
@@ -29,7 +29,7 @@ export const auth = (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
-        return res.status(400).json({message: 'System error when JWT authenticating'});
+        return res.status(500).json({message: 'System error when JWT authenticating'});
     }
 }
 

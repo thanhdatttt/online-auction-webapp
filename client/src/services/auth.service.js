@@ -28,6 +28,7 @@ export const authService = {
       throw err;
     }
   },
+
   verify_otp: async (data) => {
     try {
       const res = await api.post("/auth/verify-otp", data);
@@ -36,6 +37,7 @@ export const authService = {
       throw err;
     }
   },
+
   create_user: async (data, registerToken) => {
     try {
       const res = await api.post("/auth/create-user", data, {
@@ -48,6 +50,7 @@ export const authService = {
       throw err;
     }
   },
+
   continue_with_google: async () => {
     try {
       const res = await api.get("/auth/google/url");
@@ -62,4 +65,13 @@ export const authService = {
       throw err;
     }
   },
+
+  fetchMe: async () => {
+    try {
+      const res = await api.get("/users/me", {withCredentials: true});
+      return res.data.user;
+    } catch (err) {
+      throw err;
+    }
+  }
 };

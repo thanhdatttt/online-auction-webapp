@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuthStore } from "../stores/useAuth.store.js";
-import { effect } from "zod/v3";
 
 const AuthSuccessPage = () => {
   const navigate = useNavigate();

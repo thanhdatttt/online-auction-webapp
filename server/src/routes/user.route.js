@@ -1,8 +1,8 @@
 import express from "express";
-import { authMe } from "../controllers/user.controller.js";
+import { getMe } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
-router.get("/me", authMe);
+router.get("/me", getMe);
 
 export default router;

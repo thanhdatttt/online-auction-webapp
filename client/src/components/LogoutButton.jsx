@@ -10,12 +10,12 @@ const Logout = () => {
             await logout();
             navigate("/signin");
         } catch (err) {
-            console.log(err);;
+            throw err;
         }
     }
 
     return (
-        <button onClick={handleLogout} className="text-black text-3xl bg-blue-500 rounded-2xl">
+        <button onClick={handleLogout} className="text-black text-2xl bg-primary rounded-2xl">
             Logout
         </button>
     );

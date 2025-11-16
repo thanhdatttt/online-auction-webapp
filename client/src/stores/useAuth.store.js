@@ -22,8 +22,11 @@ export const useAuthStore = create((set, get) => ({
 
       // call login api
       const data = await authService.login({ username, password, captcha });
-      set({ user: data.user });
       set({ accessToken: data.accessToken });
+      console.log(data);
+
+      // fetch user
+      await get().fetchMe();
     } catch (err) {
       throw err;
     } finally {
@@ -57,6 +60,7 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
   verify_otp: async (otp) => {
     try {
       set({ loading: true });
@@ -77,6 +81,7 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
   create_user: async (username, password, firstName, lastName, address) => {
     try {
       set({ loading: true });
@@ -108,8 +113,10 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
   continue_with_google: async () => {
     try {
+      set({loading: true});
       await authService.continue_with_google();
     } catch (err) {
       throw err;
@@ -117,4 +124,19 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+  fetchMe: async () => {
+    try {
+      set({loading: true});
+
+      const user = await authService.fetchMe();
+      set({user: user});
+      console.log(user);
+    } catch (err) {
+      set({user: null, accessToken: null});
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  }
 }));

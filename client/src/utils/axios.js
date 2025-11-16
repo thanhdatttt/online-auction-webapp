@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "../stores/useAuth.store.js";
 
 // set up for calling apis
 const api = axios.create({
@@ -8,25 +9,17 @@ const api = axios.create({
       ? "http://localhost:5000/api"
       : "/api",
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
-// api.interceptors.request.use(
-//   (config) => {
-//     const accessToken = useAuthStore.getState().accessToken;
+api.interceptors.request.use(
+  (config) => {
+    const {accessToken} = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
 
-//     if (accessToken) {
-//       config.headers.Authorization = `Bearer ${accessToken}`;
-//     }
-
-//     return config;
-//   },
-
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+    return config;
+  }
+);
 
 export default api;

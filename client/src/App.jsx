@@ -6,10 +6,10 @@ import {
 } from "react-router-dom";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
-import NotFoundPage from "./pages/NotFoundPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 function App() {
   return (
@@ -26,10 +26,8 @@ function App() {
 
           <Route element={<ProtectedRoute/>}>
             <Route path="/home" element={<HomePage />}/>
+            <Route path="/profile" element={<ProfilePage />}/>
           </Route>
-
-        {/* Not found*/}
-        {/* <Route path="*" element={<NotFoundPage />} /> */}
       </Routes>
     </Router>
   );
