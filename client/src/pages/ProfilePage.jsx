@@ -1,12 +1,10 @@
-import { useAuthStore } from "../stores/useAuth.store.js";
+import ProfileLayout from "../components/Profile/ProfileLayout.jsx";
 
 const ProfilePage = () => {
-  const user = useAuthStore((state) => state.user);
-
   return (
-    <div>
-      {user?.username}
-    </div>
+    <>
+      <ProfileLayout></ProfileLayout>
+    </>
   );
 };
 

@@ -2,7 +2,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { useAuthStore } from "../stores/useAuth.store.js";
+import { useAuthStore } from "../../stores/useAuth.store.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";

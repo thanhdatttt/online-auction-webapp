@@ -1,4 +1,4 @@
-import SignUpForm from "../components/SignUpForm.jsx";
+import SignUpForm from "../components/Login/SignUpForm.jsx";
 import { Toaster, toast } from "sonner";
 const SignUpPage = () => {
   return (

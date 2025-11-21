@@ -6,12 +6,12 @@ export const getMe = async (req, res) => {
     const user = req.user;
 
     if (!user) {
-        return res.status(404).json({message: "User not found"});
+      return res.status(404).json({message: "User not found"});
     }
 
     return res.status(200).json({user});
   } catch (err) {
-    res.status(500).json({message: "System error"});
+    res.status(500).json({message: err.message});
   }
 }
 
@@ -24,19 +24,19 @@ export const changeEmail = async (req, res) => {
     // find user
     const user = await User.findById(id);
     if (!user) {
-        return res.status(404).json({message: "User not found"});
+      return res.status(404).json({message: "User not found"});
     }
 
     // check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-        return res.status(401).json({ message: "Password does not match" });
+      return res.status(401).json({ message: "Password does not match" });
     }
 
     // check existing email
     const existEmail = await User.findOne({email: newEmail});
     if (existEmail) {
-        return res.status(400).json({message: "Email have been used"});
+      return res.status(400).json({message: "Email have been used"});
     }
 
     // update email
@@ -44,11 +44,11 @@ export const changeEmail = async (req, res) => {
     await user.save();
 
     return res.status(200).json({
-        message: "Change email successfully",
-        email: user.email
+      message: "Change email successfully",
+      email: user.email
     });
   } catch (err) {
-    res.status(500).json({message: "System error"});
+    res.status(500).json({message: err.message});
   }
 }
 
@@ -61,7 +61,7 @@ export const changeName = async (req, res) => {
     // find user
     const user = await User.findById(id);
     if (!user) {
-        return res.status(404).json({message: "User not found"});
+      return res.status(404).json({message: "User not found"});
     }
 
     // update full name
@@ -70,12 +70,12 @@ export const changeName = async (req, res) => {
     await user.save();
 
     return res.status(200).json({
-        message: "Change name successfully",
-        firstName: user.firstName,
-        lastName: user.lastName
+      message: "Change name successfully",
+      firstName: user.firstName,
+      lastName: user.lastName
     });
   } catch (err) {
-    res.status(500).json({message: "System error"});
+    res.status(500).json({message: err.message});
   }
 }
 
@@ -88,7 +88,7 @@ export const changeAddress = async (req, res) => {
     // find user
     const user = await User.findById(id);
     if (!user) {
-        return res.status(404).json({message: "User not found"});
+      return res.status(404).json({message: "User not found"});
     }
 
     // update address
@@ -100,7 +100,7 @@ export const changeAddress = async (req, res) => {
       address: user.address
     });
   } catch (err) {
-    res.status(500).json({message: "System error"});
+    res.status(500).json({message: err.message});
   }
 }
 
@@ -113,7 +113,7 @@ export const changeBirth = async (req, res) => {
     // find user
     const user = await User.findById(id);
     if (!user) {
-        return res.status(404).json({message: "User not found"});
+      return res.status(404).json({message: "User not found"});
     }
 
     // check format date
@@ -130,6 +130,32 @@ export const changeBirth = async (req, res) => {
       birth: user.birth
     });
   } catch (err) {
-    res.status(500).json({message: "System error"});
+    res.status(500).json({message: err.message});
+  }
+}
+
+// change password
+export const changePassword = async (req, res) => {
+  try{
+      const { oldPassword, newPassword } = req.body;
+
+      // find user
+      const user = await User.findById(req.user._id).select('+passwordHash');
+      if (!user) {
+        return res.status(404).json({message: "User not found"});
+      }
+  
+      // check password
+      if (!(await user.comparePassword(oldPassword))) {
+          return res.status(401).json({ message: 'Your old password is not matched.' });
+      }
+  
+      // Save new password
+      user.passwordHash = newPassword;
+      await user.save();
+  
+      return res.status(200).json({ message: 'Password changed successfully.' });
+  } catch(err) {
+      res.status(500).json({ message: err.message });
   }
 }
