@@ -7,7 +7,7 @@ const ProfilePage = () => {
     <div>
       {user?.username}
     </div>
-  )
+  );
 };
 
 export default ProfilePage;

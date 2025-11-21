@@ -452,6 +452,7 @@ export const facebookCallback = async (req, res) => {
   }
 };
 
+// manage password
 export const changePassword = async (req, res) => {
     try{
         const { oldPassword, newPassword } = req.body;
@@ -466,7 +467,7 @@ export const changePassword = async (req, res) => {
         user.passwordHash = newPassword;
         await user.save();
     
-        res.status(200).json({ message: 'Password changed successfully.' });
+        return res.status(200).json({ message: 'Password changed successfully.' });
     } catch(e) {
         res.status(500).json({ message: e.message });
     }

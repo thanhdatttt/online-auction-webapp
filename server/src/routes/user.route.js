@@ -1,8 +1,12 @@
 import express from "express";
-import { getMe } from "../controllers/user.controller.js";
+import { getMe, changeEmail, changeName, changeAddress, changeBirth } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 router.get("/me", getMe);
+router.patch("/me/email", changeEmail);
+router.patch("/me/fullname", changeName);
+router.patch("/me/address", changeAddress);
+router.patch("/me/birth", changeBirth);
 
 export default router;
