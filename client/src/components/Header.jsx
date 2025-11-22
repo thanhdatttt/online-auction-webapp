@@ -42,7 +42,7 @@ const Header = () => {
   }
 
   return (
-    <header className="w-full bg-dark px-4 md:px-8 py-4 flex items-center justify-between relative">
+    <header className="w-full bg-dark px-4 md:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
       {/* logo */}
       <div className="text-lighter text-3xl md:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
         Auctiz
@@ -63,7 +63,10 @@ const Header = () => {
         {/* buttons */}
         <button className="hover:text-primary transition cursor-pointer">Categories</button>
         <button className="hover:text-primary transition cursor-pointer">Watch List</button>
-        <button onClick={() => navigate("/signin")} className="bg-primary px-8 py-2 rounded-md font-semibold hover:bg-accent hover:text-black transition cursor-pointer">Sign In</button>
+        <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
+                className="bg-primary px-8 py-2 rounded-md font-semibold hover:bg-accent hover:text-black transition cursor-pointer">
+          {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
+        </button>
 
         {/* user */}
         <div className="relative" ref={menuRef}>

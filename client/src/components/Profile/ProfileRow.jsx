@@ -2,24 +2,21 @@ const ProfileRow = ({
   label,
   value,
   description,
-  actionText
+  canChange=false
 }) => {
   return (
-    <div>
-      <p>{label}</p>
+    <div className="py-5">
+      <p className="uppercase text-2xl text-gray-500 mb-4">{label}</p>
 
-      <div>
-        <div>
-          <p>{value}</p>
-          {actionText && (
-            <button>{actionText}</button>
-          )}
-        </div>
+      <div className="flex justify-between items-center">
+        <p className="text-black text-xl font-semibold">{value}</p>
 
         {description && (
-          <p>{description}</p>
+          <p className="text-sm text-gray-500 hidden md:block">{description}</p>
         )}
       </div>
+      
+      {canChange ? <button className="text-primary text-lg mt-4 hover:underline cursor-pointer">Change</button> : ""}
     </div>
   );
 }
