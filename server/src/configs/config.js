@@ -5,6 +5,7 @@ dotenv.config();
 export const config = {
   PORT: process.env.PORT || 5000,
   MONGO_URI: process.env.MONGO_URI || "mongodb://localhost:27017/auctiondb",
+  CLIENT_URL: process.env.CLIENT_URL || "http:/localhost:5000",
   JWT_SECRET:
     process.env.JWT_SECRET ||
     "QDXZLwjpOYSplfPlOi13VjV6XBeexxdzb8Jbhz/tWGoY73Ky//Wtodvf0SKlv5EUqF9mZ7YoGOaz2aszN3uXxw==",
@@ -29,4 +30,7 @@ export const config = {
   FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID,
   FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET,
   FACEBOOK_REDIRECT_URI: process.env.FACEBOOK_REDIRECT_URI,
+
+  SITE_KEY: process.env.SITE_KEY,
+  SECRET_KEY: process.env.SECRET_KEY,
 };

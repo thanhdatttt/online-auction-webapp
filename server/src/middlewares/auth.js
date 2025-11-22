@@ -58,3 +58,9 @@ export const authOTP = (req, res, next) => {
         return res.status(400).json({message: 'System error when JWT authenticating'});
     }
 }
+export const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied: Admins only." });
+  }
+  next();
+};

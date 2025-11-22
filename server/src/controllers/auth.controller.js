@@ -4,8 +4,8 @@ import { OAuth2Client } from "google-auth-library";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
 import OTP from "../models/OTP.js";
-import { generateOTP, sendOTP } from "../utils/otp.service.js";
-
+import { generateOTP, sendOTP } from "../utils/otp.utils.js";
+import { verify_captcha } from "../utils/captcha.utils.js";
 const ACCESS_TOKEN_TTL = "1h";
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
@@ -27,13 +27,27 @@ const genRefreshToken = (user) => {
 // only used for register verification 
 export const register = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, captcha } = req.body;
+
+    if (!captcha)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "Please verify the Captcha" });
+
+    const success = verify_captcha(captcha);
+
+    if (!success)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "OTP verification failed" });
 
     // checking if email exists before sending OTP....
     const existEmail = await User.findOne({ email });
 
     if (existEmail)
-      return res.status(400).json({ message: "Email is already in use." });
+      return res
+        .status(400)
+        .json({ field: "email", error: "Email is already in use." });
 
     // set up subject and content for sending OTP
 
@@ -56,7 +70,7 @@ export const register = async (req, res) => {
     await sendOTP(generatedOTP, subject, contentHTML);
     res.status(200).json({ message: "Proceed to the verification process" });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -68,43 +82,55 @@ export const verifyOTP = async (req, res) => {
     const existsOTP = await OTP.findOne({ email });
 
     if (!existsOTP || otp !== existsOTP.otp)
-      return res.status(400).json({ message: "Invalid OTP." });
+      return res
+        .status(400)
+        .json({ field: "otp", error: "Your OTP is invalid." });
 
     const isExpired = (Date.now() - existsOTP.createdAt) / 1000 > 300;
 
     if (isExpired)
-      return res.status(400).json({ message: "Your OTP is already expired." });
+      return res.status(400).json({
+        field: "otp",
+        error: "Your OTP is already expired.",
+        status: 402,
+      });
 
     // delete record if verifying successfully.
     await OTP.deleteOne({ email: existsOTP.email });
 
     const token = jwt.sign({ email }, config.JWT_REGISTER, {
-      expiresIn: "15m",
+      expiresIn: "5m",
     });
 
-    res.status(200).json({ message: "Verify OTP successfully.", token });
+    res
+      .status(200)
+      .json({ message: "Verify OTP successfully.", token, status: 200 });
 
     // propagation for creating user
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 // bypass login for register.....
 export const createUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const { email } = req.email;
+    const { username, password, firstName, lastName, address } = req.body;
+    const email = req.email;
 
     // check if user exists
     const existUser = await User.findOne({ username });
     if (existUser) {
-      return res.status(400).json({ message: "Username is already in use." });
+      return res
+        .status(400)
+        .json({ field: "username", error: "Username is already in use." });
     }
-
     const user = await User.create({
       username: username,
       passwordHash: password,
+      firstName: firstName,
+      lastName: lastName,
+      address: address,
       email: email,
     });
 
@@ -128,30 +154,57 @@ export const createUser = async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
         role: user.role,
       },
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err.name === "TokenExpiredError") {
+      return res
+        .status(400)
+        .json({ error: "Your register session is already out of date." });
+    }
+
+    if (err.name === "JsonWebTokenError") {
+      return res
+        .status(400)
+        .json({ error: "Your register session is invalid." });
+    }
+    res.status(400).json({ error: err.message });
   }
 };
 
 // login
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, captcha } = req.body;
+
+    if (!captcha)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "Please verify the Captcha" });
+
+    const success = verify_captcha(captcha);
+
+    if (!success)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "OTP verification failed" });
+
     // check if user exists
     const user = await User.findOne({ username });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ error: "Invalid username or password." });
     }
 
     // check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Password is not matched" });
+      return res.status(400).json({ error: "Invalid username or password." });
     }
-
     // create tokens
     const accessToken = genAccessToken(user);
     const refreshToken = genRefreshToken(user);
@@ -176,7 +229,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -282,7 +335,7 @@ export const googleCallback = async (req, res) => {
         while (await User.findOne({ username: baseUserName })) {
           baseUserName = `${baseUserName}${Math.floor(Math.random() * 1000)}`;
           count++;
-          if (count > 10) break;
+          if (count > 100) break;
         }
 
         // create new user
@@ -309,12 +362,10 @@ export const googleCallback = async (req, res) => {
       sameSite: "strict",
       maxAge: REFRESH_TOKEN_TTL,
     });
-    res.status(201).json({
-      message: "Login with Google successfully",
-      accessToken,
-      refreshToken,
-      user,
-    });
+
+    // redirect back with token
+    const redirectUrl = `${config.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
+    return res.redirect(redirectUrl);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
