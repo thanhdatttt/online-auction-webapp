@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const imageSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+        },
+    }
+);
+
 const productSchema = new mongoose.Schema(
     {
         seller_id: {
@@ -23,9 +32,12 @@ const productSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        images: {
+            type: [imageSchema],
+            required: true,
+        },
         main_image_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'ProductImage',
             required: true,
         },
     },
