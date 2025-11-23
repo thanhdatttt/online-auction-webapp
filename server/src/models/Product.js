@@ -10,7 +10,8 @@ const productSchema = new mongoose.Schema(
         category_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
-            required: true,
+            // required: true,
+            default: null,
         },
         name: {
             type: String,
@@ -27,53 +28,6 @@ const productSchema = new mongoose.Schema(
             ref: 'ProductImage',
             required: true,
         },
-        status: {
-            type: String,
-            enum: ['draft', 'active', 'closed'],
-            default: 'active',
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
-
-const productImageSchema = new mongoose.Schema(
-    {
-        product_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-            required: true,
-        },
-        image_url: {
-            type: String,
-            default: null,
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
-
-const categorySchema = new mongoose.Schema(
-    {
-        parent_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Category',
-            required: true,
-        },
-        name: {
-            type: String,
-            required: true,
-        },
-        description: {
-            type: String,
-            default: null,
-        },
-        level: {
-            type: Number,
-            required: true
-        },
     },
     {
         timestamps: true,
@@ -81,5 +35,3 @@ const categorySchema = new mongoose.Schema(
 );
 
 export const Product = mongoose.model('Product', productSchema);
-export const ProductImage = mongoose.model('ProductImage', productImageSchema);
-export const Category = mongoose.model('Category', categorySchema);
