@@ -71,8 +71,8 @@ const Header = () => {
         {/* user */}
         <div className="relative" ref={menuRef}>
           {/* user icon */}
-          <div onClick={() => setDropMenu(true)} className="flex items-center justify-center cursor-pointer">
-            {user?.avatar_url ? <img src={user.avatar_url} className="w-10 h-10"></img> : <FaRegCircleUser className="w-10 h-10"/>}
+          <div onClick={() => setDropMenu(!dropMenu)} className="flex items-center justify-center cursor-pointer">
+            {user?.avatar_url ? <img src={user.avatar_url} className="w-10 h-10 rounded-full border-2 border-gray-500"></img> : <FaRegCircleUser className="w-10 h-10"/>}
           </div>
 
           {/* dropdown menu */}

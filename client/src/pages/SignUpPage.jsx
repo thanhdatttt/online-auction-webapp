@@ -4,7 +4,7 @@ const SignUpPage = () => {
   return (
     <div className="flex items-center justify-center h-dvh">
       <SignUpForm></SignUpForm>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top" />
     </div>
   );
 };
