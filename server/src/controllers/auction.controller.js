@@ -12,7 +12,6 @@ export const createAuction = async (req, res) => {
     }));
 
     const product = {
-      sellerId: sellerId,
       name: name,
       description: description,
       images: images,
