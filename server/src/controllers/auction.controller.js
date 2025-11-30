@@ -1,36 +1,32 @@
 import Auction from "../models/Auction.js";
-import Product from "../models/Product.js"
 import mongoose from "mongoose";
 
 export const createAuction = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const sellerId = req.user.id; 
     const { name, description, imageUrls, mainImageId = null } = req.body;
 
     const images = imageUrls.map(url => ({
+      _id: new mongoose.Types.ObjectId(),
       url: url,
     }));
 
-    const product = new Product ({
+    const product = {
       sellerId: sellerId,
       name: name,
       description: description,
       images: images,
-    });
+      mainImageId: mainImageId,
+    };
     
     if (!mainImageId && images.length > 0){
       product.mainImageId = product.images[0]._id;
     }
-    
-    const savedProduct = await product.save({ session });
 
     const { startPrice, buyNowPrice = null, gapPrice, startTime, endTime } = req.body
     
     const auction = new Auction({
-      productId: savedProduct._id,
+      product: product,
       sellerId: sellerId,
       startPrice: startPrice,
       buyNowPrice: buyNowPrice,
@@ -39,10 +35,7 @@ export const createAuction = async (req, res) => {
       endTime: endTime,
     });
     
-    await auction.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
+    await auction.save();
 
     res.status(201).json({
       message: "Auction created successfully",
@@ -51,9 +44,6 @@ export const createAuction = async (req, res) => {
     });
 
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    
     res.status(500).json({ message: "Auction created failed", error: error.message });
   }
 };
