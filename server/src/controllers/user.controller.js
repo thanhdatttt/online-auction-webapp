@@ -18,19 +18,13 @@ export const getMe = async (req, res) => {
 // change email
 export const changeEmail = async (req, res) => {
   try {
-    const id = req.user._id;
-    const {newEmail, password} = req.body;
+    const id = req.user.id;
+    const {newEmail} = req.body;
 
     // find user
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({message: "User not found"});
-    }
-
-    // check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Password does not match" });
     }
 
     // check existing email
@@ -48,6 +42,7 @@ export const changeEmail = async (req, res) => {
       email: user.email
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({message: err.message});
   }
 }
@@ -55,7 +50,7 @@ export const changeEmail = async (req, res) => {
 // change fullname
 export const changeName = async (req, res) => {
   try {
-    const id = req.user._id;
+    const id = req.user.id;
     const {newFirstName, newLastName} = req.body;
 
     // find user
@@ -65,8 +60,10 @@ export const changeName = async (req, res) => {
     }
 
     // update full name
-    user.firstName = newFirstName.trim();
-    user.lastName = newLastName.trim();
+    if (newFirstName)
+      user.firstName = newFirstName.trim();
+    if (newLastName)
+      user.lastName = newLastName.trim();
     await user.save();
 
     return res.status(200).json({
@@ -82,7 +79,7 @@ export const changeName = async (req, res) => {
 // change address
 export const changeAddress = async (req, res) => {
   try {
-    const id = req.user._id;
+    const id = req.user.id;
     const {newAddress} = req.body;
 
     // find user
@@ -107,7 +104,7 @@ export const changeAddress = async (req, res) => {
 // change birthdate
 export const changeBirth = async (req, res) => {
   try {
-    const id = req.user._id;
+    const id = req.user.id;
     const {newBirth} = req.body;
 
     // find user
@@ -134,20 +131,38 @@ export const changeBirth = async (req, res) => {
   }
 }
 
+// change avatar
+export const changeAvatar = async (req, res) => {
+  try {
+    const id = req.user.id;
+    const {newAvatar_url} = req.body;
+
+    // find user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({message: "User not found"});
+    }
+
+    
+  } catch (err) {
+    res.status(500).json({message: err.message});
+  }
+}
+
 // change password
 export const changePassword = async (req, res) => {
   try{
       const { oldPassword, newPassword } = req.body;
 
       // find user
-      const user = await User.findById(req.user._id).select('+passwordHash');
+      const user = await User.findById(req.user.id).select('+passwordHash');
       if (!user) {
         return res.status(404).json({message: "User not found"});
       }
   
       // check password
       if (!(await user.comparePassword(oldPassword))) {
-          return res.status(401).json({ message: 'Your old password is not matched.' });
+          return res.status(400).json({ message: 'Your old password is not matched.' });
       }
   
       // Save new password

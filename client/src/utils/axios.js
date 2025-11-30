@@ -39,7 +39,8 @@ api.interceptors.response.use((res) => res, async (error) => {
   }
 
   // apis need to check token is expired or invalid
-  if (error.response.status === 400) {
+  if (error.response.status === 401 && !originRequest._retry) {
+    originRequest._retry = true;
     try {
       // get token by refresh and store in state
       const res = await api.post("/auth/refresh");

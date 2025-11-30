@@ -74,7 +74,6 @@ const ProfileSection = () => {
 
         <ProfileRow
           label="Password"
-          value="********"
           canChange={true}
           onChangeClick={() => handleChange("password")}
         />
