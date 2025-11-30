@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema(
     {
-        parent_id: {
+        parentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
             required: true,

@@ -11,12 +11,12 @@ const imageSchema = new mongoose.Schema(
 
 const productSchema = new mongoose.Schema(
     {
-        seller_id: {
+        sellerId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
         },
-        category_id: {
+        categoryId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
             // required: true,
@@ -36,7 +36,7 @@ const productSchema = new mongoose.Schema(
             type: [imageSchema],
             required: true,
         },
-        main_image_id: {
+        mainImageId: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
         },
@@ -46,4 +46,4 @@ const productSchema = new mongoose.Schema(
     }
 );
 
-export const Product = mongoose.model('Product', productSchema);
+export default mongoose.model('Product', productSchema);
