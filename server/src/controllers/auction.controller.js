@@ -215,7 +215,7 @@ export const addComment = async (req, res) => {
     const seller = await User.findById(auction.sellerId);
     if (seller && seller.email) {
       const link = `https://localhost:5173/auction/${auctionId}`;
-      await sendEmail(
+      sendEmail(
         seller.email,
         "New comment on your auction",
         `<p>You have a new comment on your auction.</p>
@@ -279,7 +279,7 @@ export const answerComment = async (req, res) => {
     const commenter = await User.findById(comment.userId);
     if (commenter && commenter.email) {
       const link = `https://localhost:5173/auction/${auctionId}`;
-      await sendEmail(
+      sendEmail(
         commenter.email,
         "Your comment has been answered",
         `<p>Your comment: "${comment.question}" has been answered.</p>

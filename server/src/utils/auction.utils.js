@@ -45,7 +45,7 @@ export const sendEmail = async (to, subject, contentHTML) => {
       },
     });
 
-    await transporter.sendMail({
+    transporter.sendMail({
       from: `"Your Auctiz" <${config.EMAIL_APP}>`,
       to,
       subject,
