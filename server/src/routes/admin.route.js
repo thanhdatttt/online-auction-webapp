@@ -1,14 +1,15 @@
 import express from "express";
 import { adminOnly } from "../middlewares/auth.js";
-import { approveRoleRequest, denyRoleRequest, getRoleRequest, promoteAdmin, getUsers, demoteSeller } from "../controllers/admin.controller.js";
+import { approveRoleRequest, denyRoleRequest, getRoleRequest, promoteAdmin, getUsers, demoteSeller, deleteUser } from "../controllers/admin.controller.js";
 
 const router = express.Router();
 
-router.put("/requestRole/approve/:requestId", adminOnly, approveRoleRequest);
-router.put("/requestRole/deny/:requestId", adminOnly, denyRoleRequest);
-router.put("/promote/:userId", adminOnly, promoteAdmin);
-router.put("/demote/:userId", adminOnly, demoteSeller);
+router.post("/requestRole/approve/:requestId", adminOnly, approveRoleRequest);
+router.post("/requestRole/deny/:requestId", adminOnly, denyRoleRequest);
+router.post("/promote/:userId", adminOnly, promoteAdmin);
+router.post("/demote/:userId", adminOnly, demoteSeller);
 router.get("/users", adminOnly, getUsers);
 router.get("/requestRole", adminOnly, getRoleRequest);
+router.post("/users/delete/:userId", adminOnly, deleteUser);
 
 export default router;

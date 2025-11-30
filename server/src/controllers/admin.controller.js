@@ -1,6 +1,36 @@
 import RoleRequest from "../models/RoleRequest.js";
 import User from "../models/User.js";
 
+export const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ message: "Missing userId" });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        await User.findByIdAndDelete(userId);
+
+        return res.status(200).json({
+            message: "User deleted successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role
+            }
+        });
+        
+    } catch (error) {
+        return res.status(400).json({message: error.message});
+    }
+}
+
 export const getUsers = async (req, res) => {
     try {
         const {username, page = 1} = req.query;
