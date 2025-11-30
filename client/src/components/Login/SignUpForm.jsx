@@ -5,10 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useAuthStore } from "../stores/useAuth.store.js";
+import { useAuthStore } from "../../stores/useAuth.store.js";
 import { Controller } from "react-hook-form";
+import { regex } from "../../utils/regex.js";
+import ReCAPTCHA from "react-google-recaptcha";
 import OtpInput from "react-otp-input";
+
 // create schemas for validating each steps
 const step1Schema = z.object({
   email: z.string().min(1, "Email is required").email("Email is not valid"),
@@ -21,10 +23,10 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   otp: z
     .string()
+    .nonempty("OTP is empty")
     .min(1, "OTP is required")
-    .min(6, "OTP must be 6 numbers")
-    .max(6, "OTP phải be 6 numbers")
-    .regex(/^\d+$/, "OTP only contains numbers"),
+    .max(6, "OTP must be 6 numbers")
+    .regex(regex.otp, "OTP only contains numbers"),
 });
 
 const step3Schema = z
@@ -36,10 +38,43 @@ const step3Schema = z
     password: z
       .string()
       .min(1, "Password is required")
-      .min(6, "Password must be at least 6 characters"),
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    address: z.string().min(1, "Address is required"),
+      .min(8, "Password must be at least 8 characters")
+      .regex(
+        regex.password,
+        "Password must contain uppercase, lowercase, numbers and special characters"
+      ),
+    firstName: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/\s+/g, " "))
+      .refine((v) => !v || v.length >= 2, {
+        message: "First name must be at least 2 characters",
+      })
+      .refine((v) => !v || v.length <= 150, {
+        message: "First name must be under 150 characters",
+      })
+      .refine((v) => !v || regex.name.test(v), {
+        message: "Only characters, ' and - are allowed",
+      }), 
+    lastName: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/\s+/g, " "))
+      .refine((v) => !v || v.length >= 2, {
+        message: "Last name must be at least 2 characters",
+      })
+      .refine((v) => !v || v.length <= 150, {
+        message: "Last name must be under 150 characters",
+      })
+      .refine((v) => !v || regex.name.test(v), {
+        message: "Only characters, ' and - are allowed",
+      }), 
+    address: z
+      .string()
+      .min(1, "Address is required")
+      .max(150, "Address must be under 150 characters")
+      .regex(regex.address, "Address is invalid")
+      .transform((val) => val.replace(/\s+/g, " ")),
     confirmPassword: z.string().min(1, "Confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -55,10 +90,7 @@ const SignUpForm = () => {
   const [step, setStep] = useState(1);
 
   // set up
-  const { signup, verify_otp, create_user, continue_with_google } =
-    useAuthStore();
-
-  // store the form data for propagation
+  const { signup, verify_otp, create_user, continue_with_google } = useAuthStore();
 
   // update step state
   const nextStep = () => {

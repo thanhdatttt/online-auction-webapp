@@ -1,10 +1,10 @@
-import React from 'react'
-import Logout from '../components/Logout.jsx';
+import Header from '../components/Header.jsx';
 
 const HomePage = () => {
+
     return (
         <div>
-            <Logout></Logout>
+            <Header></Header>
         </div>
     );
 }

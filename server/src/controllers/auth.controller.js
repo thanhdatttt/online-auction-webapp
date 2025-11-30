@@ -79,6 +79,10 @@ export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
+    if (!otp) {
+      return res.status(400).json({field: "otp", error: "OTP is empty"});
+    }
+
     const existsOTP = await OTP.findOne({ email });
 
     if (!existsOTP || otp !== existsOTP.otp)
@@ -181,17 +185,17 @@ export const login = async (req, res) => {
   try {
     const { username, password, captcha } = req.body;
 
-    if (!captcha)
-      return res
-        .status(400)
-        .json({ field: "captcha", error: "Please verify the Captcha" });
+    // if (!captcha)
+    //   return res
+    //     .status(400)
+    //     .json({ field: "captcha", error: "Please verify the Captcha" });
 
-    const success = verify_captcha(captcha);
+    // const success = verify_captcha(captcha);
 
-    if (!success)
-      return res
-        .status(400)
-        .json({ field: "captcha", error: "OTP verification failed" });
+    // if (!success)
+    //   return res
+    //     .status(400)
+    //     .json({ field: "captcha", error: "OTP verification failed" });
 
     // check if user exists
     const user = await User.findOne({ username });
@@ -452,25 +456,7 @@ export const facebookCallback = async (req, res) => {
   }
 };
 
-export const changePassword = async (req, res) => {
-    try{
-        const { oldPassword, newPassword } = req.body;
-    
-        const user = await User.findById(req.user.id).select('+passwordHash');
-    
-        if (!(await user.comparePassword(oldPassword))) {
-            return res.status(401).json({ message: 'Your old password is not matched.' });
-        }
-    
-        // Save new password
-        user.passwordHash = newPassword;
-        await user.save();
-    
-        res.status(200).json({ message: 'Password changed successfully.' });
-    } catch(e) {
-        res.status(500).json({ message: e.message });
-    }
-};
+// manage password
 
 export const forgotPassword = async (req, res) => {
   try {

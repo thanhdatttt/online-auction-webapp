@@ -16,6 +16,7 @@
     "Buffer": "^0.0.0",
     "flowbite": "^4.0.0",
     "flowbite-react": "^0.12.10",
+    "lucide-react": "^0.555.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-google-recaptcha": "^3.1.0",
