@@ -24,12 +24,12 @@ export const useAuthStore = create((set, get) => ({
       // call login api
       const data = await authService.login({ username, password, captcha });
       set({ accessToken: data.accessToken });
-      console.log(data);
 
       // fetch user
       await get().fetchMe();
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       // finish loading user login
       set({ loading: false });
@@ -42,6 +42,7 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.logout();
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -56,6 +57,7 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.signup({ email, captcha });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       // finish loading user login
       set({ loading: false });
@@ -78,6 +80,7 @@ export const useAuthStore = create((set, get) => ({
       set({ registerToken: data.token });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -110,6 +113,7 @@ export const useAuthStore = create((set, get) => ({
       });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -121,6 +125,7 @@ export const useAuthStore = create((set, get) => ({
       await authService.continue_with_google();
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -136,6 +141,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       set({ user: null, accessToken: null });
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -155,10 +161,9 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       get().clearState();
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
   },
-
-  // users info apis
 }));

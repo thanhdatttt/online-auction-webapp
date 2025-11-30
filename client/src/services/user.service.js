@@ -1,6 +1,6 @@
 import api from "../utils/axios.js";
 
-// get user info api
+// update user info api
 export const userService =  {
   changeEmail: async (data) => {
     try {
@@ -8,6 +8,7 @@ export const userService =  {
       return res.data;
       } catch (err) {
         console.log(err);
+        throw err;
     }
   },
 
@@ -17,6 +18,7 @@ export const userService =  {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -26,6 +28,27 @@ export const userService =  {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
+
+  changeBirth: async (data) => {
+    try {
+      const res = await api.patch("/users/me/birth", data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  changePassword: async (data) => {
+    try {
+      const res = await api.patch("/users/me/password", data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
 };

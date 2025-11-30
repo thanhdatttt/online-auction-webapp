@@ -1,7 +1,7 @@
 import express from "express";
 import { register, login, logout, refreshToken, verifyOTP, createUser, getGoogleUrl, googleCallback, getFacebookUrl, facebookCallback } from "../controllers/auth.controller.js";
-import { changePassword, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
-import { auth, authOTP } from "../middlewares/auth.js";
+import { forgotPassword, resetPassword } from "../controllers/auth.controller.js";
+import { authOTP } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -14,7 +14,6 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.post("/refresh", refreshToken);
 
-router.patch("/change-password", auth, changePassword);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", authOTP, resetPassword);
 
