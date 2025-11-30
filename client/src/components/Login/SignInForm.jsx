@@ -2,7 +2,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { useAuthStore } from "../stores/useAuth.store.js";
+import { useAuthStore } from "../../stores/useAuth.store.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
@@ -39,8 +39,6 @@ const SignInForm = () => {
     control,
     clearErrors,
     watch,
-    setValue,
-    getValues,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(signInSchema),
@@ -59,7 +57,6 @@ const SignInForm = () => {
     console.log(data);
     // backend
     try {
-      console.log(data);
       await login(data);
       navigate("/home");
     } catch (err) {
@@ -74,24 +71,10 @@ const SignInForm = () => {
           type: "backend",
           message: err.response?.data?.error,
         });
+        console.log(err.response);
       }
     }
   };
-
-  const handleRoot = () => {
-    if (errors.root) {
-      clearErrors("root");
-    }
-  };
-
-  const handleGoogle = async () => {
-    try {
-      await continue_with_google();
-      navigate("/home");
-    } catch (err) {
-
-    }
-  }
 
   return (
     <div className="bg-dark flex overflow-hidden rounded-2xl shadow-2xl">

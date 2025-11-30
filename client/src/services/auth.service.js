@@ -1,13 +1,13 @@
 import api from "../utils/axios.js";
 
-// auth apis
+// get auth apis
 export const authService = {
   login: async (data) => {
     try {
       const res = await api.post("/auth/login", data);
       return res.data;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
 
@@ -16,7 +16,7 @@ export const authService = {
       const res = await api.post("/auth/logout", {}, { withCredentials: true });
       return res.data;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
 
@@ -25,17 +25,19 @@ export const authService = {
       const res = await api.post("/auth/register", data);
       return res.data;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
+
   verify_otp: async (data) => {
     try {
       const res = await api.post("/auth/verify-otp", data);
       return res.data;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
+
   create_user: async (data, registerToken) => {
     try {
       const res = await api.post("/auth/create-user", data, {
@@ -45,9 +47,10 @@ export const authService = {
       });
       return res.data;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
+
   continue_with_google: async () => {
     try {
       const res = await api.get("/auth/google/url");
@@ -59,7 +62,27 @@ export const authService = {
         throw new Error("Something went wrong. Can not get Google URL.");
       }
     } catch (err) {
-      throw err;
+      console.log(err);
+    }
+  },
+
+  fetchMe: async () => {
+    try {
+      const res = await api.get("/users/me", {withCredentials: true});
+      return res.data.user;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  refresh: async () => {
+    try {
+      // remember to add credential for sending cookies
+      const res = await api.post("/auth/refresh");
+      console.log(res.data.accessToken);
+      return res.data.accessToken;
+    } catch(err) {
+      console.log(err);
     }
   },
 };

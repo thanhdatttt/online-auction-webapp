@@ -12,7 +12,7 @@ router.post("/create-user", authOTP, createUser);
 router.post("/verify-otp", verifyOTP);
 router.post("/login", login);
 router.post("/logout", logout);
-router.post("/refresh-token", refreshToken);
+router.post("/refresh", refreshToken);
 
 router.patch("/change-password", auth, changePassword);
 router.post("/forgot-password", forgotPassword);

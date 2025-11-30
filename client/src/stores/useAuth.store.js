@@ -15,6 +15,7 @@ export const useAuthStore = create((set, get) => ({
   setUser: (user) => set({ user: user }),
 
   // call apis
+  // auth apis
   login: async ({ username, password, captcha }) => {
     try {
       // loading user login
@@ -22,11 +23,13 @@ export const useAuthStore = create((set, get) => ({
 
       // call login api
       const data = await authService.login({ username, password, captcha });
-      set({ user: data.user });
       set({ accessToken: data.accessToken });
-      console.log(data.accessToken);
+      console.log(data);
+
+      // fetch user
+      await get().fetchMe();
     } catch (err) {
-      throw err;
+      console.log(err);
     } finally {
       // finish loading user login
       set({ loading: false });
@@ -38,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
       get().clearState();
       const data = await authService.logout();
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
 
@@ -52,12 +55,13 @@ export const useAuthStore = create((set, get) => ({
       // call register api
       const data = await authService.signup({ email, captcha });
     } catch (err) {
-      throw err;
+      console.log(err);
     } finally {
       // finish loading user login
       set({ loading: false });
     }
   },
+
   verify_otp: async (otp) => {
     try {
       set({ loading: true });
@@ -73,11 +77,12 @@ export const useAuthStore = create((set, get) => ({
       // store for step 3
       set({ registerToken: data.token });
     } catch (err) {
-      throw err;
+      console.log(err);
     } finally {
       set({ loading: false });
     }
   },
+
   create_user: async (username, password, firstName, lastName, address) => {
     try {
       set({ loading: true });
@@ -104,18 +109,56 @@ export const useAuthStore = create((set, get) => ({
         registeredEmail: null,
       });
     } catch (err) {
-      throw err;
+      console.log(err);
     } finally {
       set({ loading: false });
     }
   },
+
   continue_with_google: async () => {
     try {
+      set({ loading: true });
       await authService.continue_with_google();
     } catch (err) {
-      throw err;
+      console.log(err);
     } finally {
       set({ loading: false });
     }
   },
+
+  fetchMe: async () => {
+    try {
+      set({ loading: true });
+
+      const user = await authService.fetchMe();
+      set({ user: user });
+      console.log(user);
+    } catch (err) {
+      set({ user: null, accessToken: null });
+      console.log(err);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  refresh: async () => {
+    try {
+      set({ loading: true });
+      const { user, fetchMe } = get();
+      const accessToken = await authService.refresh();
+
+      set({ accessToken: accessToken });
+
+      if (!user) {
+        await fetchMe();
+      }
+    } catch (err) {
+      get().clearState();
+      console.log(err);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // users info apis
 }));

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import ReCAPTCHA from "react-google-recaptcha";
-import { useAuthStore } from "../stores/useAuth.store.js";
+import { useAuthStore } from "../../stores/useAuth.store.js";
 import { Controller } from "react-hook-form";
 import OtpInput from "react-otp-input";
 // create schemas for validating each steps
