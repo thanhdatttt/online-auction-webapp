@@ -1,10 +1,47 @@
 import mongoose from "mongoose";
 
+const imageSchema = new mongoose.Schema(
+    {
+        url: {
+            type: String,
+            required: true,
+        },
+    }
+);
+
+const productSchema = new mongoose.Schema(
+    {
+        categoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
+            // required: true,
+            default: null,
+        },
+        name: {
+            type: String,
+            required: true,
+            maxlength: 150,
+            trim: true,
+        },
+        description: {
+            type: String,
+            trim: true,
+        },
+        images: {
+            type: [imageSchema],
+            required: true,
+        },
+        mainImageId: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+        },
+    }
+);
+
 const auctionSchema = new mongoose.Schema({
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
+  product: {
+    type: productSchema,
     required: true,
-    ref: "Product",
   },
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
