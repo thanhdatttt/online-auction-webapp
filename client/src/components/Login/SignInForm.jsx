@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import { Controller } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import Error from "../Error.jsx";
 
 // create schema for validate
 const signInSchema = z.object({
@@ -99,14 +100,10 @@ const SignInForm = () => {
               {...register("username")}
             />
             {errors.username && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.username.message}
-              </div>
+            <Error message={errors.username.message}/>
             )}
             {errors.root && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.root.message}
-              </div>
+            <Error message={errors.root.message}/>
             )}
           </div>
           <div>
@@ -123,9 +120,7 @@ const SignInForm = () => {
               {...register("password")}
             />
             {errors.password && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.password.message}
-              </div>
+            <Error message={errors.password.message}/>
             )}
           </div>
           <div className="text-right mt-1">
@@ -148,9 +143,7 @@ const SignInForm = () => {
               />
               {/* Display errors */}
               {errors.captcha && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
-                  {errors.captcha.message}
-                </div>
+              <Error message={errors.captcha.message}/>
               )}
             </div>
           </div>

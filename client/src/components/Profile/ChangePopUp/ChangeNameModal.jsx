@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { regex } from "../../../utils/regex.js";
 import z from "zod";
+import Error from "../../Error.jsx";
 import ChangeModalLayout from "./ChangeModalLayout.jsx";
 import Divider from "../Divider.jsx";
 
@@ -99,15 +100,11 @@ const ChangeNameModal = ({open, onClose}) => {
 
           {/* form error */}
           {errors.newFirstName && 
-          <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-            {errors.newFirstName.message}
-          </div>
+          <Error message={errors.newFirstName.message}/>
           }
           {/* name error at server */}
           {errors.root &&  
-          <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-            {errors.root.message}
-          </div>
+          <Error message={errors.root.message}/>
           }
         </div>
         <Divider/>
@@ -124,9 +121,7 @@ const ChangeNameModal = ({open, onClose}) => {
 
           {/* form error */}
           {errors.newLastName && 
-          <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-            {errors.newLastName.message}
-          </div>
+          <Error message={errors.newLastName.message}/>
           }
         </div>
       </div>
