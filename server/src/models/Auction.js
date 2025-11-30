@@ -69,11 +69,6 @@ const auctionSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  status: {
-    type: String,
-    enum: ["ongoing", "ended"],
-    default: "ongoing",
-  },
   winnerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

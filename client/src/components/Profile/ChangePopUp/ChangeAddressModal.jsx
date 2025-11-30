@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { regex } from "../../../utils/regex.js";
 import z from "zod";
+import Error from "../../Error.jsx";
 import ChangeModalLayout from "./ChangeModalLayout.jsx";
 import Divider from "../Divider.jsx";
 
@@ -74,15 +75,11 @@ const ChangeAddressModal = ({open, onClose}) => {
         />
         {/* form error */}
         {errors.newAddress && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.newAddress.message}
-        </div>
+        <Error message={errors.newAddress.message}/>
         }
         {/* address error at server */}
         {errors.root &&  
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.root.message}
-        </div>
+        <Error message={errors.root.message}/>
         }
       </div>
       <Divider/>

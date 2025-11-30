@@ -32,4 +32,4 @@ const commentSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("Commnet", commentSchema);
+export default mongoose.model("Comment", commentSchema);

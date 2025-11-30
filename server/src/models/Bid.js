@@ -23,6 +23,11 @@ const bidSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  curWinnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
 export default mongoose.model("Bid", bidSchema);

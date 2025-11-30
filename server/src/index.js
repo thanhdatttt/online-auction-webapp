@@ -48,7 +48,7 @@ app.use("/api/auth", authRoute);
 
 app.use(auth);
 app.use("/api/users", userRoute);
-app.use("/api/auction", auctionRoute);
+app.use("/api/auctions", auctionRoute);
 app.use("/api/bidder", authorize("bidder", "admin"), bidderRoute);
 
 app.use("/api/admin", authorize("admin"), adminRoute);

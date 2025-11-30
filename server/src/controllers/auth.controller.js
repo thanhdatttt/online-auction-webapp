@@ -6,7 +6,7 @@ import User from "../models/User.js";
 import OTP from "../models/OTP.js";
 import { generateOTP, sendOTP } from "../utils/otp.utils.js";
 import { verify_captcha } from "../utils/captcha.utils.js";
-const ACCESS_TOKEN_TTL = "1h";
+const ACCESS_TOKEN_TTL = "1d";
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // generates access and refresh token

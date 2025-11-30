@@ -1,9 +1,15 @@
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import Auction from "../models/Auction.js";
+import Comment from "../models/Comment.js";
+import RejectedBidder from "../models/RejectedBidder.js";
 import AuctionConfig from "../models/AuctionConfig.js";
-import { historyBidding, sendEmail } from "../utils/auction.utils.js";
-
+import {
+  sendAnswerEmail,
+  sendQuestionEmail,
+  sendRejectedBidderEmail,
+} from "../utils/auction.utils.js";
+import mongoose from "mongoose";
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;
@@ -13,6 +19,8 @@ export const createAuction = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       url: url,
     }));
+
+    console.log("HERE");
 
     const product = {
       name: name,
@@ -25,13 +33,7 @@ export const createAuction = async (req, res) => {
       product.mainImageId = product.images[0]._id;
     }
 
-    const {
-      startPrice,
-      buyNowPrice = null,
-      gapPrice,
-      startTime,
-      endTime,
-    } = req.body;
+    const { startPrice, buyNowPrice = null, gapPrice, endTime } = req.body;
 
     const auction = new Auction({
       product: product,
@@ -39,7 +41,6 @@ export const createAuction = async (req, res) => {
       startPrice: startPrice,
       buyNowPrice: buyNowPrice,
       gapPrice: gapPrice,
-      startTime: startTime,
       endTime: endTime,
     });
 
@@ -71,27 +72,47 @@ export const placeBid = async (req, res) => {
 
     const auction = await Auction.findById(auctionId);
 
-    if (!auction) throw new Error("Auction not found");
+    if (!auction)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
 
-    if (auction.status === "ended" || now > auction.endTime) {
-      throw new Error("This auction is already closed.");
+    if (userId === auction.sellerId.toString())
+      return res
+        .status(409)
+        .json({ message: "Sellers must not bid to their auctions." });
+
+    if (now > auction.endTime) {
+      return res
+        .status(400)
+        .json({ message: "This auction is already closed." });
     }
 
     // if (auction.minPositiveRatingPercent != null && auction.minPositiveRatingPercent)
 
+    const rejectedBidder = await RejectedBidder.findOne({
+      bidderId: userId,
+      auctionId: auctionId,
+    });
+
+    if (rejectBidder)
+      return res
+        .status(409)
+        .json({ message: "You can not bid to this auction anymore." });
+
     const minBidMaxAmount = auction.winnerId
       ? auction.currentPrice + auction.gapPrice
-      : auction.currentPrice;
+      : auction.startPrice + auction.gapPrice;
 
     if (!bidMaxAmount || bidMaxAmount < minBidMaxAmount)
       return res
         .status(400)
-        .json({ error: `Invalid bid. Min amount is ${minBidMaxAmount}` });
+        .json({ message: `Invalid bid. Min amount is ${minBidMaxAmount}` });
 
     if (auction.buyNowPrice && bidMaxAmount >= auction.buyNowPrice)
       return res
         .status(409)
-        .json({ error: "Bidder should purchase outright now." });
+        .json({ message: "Bidder should purchase outright now." });
 
     const auctionConfig = await AuctionConfig.findOne();
 
@@ -106,36 +127,51 @@ export const placeBid = async (req, res) => {
     }
 
     let bidEntryAmount;
-    let isNewWinner = false;
 
     if (!auction.winnerId) {
-      isNewWinner = true;
       auction.winnerId = userId;
       auction.highestPrice = bidMaxAmount;
-      auction.currentPrice = auction.currentPrice;
+      auction.currentPrice = auction.startPrice + auction.gapPrice;
       bidEntryAmount = auction.currentPrice;
     } else {
-      const currentMax = auction.highestPrice;
-      const gap = auction.gapPrice;
-      const minToWin = currentMax + gap;
+      if (userId === auction.winnerId.toString()) {
+        const minHighestPrice = auction.highestPrice + auction.gapPrice;
 
-      if (bidMaxAmount >= minToWin) {
-        isNewWinner = true;
-        auction.currentPrice = minToWin;
-        auction.highestPrice = bidMaxAmount;
-        auction.winnerId = userId;
-        bidEntryAmount = auction.currentPrice;
-      } else {
-        isNewWinner = false;
-        if (bidMaxAmount > currentMax) {
-          auction.currentPrice = currentMax;
-        } else {
-          let potentialPrice = bidMaxAmount + gap;
-          auction.currentPrice = Math.min(potentialPrice, currentMax);
+        if (bidMaxAmount < minHighestPrice)
+          return res.status(409).json({
+            message: `Invalid bid. Min highest price is ${minHighestPrice}`,
+          });
+        else {
+          auction.highestPrice = bidMaxAmount;
+          auction.currentPrice = Math.min(
+            auction.currentPrice + auction.gapPrice,
+            bidMaxAmount
+          );
+          bidEntryAmount = auction.currentPrice;
         }
-        bidEntryAmount = bidMaxAmount;
+      } else {
+        const currentMax = auction.highestPrice;
+        const gap = auction.gapPrice;
+        const minToWin = currentMax + gap;
+
+        if (bidMaxAmount >= minToWin) {
+          auction.currentPrice = minToWin;
+          auction.highestPrice = bidMaxAmount;
+          auction.winnerId = userId;
+          bidEntryAmount = auction.currentPrice;
+        } else {
+          if (bidMaxAmount > currentMax) {
+            auction.currentPrice = currentMax;
+          } else {
+            const potentialPrice = bidMaxAmount + gap;
+            auction.currentPrice = Math.min(potentialPrice, currentMax);
+          }
+          bidEntryAmount = bidMaxAmount;
+        }
       }
     }
+
+    console.log(bidEntryAmount);
 
     const newBid = await Bid.create({
       auctionId: auctionId,
@@ -143,24 +179,19 @@ export const placeBid = async (req, res) => {
       bidEntryAmount: bidEntryAmount,
       bidMaxAmount: bidMaxAmount,
       bidTime: Date.now(),
-      isWinner: isNewWinner,
+      curWinnerId: auction.winnerId,
     });
 
     io.to(`auction_${auctionId}`).emit("priceUpdate", {
       currentPrice: auction.currentPrice,
-      winnerId: auction.winnerId,
       nextMinBid: auction.currentPrice + auction.gapPrice,
     });
 
     await auction.save();
 
-    const historyData = await historyBidding(newBid, auction.winnerId);
+    io.to(`auction_${auctionId}`).emit("historyUpdate", newBid);
 
-    io.to(`auction_${auctionId}`).emit("historyUpdate", historyData);
-
-    res
-      .status(201)
-      .json({ message: "Place bid successfully.", historyData: historyData });
+    res.status(201).json({ message: "Place bid successfully.", newBid });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -204,6 +235,7 @@ export const addComment = async (req, res) => {
     if (question == null || question.length === 0)
       return res.status(400).json({ message: "Comment must not be blank." });
 
+    // create
     const newComment = await Comment.create({
       auctionId: auctionId,
       userId: userId,
@@ -212,19 +244,17 @@ export const addComment = async (req, res) => {
       questionTime: now,
     });
 
+    // proceed to send mail
+
     const seller = await User.findById(auction.sellerId);
     if (seller && seller.email) {
       const link = `https://localhost:5173/auction/${auctionId}`;
-      sendEmail(
-        seller.email,
-        "New comment on your auction",
-        `<p>You have a new comment on your auction.</p>
-         <p>Question: ${question}</p>
-         <p><a href="${link}">View Auction</a></p>`
-      );
+      sendQuestionEmail(seller, link, question);
     }
 
-    res.status(201).json({ message: "Commented successfully" });
+    res
+      .status(201)
+      .json({ message: "Commented successfully", comment: newComment });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -234,7 +264,7 @@ export const answerComment = async (req, res) => {
   try {
     const now = new Date();
 
-    const { userId } = req.user;
+    const userId = req.user.id;
 
     const { auctionId } = req.params;
 
@@ -251,7 +281,7 @@ export const answerComment = async (req, res) => {
         .json({ message: "This auction is already closed." });
     }
 
-    const sellerId = auction.sellerId;
+    const sellerId = auction.sellerId.toString();
 
     if (userId !== sellerId)
       return res
@@ -276,22 +306,131 @@ export const answerComment = async (req, res) => {
 
     comment.answerTime = now;
 
-    const commenter = await User.findById(comment.userId);
-    if (commenter && commenter.email) {
-      const link = `https://localhost:5173/auction/${auctionId}`;
-      sendEmail(
-        commenter.email,
-        "Your comment has been answered",
-        `<p>Your comment: "${comment.question}" has been answered.</p>
-         <p>Answer: ${answer}</p>
-         <p><a href="${link}">View Auction</a></p>`
-      );
+    const bidderIds = await Bid.find({ auctionId: auctionId }).distinct(
+      "bidderId"
+    );
+
+    const bidders = await User.find({ _id: { $in: bidderIds } }).select(
+      "email firstName lastName"
+    );
+
+    for (const bidder of bidders) {
+      console.log(bidder.email);
+
+      if (bidder.email) {
+        sendAnswerEmail(bidder, link, comment.question, comment.answer);
+      }
     }
 
     await comment.save();
 
-    res.status(200).json({ message: "Answered successfully" });
+    res
+      .status(200)
+      .json({ message: "Answered successfully", comment: comment });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const getBids = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+
+    const auction = Auction.findById(auctionId);
+
+    if (!auction)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
+
+    const bids = await Bid.find({ auctionId: auctionId }).sort({ bidTime: -1 });
+
+    res.status(200).json({ message: "Get bids successfully.", bids: bids });
+  } catch (err) {
+    res.status(500).json({
+      message: "System error.",
+      error: err.message,
+    });
+  }
+};
+
+export const getComments = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+
+    const auction = Auction.findById(auctionId);
+
+    if (!auction)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
+
+    const comments = await Comment.find({ auctionId: auctionId }).sort({
+      questionTime: -1,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Get comments successfully.", comments: comments });
+  } catch (err) {
+    res.status(500).json({
+      message: "System error.",
+      error: err.message,
+    });
+  }
+};
+
+export const rejectBidder = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+
+    const userId = req.user.id;
+
+    const { bidderId } = req.body;
+
+    const bidder = await User.findById(bidderId).select(
+      "email firstName lastName"
+    );
+
+    console.log(bidder);
+
+    const auction = await Auction.findById(auctionId);
+
+    if (!auction)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
+
+    if (userId !== auction.sellerId.toString())
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to reject this bidder." });
+
+    const existRejectedBidder = await RejectedBidder.findOne({
+      auctionId: auctionId,
+      bidderId: bidderId,
+    });
+
+    if (existRejectedBidder)
+      return res
+        .status(409)
+        .json({ message: "You have already rejected this bidder." });
+
+    const rejectedBidder = await RejectedBidder.create({
+      auctionId: auctionId,
+      bidderId: bidderId,
+    });
+
+    const link = `https://localhost:5173/auction/${auctionId}`;
+
+    if (bidder.email)
+      sendRejectedBidderEmail(bidder, auction.product.name, link);
+
+    res.status(201).json({
+      message: "Reject this bidder successfully.",
+      rejectedBidder: rejectedBidder,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "System error", error: err.message });
   }
 };

@@ -25,6 +25,8 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.login({ username, password, captcha });
       set({ accessToken: data.accessToken });
 
+      console.log(data.accessToken);
+
       // fetch user
       await get().fetchMe();
     } catch (err) {
