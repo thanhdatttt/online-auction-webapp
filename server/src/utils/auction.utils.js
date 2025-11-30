@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import AuctionConfig from "../models/AuctionConfig.js";
-import Bid from "../models/Bid.js";
-import Auction from "../models/Auction.js";
-// singleton....
+import nodemailer from "nodemailer";
+import { config } from "../configs/config.js";
+// singleton...
 export const initAuctionConfig = async () => {
   try {
     let config = await AuctionConfig.findOne();
@@ -33,4 +33,25 @@ export const historyBidding = async (newBid, curWinnerId) => {
     bidTime: fullBidInfo.bidTime,
     curWinnerId: curWinnerId,
   };
+};
+
+export const sendEmail = async (to, subject, contentHTML) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: config.EMAIL_APP,
+        pass: config.PASSWORD_EMAIL_APP,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Your Auctiz" <${config.EMAIL_APP}>`,
+      to,
+      subject,
+      contentHTML,
+    });
+  } catch (err) {
+    throw err;
+  }
 };

@@ -2,9 +2,8 @@ import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import Auction from "../models/Auction.js";
 import AuctionConfig from "../models/AuctionConfig.js";
-import { historyBidding } from "../utils/auction.utils.js";
-import mongoose from "mongoose";
-export const bid = async (req, res) => {
+import { historyBidding, sendEmail } from "../utils/auction.utils.js";
+export const placeBid = async (req, res) => {
   try {
     const now = new Date();
 
@@ -23,6 +22,8 @@ export const bid = async (req, res) => {
     if (auction.status === "ended" || now > auction.endTime) {
       throw new Error("This auction is already closed.");
     }
+
+    // if (auction.minPositiveRatingPercent != null && auction.minPositiveRatingPercent)
 
     const minBidMaxAmount = auction.winnerId
       ? auction.currentPrice + auction.gapPrice
@@ -107,11 +108,11 @@ export const bid = async (req, res) => {
       .status(201)
       .json({ message: "Place bid successfully.", historyData: historyData });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-export const getAuction = async (req, res) => {
+export const getAuctionDetail = async (req, res) => {
   try {
     const { auctionId } = req.params;
 
@@ -119,6 +120,124 @@ export const getAuction = async (req, res) => {
 
     res.status(200).json(auction);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const userId = req.user.id;
+
+    const { auctionId } = req.params;
+
+    const auction = await Auction.findById(auctionId);
+
+    if (!auction)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
+
+    if (auction.status === "ended" || now > auction.endTime) {
+      return res
+        .status(409)
+        .json({ message: "This auction is already closed." });
+    }
+
+    const { question } = req.body;
+
+    if (question == null || question.length === 0)
+      return res.status(400).json({ message: "Comment must not be blank." });
+
+    const newComment = await Comment.create({
+      auctionId: auctionId,
+      userId: userId,
+      question: question,
+      answer: null,
+      questionTime: now,
+    });
+
+    const seller = await User.findById(auction.sellerId);
+    if (seller && seller.email) {
+      const link = `https://localhost:5173/auction/${auctionId}`;
+      await sendEmail(
+        seller.email,
+        "New comment on your auction",
+        `<p>You have a new comment on your auction.</p>
+         <p>Question: ${question}</p>
+         <p><a href="${link}">View Auction</a></p>`
+      );
+    }
+
+    res.status(201).json({ message: "Commented successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const answerComment = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const { userId } = req.user;
+
+    const { auctionId } = req.params;
+
+    const auction = await Auction.findById(auctionId);
+
+    if (auction == null)
+      return res
+        .status(404)
+        .json({ message: "This auction no longer exists." });
+
+    if (auction.status === "ended" || now > auction.endTime) {
+      return res
+        .status(409)
+        .json({ message: "This auction is already closed." });
+    }
+
+    const sellerId = auction.sellerId;
+
+    if (userId !== sellerId)
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to answer." });
+
+    const { commentId } = req.params;
+
+    const comment = await Comment.findById(commentId);
+
+    if (!comment)
+      return res
+        .status(404)
+        .json({ message: "This comment no longer exists." });
+
+    const { answer } = req.body;
+
+    if (!answer || answer.length === 0)
+      return res.status(400).json({ message: "Answer must not be blank." });
+
+    comment.answer = answer;
+
+    comment.answerTime = now;
+
+    const commenter = await User.findById(comment.userId);
+    if (commenter && commenter.email) {
+      const link = `https://localhost:5173/auction/${auctionId}`;
+      await sendEmail(
+        commenter.email,
+        "Your comment has been answered",
+        `<p>Your comment: "${comment.question}" has been answered.</p>
+         <p>Answer: ${answer}</p>
+         <p><a href="${link}">View Auction</a></p>`
+      );
+    }
+
+    await comment.save();
+
+    res.status(200).json({ message: "Answered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
