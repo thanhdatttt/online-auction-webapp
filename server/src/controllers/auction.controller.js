@@ -6,6 +6,7 @@ import RejectedBidder from "../models/RejectedBidder.js";
 import AuctionConfig from "../models/AuctionConfig.js";
 import {
   sendAnswerEmail,
+  sendPlaceBidEmail,
   sendQuestionEmail,
   sendRejectedBidderEmail,
 } from "../utils/auction.utils.js";
@@ -95,7 +96,7 @@ export const placeBid = async (req, res) => {
       auctionId: auctionId,
     });
 
-    if (rejectBidder)
+    if (rejectedBidder)
       return res
         .status(409)
         .json({ message: "You can not bid to this auction anymore." });
@@ -103,6 +104,14 @@ export const placeBid = async (req, res) => {
     const minBidMaxAmount = auction.winnerId
       ? auction.currentPrice + auction.gapPrice
       : auction.startPrice + auction.gapPrice;
+
+    if (bidMaxAmount % auction.gapPrice !== 0) {
+      return res.status(400).json({
+        message: `Min valid bid should be ${
+          auction.currentPrice + auction.gapPrice
+        } or higher can divide by ${auction.gapPrice}`,
+      });
+    }
 
     if (!bidMaxAmount || bidMaxAmount < minBidMaxAmount)
       return res
@@ -128,6 +137,12 @@ export const placeBid = async (req, res) => {
 
     let bidEntryAmount;
 
+    const realTimeHistory = {};
+
+    let autoBid;
+
+    let hasAutoBid = false;
+
     if (!auction.winnerId) {
       auction.winnerId = userId;
       auction.highestPrice = bidMaxAmount;
@@ -150,37 +165,59 @@ export const placeBid = async (req, res) => {
           bidEntryAmount = auction.currentPrice;
         }
       } else {
-        const currentMax = auction.highestPrice;
-        const gap = auction.gapPrice;
-        const minToWin = currentMax + gap;
+        hasAutoBid = true;
+
+        const minToWin = auction.highestPrice + auction.gapPrice;
 
         if (bidMaxAmount >= minToWin) {
-          auction.currentPrice = minToWin;
+          autoBid = await Bid.create({
+            auctionId: auctionId,
+            bidderId: auction.winnerId,
+            bidEntryAmount: auction.highestPrice,
+            bidMaxAmount: auction.highestPrice,
+            bidTime: now - 1000,
+            curWinnerId: userId,
+          });
+
+          auction.currentPrice = auction.highestPrice + auction.gapPrice;
+
+          console.log(auction.currentPrice);
+
           auction.highestPrice = bidMaxAmount;
           auction.winnerId = userId;
           bidEntryAmount = auction.currentPrice;
         } else {
-          if (bidMaxAmount > currentMax) {
-            auction.currentPrice = currentMax;
-          } else {
-            const potentialPrice = bidMaxAmount + gap;
-            auction.currentPrice = Math.min(potentialPrice, currentMax);
-          }
+          const potentialPrice = Math.min(
+            bidMaxAmount + auction.gapPrice,
+            auction.highestPrice
+          );
+
+          autoBid = await Bid.create({
+            auctionId: auctionId,
+            bidderId: auction.winnerId,
+            bidEntryAmount: potentialPrice,
+            bidMaxAmount: auction.highestPrice,
+            bidTime: Date.now(),
+            curWinnerId: auction.winnerId,
+          });
+          auction.currentPrice = potentialPrice;
           bidEntryAmount = bidMaxAmount;
         }
       }
     }
-
-    console.log(bidEntryAmount);
 
     const newBid = await Bid.create({
       auctionId: auctionId,
       bidderId: userId,
       bidEntryAmount: bidEntryAmount,
       bidMaxAmount: bidMaxAmount,
-      bidTime: Date.now(),
+      bidTime: now,
       curWinnerId: auction.winnerId,
     });
+
+    realTimeHistory.newBid = newBid;
+
+    if (hasAutoBid) realTimeHistory.autoBid = autoBid;
 
     io.to(`auction_${auctionId}`).emit("priceUpdate", {
       currentPrice: auction.currentPrice,
@@ -189,9 +226,19 @@ export const placeBid = async (req, res) => {
 
     await auction.save();
 
-    io.to(`auction_${auctionId}`).emit("historyUpdate", newBid);
+    io.to(`auction_${auctionId}`).emit("historyUpdate", realTimeHistory);
 
-    res.status(201).json({ message: "Place bid successfully.", newBid });
+    console.log(bidEntryAmount);
+
+    console.log(bidMaxAmount);
+
+    sendPlaceBidEmail(userId, auction, bidEntryAmount, bidMaxAmount);
+
+    res.status(201).json({
+      message: "Place bid successfully.",
+      realTimeHistory: realTimeHistory,
+      auction: auction,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -382,6 +429,8 @@ export const getComments = async (req, res) => {
 
 export const rejectBidder = async (req, res) => {
   try {
+    // handle exception
+
     const { auctionId } = req.params;
 
     const userId = req.user.id;
@@ -416,16 +465,52 @@ export const rejectBidder = async (req, res) => {
         .status(409)
         .json({ message: "You have already rejected this bidder." });
 
+    // create
     const rejectedBidder = await RejectedBidder.create({
       auctionId: auctionId,
       bidderId: bidderId,
     });
 
+    // proceed the rejected bidder is the winner
+
+    if (bidderId === auction.winnerId.toString()) {
+      // find the second highest bid max amount
+      const secondThirdBidMaxAmount = await Bid.find({ auctionId })
+        .sort({ bidMaxAmount: -1 })
+        .skip(1)
+        .limit(2);
+
+      // proceed to auction
+      if (!secondThirdBidMaxAmount[0]) {
+        auction.winnerId = null;
+        auction.currentPrice = null;
+        auction.highestPrice = null;
+      } else {
+        if (secondThirdBidMaxAmount[1]) {
+          if (
+            secondThirdBidMaxAmount[0].bidMaxAmount >=
+            secondThirdBidMaxAmount[1].bidMaxAmount + auction.gapPrice
+          ) {
+          }
+
+          secondThirdBidMaxAmount[0].bidEntryAmount = auction.currentPrice;
+        } else {
+          auction.winnerId = secondThirdBidMaxAmount[0].bidderId;
+          auction.highestPrice = secondThirdBidMaxAmount[0].bidMaxAmount;
+          auction.currentPrice = auction.startPrice + auction.gapPrice;
+        }
+      }
+
+      await auction.save();
+    }
+
+    // set up sending email
     const link = `https://localhost:5173/auction/${auctionId}`;
 
     if (bidder.email)
       sendRejectedBidderEmail(bidder, auction.product.name, link);
 
+    // success
     res.status(201).json({
       message: "Reject this bidder successfully.",
       rejectedBidder: rejectedBidder,
