@@ -38,11 +38,87 @@ export const createAuction = async (req, res) => {
 
     res.status(201).json({
       message: "Auction created successfully",
-      product: product,
       auction: auction,
     });
 
   } catch (error) {
     res.status(500).json({ message: "Auction created failed", error: error.message });
+  }
+};
+
+export const getAuctions = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      sort = 'newest', 
+      search, 
+      categoryId 
+    } = req.query;
+
+    const filter = { status: 'ongoing' };
+    let sortOptions = {};
+
+    if (search) {
+      filter.$text = { $search: search };
+    }
+
+    if (categoryId){
+      filter['product.categoryId'] = categoryId;
+    }
+
+    const skip = (page - 1) * limit;
+
+    switch (sort) {
+      case 'price_asc': 
+        sortOptions = { currentPrice: 1 }; 
+        break;
+      case 'price_desc': 
+        sortOptions = { currentPrice: -1 }; 
+        break;
+      case 'ending_soon': 
+        sortOptions = { endTime: 1 }; 
+        break;
+      case 'newest':
+        sortOptions = { createdAt: -1 }; 
+        break;
+      // case 'relevance':
+      //   if (search) {
+      //      sortOptions = { score: { $meta: "textScore" } };
+      //   } else {
+      //      sortOptions = { createdAt: -1 };
+      //   }
+      //   break;
+      default:
+        sortOptions = { createdAt: -1 };
+    }
+
+    // if (search && sort !== 'relevance') {
+    //    sortOptions.score = { $meta: "textScore" };
+    // }
+
+    const [auctions, total] = await Promise.all([
+      Auction.find(filter)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum)
+        .populate('sellerId', 'username avatar_url rating'),
+      
+      Auction.countDocuments(filter)
+    ]);
+
+    res.status(200).json({
+      message: "Auction retrieved successfully",
+      auctions: auctions,
+      pagination: {
+        totalItems: total,
+        totalPages: Math.ceil(total / limitNum),
+        currentPage: pageNum,
+        itemsPerPage: limitNum
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get auctions list", error: error.message });
   }
 };
