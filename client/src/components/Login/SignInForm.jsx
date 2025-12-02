@@ -61,6 +61,7 @@ const SignInForm = () => {
     try {
       await login(data);
       navigate("/home");
+      console.log(data);
     } catch (err) {
       const field = err.response?.data?.field;
       if (field) {
@@ -99,12 +100,8 @@ const SignInForm = () => {
               placeholder="Username"
               {...register("username")}
             />
-            {errors.username && (
-            <Error message={errors.username.message}/>
-            )}
-            {errors.root && (
-            <Error message={errors.root.message}/>
-            )}
+            {errors.username && <Error message={errors.username.message} />}
+            {errors.root && <Error message={errors.root.message} />}
           </div>
           <div>
             <label htmlFor="password" className="block mb-1 font-lora text-3xl">
@@ -119,9 +116,7 @@ const SignInForm = () => {
               placeholder="Password"
               {...register("password")}
             />
-            {errors.password && (
-            <Error message={errors.password.message}/>
-            )}
+            {errors.password && <Error message={errors.password.message} />}
           </div>
           <div className="text-right mt-1">
             <a className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
@@ -142,9 +137,7 @@ const SignInForm = () => {
                 )}
               />
               {/* Display errors */}
-              {errors.captcha && (
-              <Error message={errors.captcha.message}/>
-              )}
+              {errors.captcha && <Error message={errors.captcha.message} />}
             </div>
           </div>
 
