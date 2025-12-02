@@ -21,8 +21,6 @@ export const createAuction = async (req, res) => {
       url: url,
     }));
 
-    console.log("HERE");
-
     const product = {
       name: name,
       description: description,
@@ -143,6 +141,8 @@ export const placeBid = async (req, res) => {
 
     let hasAutoBid = false;
 
+    let isNewWinner = false;
+
     if (!auction.winnerId) {
       auction.winnerId = userId;
       auction.highestPrice = bidMaxAmount;
@@ -176,16 +176,15 @@ export const placeBid = async (req, res) => {
             bidEntryAmount: auction.highestPrice,
             bidMaxAmount: auction.highestPrice,
             bidTime: now - 1000,
-            curWinnerId: userId,
           });
 
           auction.currentPrice = auction.highestPrice + auction.gapPrice;
 
-          console.log(auction.currentPrice);
-
           auction.highestPrice = bidMaxAmount;
           auction.winnerId = userId;
           bidEntryAmount = auction.currentPrice;
+
+          isNewWinner = true;
         } else {
           const potentialPrice = Math.min(
             bidMaxAmount + auction.gapPrice,
@@ -197,8 +196,7 @@ export const placeBid = async (req, res) => {
             bidderId: auction.winnerId,
             bidEntryAmount: potentialPrice,
             bidMaxAmount: auction.highestPrice,
-            bidTime: Date.now(),
-            curWinnerId: auction.winnerId,
+            bidTime: now + 1000,
           });
           auction.currentPrice = potentialPrice;
           bidEntryAmount = bidMaxAmount;
@@ -212,7 +210,6 @@ export const placeBid = async (req, res) => {
       bidEntryAmount: bidEntryAmount,
       bidMaxAmount: bidMaxAmount,
       bidTime: now,
-      curWinnerId: auction.winnerId,
     });
 
     realTimeHistory.newBid = newBid;
@@ -228,9 +225,8 @@ export const placeBid = async (req, res) => {
 
     io.to(`auction_${auctionId}`).emit("historyUpdate", realTimeHistory);
 
-    console.log(bidEntryAmount);
-
-    console.log(bidMaxAmount);
+    if (isNewWinner)
+      io.to(`auction_${auctionId}`).emit("winnerUpdate", auction.winnerId);
 
     sendPlaceBidEmail(userId, auction, bidEntryAmount, bidMaxAmount);
 
@@ -295,7 +291,7 @@ export const addComment = async (req, res) => {
 
     const seller = await User.findById(auction.sellerId);
     if (seller && seller.email) {
-      const link = `https://localhost:5173/auction/${auctionId}`;
+      const link = `http://localhost:5173/auctions/${auctionId}`;
       sendQuestionEmail(seller, link, question);
     }
 
@@ -361,9 +357,9 @@ export const answerComment = async (req, res) => {
       "email firstName lastName"
     );
 
-    for (const bidder of bidders) {
-      console.log(bidder.email);
+    const link = `http://localhost:5173/auctions/${auctionId}`;
 
+    for (const bidder of bidders) {
       if (bidder.email) {
         sendAnswerEmail(bidder, link, comment.question, comment.answer);
       }
@@ -441,8 +437,6 @@ export const rejectBidder = async (req, res) => {
       "email firstName lastName"
     );
 
-    console.log(bidder);
-
     const auction = await Auction.findById(auctionId);
 
     if (!auction)
@@ -474,9 +468,9 @@ export const rejectBidder = async (req, res) => {
     // proceed the rejected bidder is the winner
 
     if (bidderId === auction.winnerId.toString()) {
-      // find the second highest bid max amount
+      // find the second and third highest bid max amount
       const secondThirdBidMaxAmount = await Bid.find({ auctionId })
-        .sort({ bidMaxAmount: -1 })
+        .sort({ bidMaxAmount: -1, bidTime: 1 })
         .skip(1)
         .limit(2);
 
@@ -487,28 +481,30 @@ export const rejectBidder = async (req, res) => {
         auction.highestPrice = null;
       } else {
         if (secondThirdBidMaxAmount[1]) {
-          if (
-            secondThirdBidMaxAmount[0].bidMaxAmount >=
-            secondThirdBidMaxAmount[1].bidMaxAmount + auction.gapPrice
-          ) {
-          }
-
-          secondThirdBidMaxAmount[0].bidEntryAmount = auction.currentPrice;
+          secondThirdBidMaxAmount[0].bidEntryAmount = Math.min(
+            secondThirdBidMaxAmount[1].bidMaxAmount +
+              secondThirdBidMaxAmount[1].gapPrice,
+            secondThirdBidMaxAmount[0].bidMaxAmount
+          );
+          auction.currentPrice = secondThirdBidMaxAmount[0].bidEntryAmount;
         } else {
-          auction.winnerId = secondThirdBidMaxAmount[0].bidderId;
-          auction.highestPrice = secondThirdBidMaxAmount[0].bidMaxAmount;
           auction.currentPrice = auction.startPrice + auction.gapPrice;
         }
+        auction.highestPrice = secondThirdBidMaxAmount[0].bidMaxAmount;
+        auction.winnerId = secondThirdBidMaxAmount[0].bidderId;
       }
 
       await auction.save();
+      await secondThirdBidMaxAmount[0].save();
     }
 
     // set up sending email
-    const link = `https://localhost:5173/auction/${auctionId}`;
+    const link = `http://localhost:5173/auctions/${auctionId}`;
 
     if (bidder.email)
       sendRejectedBidderEmail(bidder, auction.product.name, link);
+
+    io.to(`auction_${auctionId}`).emit("rejectedBidder", rejectedBidder);
 
     // success
     res.status(201).json({

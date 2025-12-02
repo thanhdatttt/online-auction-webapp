@@ -27,7 +27,7 @@ function App() {
 
         <Route path="/home" element={<HomePage />} />
         <Route
-          path="/auction/:id"
+          path="/auctions/:id"
           element={<AuctionDetailPage></AuctionDetailPage>}
         />
         {/* protected route */}

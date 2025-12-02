@@ -71,28 +71,31 @@ export const sendQuestionEmail = async (seller, link, question) => {
 export const sendAnswerEmail = async (bidder, link, question, answer) => {
   try {
     sendEmail(
-      seller.email,
-      "[Auctiz] You Have a New Comment on Your Auction",
+      bidder.email,
+      "[Auctiz] A Comment Has Been Answered in an Auction You Joined",
       `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #2c3e50;">New Comment on Your Auction</h2>
-        
+        <h2 style="color: #4a90e2;">A Comment Has Been Answered</h2>
+
         <p>Hello <strong>${
-          seller.firstName + " " + seller.lastName || "Seller"
+          bidder.firstName + " " + bidder.lastName || "Bidder"
         }</strong>,</p>
 
-        <p>You’ve received a new comment on one of your auctions.</p>
+        <p>A question in an auction you participated in has just been answered.</p>
 
         <div style="padding: 12px; margin: 16px 0; background: #f7f9fc; border-left: 4px solid #4a90e2;">
           <p style="margin: 0; font-style: italic;">
             “${question}”
           </p>
+          <p style="margin: 8px 0 0; color: #2c3e50;">
+            <strong>Answer:</strong> ${answer}
+          </p>
         </div>
 
-        <p>To view the comment and respond, click the button below:</p>
+        <p>You can view the full discussion and auction details here:</p>
 
         <a href="${link}" 
-           style="display: inline-block; padding: 12px 20px; background: #4a90e2; 
+          style="display: inline-block; padding: 12px 20px; background: #4a90e2; 
                   color: #fff; text-decoration: none; border-radius: 6px; margin-top: 10px;">
           View Auction
         </a>
@@ -109,7 +112,7 @@ export const sendAnswerEmail = async (bidder, link, question, answer) => {
           This is an automated message from <strong>Your Auctiz</strong>.
         </p>
       </div>
-    `
+  `
     );
   } catch (err) {
     console.log(err.message);
@@ -170,17 +173,15 @@ export const sendPlaceBidEmail = async (
     bidder.bidEntryAmount = bidEntryAmount;
     bidder.bidMaxAmount = bidMaxAmount;
 
-    const bidderIds = await Bid.find({ auctionId: auction.auctionId }).distinct(
-      "bidderId"
-    );
+    const bidderIds = await Bid.find({
+      auctionId: auction._id,
+    }).distinct("bidderId");
 
     const bidders = await User.find({ _id: { $in: bidderIds } }).select(
       "email firstName lastName"
     );
 
-    console.log(bidders);
-
-    const link = `https://localhost:5173/auction/${auction.id}`;
+    const link = `http://localhost:5173/auctions/${auction._id}`;
 
     sendEmail(
       bidder.email,
