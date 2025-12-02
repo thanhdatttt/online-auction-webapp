@@ -166,4 +166,30 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+  forgot_password: async ({ email }) => {
+    try {
+      set({ loading: true });
+      const data = await authService.forgot_password({ email });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  reset_password: async ({ newPassword }) => {
+    try {
+      set({loading: true});
+
+      const res = await authService.reset_password({newPassword});
+
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  }
 }));

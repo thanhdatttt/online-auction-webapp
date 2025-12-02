@@ -56,6 +56,23 @@ export const useUserStore = create((set, get) => ({
     }
   },
 
+  changeBirth: async ({newBirth}) => {
+    try {
+      set({loading: true});
+
+      const res = await userService.changeBirth({newBirth});
+
+      // update birth date to user state
+      const {user, setUser} = useAuthStore.getState();
+      setUser({...user, birth: res.birth});
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  },
+
   changePassword: async ({oldPassword, newPassword}) => {
     try {
       set({loading: true});

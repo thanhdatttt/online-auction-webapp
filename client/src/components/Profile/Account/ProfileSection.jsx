@@ -8,6 +8,7 @@ import ChangeNameModal from "../ChangePopUp/ChangeNameModal.jsx";
 import ChangeAddressModal from "../ChangePopUp/ChangeAddressModal.jsx";
 import ChangePassModal from "../ChangePopUp/ChangePassModal.jsx";
 import ChangeAvatarModal from "../ChangePopUp/ChangeAvatarModal.jsx";
+import ChangeBirthModal from "../ChangePopUp/ChangeBirthModal.jsx";
 
 const ProfileSection = () => {
   // user info
@@ -83,6 +84,7 @@ const ProfileSection = () => {
           label="Birth"
           value={date? date.toLocaleDateString() : "Unknown"}
           canChange={true}
+          onChangeClick={() => handleChange("birth")}
         />
         <Divider/>
 
@@ -105,6 +107,9 @@ const ProfileSection = () => {
         )}
         {currentField === "address" && (
           <ChangeAddressModal open={openModal} onClose={() => setOpenModal(false)} />
+        )}
+        {currentField === "birth" && (
+          <ChangeBirthModal open={openModal} onClose={() => setOpenModal(false)} />
         )}
         {currentField === "avatar" && (
           <ChangeAvatarModal open={openModal} onClose={() => setOpenModal(false)} onUpload={onUpload}/>
