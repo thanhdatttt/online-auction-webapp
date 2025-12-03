@@ -59,7 +59,13 @@ const SignInForm = () => {
     // backend
     try {
       await login(data);
-      navigate("/home");
+
+      const { user } = useAuthStore.getState();
+
+      if (user?.role === "admin")
+        navigate("/dashboard");
+      else
+        navigate("/home");
     } catch (err) {
       const field = err.response?.data?.field;
       if (field) {
