@@ -537,7 +537,9 @@ export const getAuctions = async (req, res) => {
       filter['product.categoryId'] = categoryId;
     }
 
-    const skip = (page - 1) * limit;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     switch (sort) {
       case 'price_asc': 
