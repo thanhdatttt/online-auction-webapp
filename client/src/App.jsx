@@ -11,6 +11,8 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
 
 function App() {
   return (
@@ -33,6 +35,9 @@ function App() {
         {/* protected route */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+        <Route element={<AdminRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />}></Route>
         </Route>
       </Routes>
     </Router>
