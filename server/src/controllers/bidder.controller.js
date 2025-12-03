@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import RoleRequest from "../models/RoleRequest.js";
 export const requestRole = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const user = await User.findById(userId);
 
