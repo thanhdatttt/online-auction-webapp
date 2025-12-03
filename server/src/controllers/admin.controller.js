@@ -1,6 +1,8 @@
 import RoleRequest from "../models/RoleRequest.js";
 import User from "../models/User.js";
 import AuctionConfig from "../models/AuctionConfig.js";
+
+// get all users
 export const getUsers = async (req, res) => {
   try {
     const { username, page = 1 } = req.query;
@@ -34,6 +36,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
+// promote user to admin role
 export const promoteAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -64,10 +67,11 @@ export const promoteAdmin = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
+// demote seller user to bidder
 export const demoteSeller = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -102,10 +106,11 @@ export const demoteSeller = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
+// get all promote requests 
 export const getRoleRequest = async (req, res) => {
   try {
     const { status, page = 1 } = req.query;
@@ -139,6 +144,7 @@ export const getRoleRequest = async (req, res) => {
   }
 };
 
+// approve promote request
 export const approveRoleRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
@@ -157,10 +163,11 @@ export const approveRoleRequest = async (req, res) => {
 
     res.json({ message: "Seller role approved for 7 days." });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
+// deny promote request
 export const denyRoleRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
@@ -182,6 +189,7 @@ export const denyRoleRequest = async (req, res) => {
   }
 };
 
+// update auction config 
 export const updateAuctionConfig = async (req, res) => {
   try {
     const { extendThreshold, extendDuration } = req.body;

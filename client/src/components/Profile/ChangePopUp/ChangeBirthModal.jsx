@@ -2,10 +2,7 @@ import { useAuthStore } from "../../../stores/useAuth.store.js";
 import { useUserStore } from "../../../stores/useUser.store.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-import {DatePicker} from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.js";
-import { regex } from "../../../utils/regex.js";
+import { useForm } from "react-hook-form";
 import z from "zod";
 import Error from "../../Error.jsx";
 import ChangeModalLayout from "./ChangeModalLayout.jsx";
@@ -13,20 +10,24 @@ import Divider from "../Divider.jsx";
 
 // birth schema
 const birthSchema = z.object({
-  newBirth: z
-    .date({
-      required_error: "Birth date is required",
-      invalid_type_error: "Invalid date",
-    })
-    .refine((d) => d <= new Date(), {
-      message: "Birth date cannot be in the future",
-    })
-    .refine((d) => {
+  newBirth:  z
+    .string()
+    .min(1, "Birth date is required")
+    .refine((value) => {
+        const date = new Date(value);
+        return !isNaN(date.getTime());
+    }, "Birth date is invalid")
+    .refine((value) => {
+        const today = new Date();
+        return new Date(value) <= today;
+    }, "Birth date cannot be in the future")
+    .refine((value) => {
+      const birth = new Date(value);
       const today = new Date();
       const age =
         today.getFullYear() -
-        d.getFullYear() -
-        (today < new Date(today.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+        birth.getFullYear() -
+        (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
 
       return age >= 18;
     }, "You must be at least 18 years old"),
@@ -41,7 +42,7 @@ const ChangeBirthModal = ({open, onClose}) => {
   const {changeBirth} = useUserStore();
 
   // validation
-  const {control, handleSubmit, watch, reset, setError, clearErrors, formState: {errors}} = useForm({
+  const {register, handleSubmit, watch, reset, setError, clearErrors, formState: {errors}} = useForm({
     resolver: zodResolver(birthSchema),
   });
 
@@ -81,24 +82,11 @@ const ChangeBirthModal = ({open, onClose}) => {
       {/* new birthdate */}
       <div>
         <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Birth Date</label>
-        <Controller
-          control={control}
-          name="birthDate"
-          render={({ field }) => (
-            <DatePicker
-              selected={field.value}
-              onChange={(date) => field.onChange(date)}
-              dateFormat="yyyy-MM-dd"
-              maxDate={new Date()}
-              showDateSelect
-              showYearDropdown
-              showMonthDropdown
-              dropdownMode="select"
-              isClearable
-              className="input w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
-            />
-          )}
-        />
+         <input
+              type="date"
+              {...register("newBirth")}
+              className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
+          />
         {errors.newBirth &&
         <Error message={errors.newBirth.message}/>
         }

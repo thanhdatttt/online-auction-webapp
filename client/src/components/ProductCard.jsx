@@ -4,7 +4,7 @@ const ProductCard = ({ key }) => {
   return (
     <div
       key={key}
-      className="relative group rounded-md overflow-hidden cursor-pointer shadow-md aspect-[4/5]"
+      className="relative group rounded-md overflow-hidden cursor-pointer shadow-md aspect-4/5"
     >
       <img
         src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=300&auto=format&fit=crop"
@@ -12,7 +12,7 @@ const ProductCard = ({ key }) => {
         alt="Similar"
       />
       {/* OVERLAY CONTENT */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 text-white">
+      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 text-white">
         <h4 className="font-bold text-sm leading-tight mb-1">
           Fuji GS645 Professional Wide 60
         </h4>

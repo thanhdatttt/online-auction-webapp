@@ -119,7 +119,7 @@ const SignInForm = () => {
             {errors.password && <Error message={errors.password.message} />}
           </div>
           <div className="text-right mt-1">
-            <a className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
+            <a onClick={() => navigate("/forgotPassword")} className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
               Forgot password?
             </a>
           </div>

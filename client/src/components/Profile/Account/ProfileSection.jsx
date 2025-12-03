@@ -73,12 +73,16 @@ const ProfileSection = () => {
         />
         <Divider/>
 
-        <ProfileRow
-          label="Password"
-          canChange={true}
-          onChangeClick={() => handleChange("password")}
-        />
-        <Divider/>
+        {!user.providers.google && (
+        <div>
+          <ProfileRow
+            label="Password"
+            canChange={true}
+            onChangeClick={() => handleChange("password")}
+          />
+          <Divider/>
+        </div>
+        )}
 
         <ProfileRow
           label="Birth"

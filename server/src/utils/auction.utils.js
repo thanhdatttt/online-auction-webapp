@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
+
 // singleton...
 export const initAuctionConfig = async () => {
   try {

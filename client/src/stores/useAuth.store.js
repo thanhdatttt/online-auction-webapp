@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { authService } from "../services/auth.service.js";
+import { toast } from "sonner";
 
 export const useAuthStore = create((set, get) => ({
   accessToken: null,
@@ -29,8 +30,10 @@ export const useAuthStore = create((set, get) => ({
 
       // fetch user
       await get().fetchMe();
+      toast.success("Login successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Login failed, please try again");
       throw err;
     } finally {
       // finish loading user login
@@ -42,8 +45,10 @@ export const useAuthStore = create((set, get) => ({
     try {
       get().clearState();
       const data = await authService.logout();
+      toast.success("Logout successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Logout failed, please try again");
       throw err;
     }
   },
@@ -113,8 +118,10 @@ export const useAuthStore = create((set, get) => ({
         registerToken: null,
         registeredEmail: null,
       });
+      toast.success("Registered successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Register failed, try again!");
       throw err;
     } finally {
       set({ loading: false });
@@ -139,7 +146,6 @@ export const useAuthStore = create((set, get) => ({
 
       const user = await authService.fetchMe();
       set({ user: user });
-      console.log(user);
     } catch (err) {
       set({ user: null, accessToken: null });
       console.log(err);
@@ -186,9 +192,10 @@ export const useAuthStore = create((set, get) => ({
       set({loading: true});
 
       const res = await authService.reset_password({newPassword});
-
+      toast.success("Reset password successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Reset password failed");
       throw err;
     } finally {
       set({loading: false});

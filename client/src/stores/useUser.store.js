@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useAuthStore } from "./useAuth.store.js"; 
 import { userService } from "../services/user.service.js";
+import { toast } from "sonner";
 
 export const useUserStore = create((set, get) => ({
   loading: false,
@@ -14,6 +15,7 @@ export const useUserStore = create((set, get) => ({
       // update email to user state
       const { user, setUser } = useAuthStore.getState();
       setUser({ ...user, email: res.email });
+      toast.success("Change email successfully");
     } catch (err) {
       console.log(err);
       throw err;
@@ -31,6 +33,7 @@ export const useUserStore = create((set, get) => ({
       // update address to user state
       const {user, setUser} = useAuthStore.getState();
       setUser({...user, address: res.address});
+      toast.success("Change address successfully");
     } catch (err) {
       console.log(err);
       throw err;
@@ -48,6 +51,7 @@ export const useUserStore = create((set, get) => ({
       // update fullname to user state
       const {user, setUser} = useAuthStore.getState();
       setUser({...user, firstName: res.firstName, lastName: res.lastName});
+      toast.success("Change name successfully");
     } catch (err) {
       console.log(err);
       throw err;
@@ -65,6 +69,7 @@ export const useUserStore = create((set, get) => ({
       // update birth date to user state
       const {user, setUser} = useAuthStore.getState();
       setUser({...user, birth: res.birth});
+      toast.success("Change birth successfully");
     } catch (err) {
       console.log(err);
       throw err;
@@ -78,6 +83,7 @@ export const useUserStore = create((set, get) => ({
       set({loading: true});
 
       const res = await userService.changePassword({oldPassword, newPassword});
+      toast.success("Change password successfully");
     } catch (err) {
       console.log(err);
       throw err;
