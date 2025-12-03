@@ -9,7 +9,7 @@ export default function Sidebar({activeNav, onNavChange}) {
     ];
 
     return (
-        <div className="w-64 bg-light p-6 flex flex-col">
+        <div className="w-64 bg-light p-6 flex flex-col border-decor">
             <h1 className="text-4xl font-lora font-semibold italic mb-12 text-dark text-center">Auctiz</h1>
             
             <nav className="flex-1 space-y-2">

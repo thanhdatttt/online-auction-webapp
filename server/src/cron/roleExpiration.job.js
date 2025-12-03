@@ -3,7 +3,7 @@ import RoleRequest from "../models/RoleRequest.js";
 import User from "../models/User.js";
 
 // Run every hour
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("0 * * * *", async () => {
   const now = new Date();
 
   const expiredRequests = await RoleRequest.find({
