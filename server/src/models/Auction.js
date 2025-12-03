@@ -1,42 +1,38 @@
 import mongoose from "mongoose";
 
-const imageSchema = new mongoose.Schema(
-    {
-        url: {
-            type: String,
-            required: true,
-        },
-    }
-);
+const imageSchema = new mongoose.Schema({
+  url: {
+    type: String,
+    required: true,
+  },
+});
 
-const productSchema = new mongoose.Schema(
-    {
-        categoryId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Category',
-            // required: true,
-            default: null,
-        },
-        name: {
-            type: String,
-            required: true,
-            maxlength: 150,
-            trim: true,
-        },
-        description: {
-            type: String,
-            trim: true,
-        },
-        images: {
-            type: [imageSchema],
-            required: true,
-        },
-        mainImageId: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-    }
-);
+const productSchema = new mongoose.Schema({
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    // required: true,
+    default: null,
+  },
+  name: {
+    type: String,
+    required: true,
+    maxlength: 150,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+  },
+  images: {
+    type: [imageSchema],
+    required: true,
+  },
+  mainImageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
+});
 
 const auctionSchema = new mongoose.Schema({
   product: {
@@ -67,7 +63,7 @@ const auctionSchema = new mongoose.Schema({
   },
   startTime: {
     type: Date,
-    required: true,
+    default: Date.now,
   },
   endTime: {
     type: Date,
@@ -75,8 +71,8 @@ const auctionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['ongoing', 'ended'],
-    default: 'ongoing',
+    enum: ["ongoing", "ended"],
+    default: "ongoing",
   },
   winnerId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -89,10 +85,6 @@ const auctionSchema = new mongoose.Schema({
     max: 100,
     default: null,
   },
-},
-{
-    timestamps: true,
-}
-);
+});
 
 export default mongoose.model("Auction", auctionSchema);

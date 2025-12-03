@@ -6,7 +6,7 @@ import User from "../models/User.js";
 import OTP from "../models/OTP.js";
 import { generateOTP, sendOTP } from "../utils/otp.utils.js";
 import { verify_captcha } from "../utils/captcha.utils.js";
-const ACCESS_TOKEN_TTL = "1h";
+const ACCESS_TOKEN_TTL = "1d";
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // generates access and refresh token
@@ -24,7 +24,7 @@ const genRefreshToken = (user) => {
   );
 };
 
-// only used for register verification 
+// only used for register verification
 export const register = async (req, res) => {
   try {
     const { email, captcha } = req.body;
@@ -67,7 +67,7 @@ export const register = async (req, res) => {
 
             <p>Best regards,<br>The Auctiz Team.</p>`;
 
-    await sendOTP(generatedOTP, subject, contentHTML);
+    sendOTP(generatedOTP, subject, contentHTML);
     res.status(200).json({ message: "Proceed to the verification process" });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -78,6 +78,10 @@ export const register = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ field: "otp", error: "OTP is empty" });
+    }
 
     const existsOTP = await OTP.findOne({ email });
 
@@ -452,36 +456,17 @@ export const facebookCallback = async (req, res) => {
   }
 };
 
-export const changePassword = async (req, res) => {
-    try{
-        const { oldPassword, newPassword } = req.body;
-    
-        const user = await User.findById(req.user.id).select('+passwordHash');
-    
-        if (!(await user.comparePassword(oldPassword))) {
-            return res.status(401).json({ message: 'Your old password is not matched.' });
-        }
-    
-        // Save new password
-        user.passwordHash = newPassword;
-        await user.save();
-    
-        res.status(200).json({ message: 'Password changed successfully.' });
-    } catch(e) {
-        res.status(500).json({ message: e.message });
-    }
-};
+// manage password
 
 export const forgotPassword = async (req, res) => {
   try {
-
     const email = req.body.email;
     const user = await User.findOne({ email: email });
-    
+
     // Fake sent OTP even if email doesn't exist
     if (!user) {
       return res.status(200).json({
-        message: 'An OTP has been sent.',
+        message: "An OTP has been sent.",
       });
     }
 
@@ -504,7 +489,6 @@ export const forgotPassword = async (req, res) => {
     await sendOTP(generatedOTP, subject, contentHTML);
 
     res.status(200).json({ message: "Proceed to the verification process" });
-
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -516,13 +500,13 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({ email: req.email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json({ message: "User not found." });
     }
 
     user.passwordHash = newPassword;
     await user.save();
 
-    res.status(200).json({ message: 'Password has been reset successfully.' });
+    res.status(200).json({ message: "Password has been reset successfully." });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }

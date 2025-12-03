@@ -5,10 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useAuthStore } from "../stores/useAuth.store.js";
+import { useAuthStore } from "../../stores/useAuth.store.js";
 import { Controller } from "react-hook-form";
+import { regex } from "../../utils/regex.js";
+import Error from "../Error.jsx";
+import ReCAPTCHA from "react-google-recaptcha";
 import OtpInput from "react-otp-input";
+
 // create schemas for validating each steps
 const step1Schema = z.object({
   email: z.string().min(1, "Email is required").email("Email is not valid"),
@@ -21,10 +24,10 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   otp: z
     .string()
+    .nonempty("OTP is empty")
     .min(1, "OTP is required")
-    .min(6, "OTP must be 6 numbers")
-    .max(6, "OTP phải be 6 numbers")
-    .regex(/^\d+$/, "OTP only contains numbers"),
+    .max(6, "OTP must be 6 numbers")
+    .regex(regex.otp, "OTP only contains numbers"),
 });
 
 const step3Schema = z
@@ -36,10 +39,43 @@ const step3Schema = z
     password: z
       .string()
       .min(1, "Password is required")
-      .min(6, "Password must be at least 6 characters"),
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    address: z.string().min(1, "Address is required"),
+      .min(8, "Password must be at least 8 characters")
+      .regex(
+        regex.password,
+        "Password must contain uppercase, lowercase, numbers and special characters"
+      ),
+    firstName: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/\s+/g, " "))
+      .refine((v) => !v || v.length >= 2, {
+        message: "First name must be at least 2 characters",
+      })
+      .refine((v) => !v || v.length <= 150, {
+        message: "First name must be under 150 characters",
+      })
+      .refine((v) => !v || regex.name.test(v), {
+        message: "Only characters, ' and - are allowed",
+      }), 
+    lastName: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/\s+/g, " "))
+      .refine((v) => !v || v.length >= 2, {
+        message: "Last name must be at least 2 characters",
+      })
+      .refine((v) => !v || v.length <= 150, {
+        message: "Last name must be under 150 characters",
+      })
+      .refine((v) => !v || regex.name.test(v), {
+        message: "Only characters, ' and - are allowed",
+      }), 
+    address: z
+      .string()
+      .min(1, "Address is required")
+      .max(150, "Address must be under 150 characters")
+      .regex(regex.address, "Address is invalid")
+      .transform((val) => val.replace(/\s+/g, " ")),
     confirmPassword: z.string().min(1, "Confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -55,10 +91,7 @@ const SignUpForm = () => {
   const [step, setStep] = useState(1);
 
   // set up
-  const { signup, verify_otp, create_user, continue_with_google } =
-    useAuthStore();
-
-  // store the form data for propagation
+  const { signup, verify_otp, create_user, continue_with_google } = useAuthStore();
 
   // update step state
   const nextStep = () => {
@@ -170,9 +203,7 @@ const SignUpForm = () => {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.email.message}
-                  </div>
+                <Error message={errors.email.message}/>
                 )}
                 <div className="w-full flex flex-col justify-center items-center mt-10">
                   <div className="rounded-md overflow-hidden inline-block">
@@ -188,9 +219,7 @@ const SignUpForm = () => {
                     />
                     {/* Display errors */}
                     {errors.captcha && (
-                      <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
-                        {errors.captcha.message}
-                      </div>
+                    <Error message={errors.captcha.message}/>
                     )}
                   </div>
                 </div>
@@ -267,9 +296,7 @@ const SignUpForm = () => {
               )}
             />
             {errors.otp && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.otp.message}
-              </div>
+            <Error message={errors.otp.message}/>
             )}
             <div className="flex flex-col justify-center items-center">
               <button
@@ -306,9 +333,7 @@ const SignUpForm = () => {
                 {...register("username")}
               />
               {errors.username && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                  {errors.username.message}
-                </div>
+              <Error message={errors.username.message}/>
               )}
             </div>
             <div className="flex gap-3">
@@ -326,9 +351,7 @@ const SignUpForm = () => {
                   {...register("firstName")}
                 />
                 {errors.firstName && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.firstName.message}
-                  </div>
+                <Error message={errors.firstName.message}/>
                 )}
               </div>
               <div className="flex-1/2">
@@ -345,9 +368,7 @@ const SignUpForm = () => {
                   {...register("lastName")}
                 />
                 {errors.lastName && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.lastName.message}
-                  </div>
+                <Error message={errors.lastName.message}/>
                 )}
               </div>
             </div>
@@ -365,9 +386,7 @@ const SignUpForm = () => {
                 {...register("address")}
               />
               {errors.address && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                  {errors.address.message}
-                </div>
+              <Error message={errors.address.message}/>
               )}
             </div>
             <div className="flex gap-3">
@@ -385,9 +404,7 @@ const SignUpForm = () => {
                   {...register("password")}
                 />
                 {errors.password && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.password.message}
-                  </div>
+                <Error message={errors.password.message}/>
                 )}
               </div>
               <div className="flex-1/2">
@@ -407,9 +424,7 @@ const SignUpForm = () => {
                   {...register("confirmPassword")}
                 />
                 {errors.confirmPassword && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.confirmPassword.message}
-                  </div>
+                <Error message={errors.confirmPassword.message}/>
                 )}
               </div>
             </div>
