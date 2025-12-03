@@ -82,7 +82,7 @@ const ChangeNameModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} onSubmit={handleSubmit(onSubmit)} title={"Change Full Name"}>
       {/* current fullname */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Fullname</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Fullname</label>
         <p className="text-2xl">{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstname ? `${user.firstName}` : user.lastName ? `${user.lastName}` : "Unknown"}</p>
       </div>
       <Divider/>
@@ -90,7 +90,7 @@ const ChangeNameModal = ({open, onClose}) => {
       <div className="flex items-center justify-center gap-3">
         {/* first name */}
         <div>
-          <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">First Name</label>
+          <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">First Name</label>
           <input 
             type="text" 
             className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -111,7 +111,7 @@ const ChangeNameModal = ({open, onClose}) => {
 
         {/* last name */}
         <div>
-          <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Last name</label>
+          <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Last name</label>
           <input 
             type="text" 
             className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"

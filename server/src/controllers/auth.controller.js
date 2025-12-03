@@ -457,7 +457,6 @@ export const facebookCallback = async (req, res) => {
 };
 
 // manage password
-
 export const forgotPassword = async (req, res) => {
   try {
     const email = req.body.email;

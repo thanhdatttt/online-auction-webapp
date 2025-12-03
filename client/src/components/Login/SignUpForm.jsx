@@ -8,6 +8,7 @@ import { FaFacebook } from "react-icons/fa6";
 import { useAuthStore } from "../../stores/useAuth.store.js";
 import { Controller } from "react-hook-form";
 import { regex } from "../../utils/regex.js";
+import { toast } from "sonner";
 import Error from "../Error.jsx";
 import ReCAPTCHA from "react-google-recaptcha";
 import OtpInput from "react-otp-input";

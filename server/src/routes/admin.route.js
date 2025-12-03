@@ -1,5 +1,4 @@
 import express from "express";
-import { adminOnly } from "../middlewares/auth.js";
 import {
   approveRoleRequest,
   denyRoleRequest,

@@ -93,4 +93,24 @@ export const authService = {
       throw err;
     }
   },
+
+  forgot_password: async (data) => {
+    try {
+      const res = await api.post("/auth/forgot-password", data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  reset_password: async (data) => {
+    try {
+      const res = await api.post("/auth/reset-password", data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
 };

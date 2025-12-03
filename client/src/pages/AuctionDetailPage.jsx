@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import AuctionDetailLayout from "../components/AuctionDetail/AuctionDetailLayout";
+import AuctionDetailLayout from "../components/AuctionDetail/AuctionDetailLayout.jsx";
 
 export default function AuctionDetailPage() {
   return (

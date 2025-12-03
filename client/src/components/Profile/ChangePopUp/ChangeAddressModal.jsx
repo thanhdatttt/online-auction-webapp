@@ -59,14 +59,14 @@ const ChangeAddressModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} onSubmit={handleSubmit(onSubmit)} title={"Change Address"}>
       {/* current address */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Current Address</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Address</label>
         <p className="text-2xl">{user.address ? user.address : "Unknown"}</p>
       </div>
       <Divider/>
 
       {/* new address */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">New Address</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Address</label>
         <input 
           type="text" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
