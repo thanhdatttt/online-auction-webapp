@@ -180,8 +180,8 @@ export const approveRoleRequest = async (req, res) => {
       return res.status(400).json({ message: "Request already processed" });
 
     request.status = "approved";
-    request.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await RoleRequest.findByIdAndDelete(requestId);
+    request.expiresAt = new Date(Date.now() + 30 * 1000);
+    await request.save();
 
     await User.findByIdAndUpdate(request.userId, { role: "seller" });
 
