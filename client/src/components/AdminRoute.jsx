@@ -20,10 +20,6 @@ export default function AdminRoute() {
             await fetchMe();
         }
 
-        if (user && user.role !== "admin") {
-            return <Navigate to="/home" replace></Navigate>
-        }
-
         setStarting(false);
     }
 
@@ -39,6 +35,15 @@ export default function AdminRoute() {
     // if user does not have token -> go to sign in page
     if (!accessToken) {
         return <Navigate to="/signin" replace></Navigate>
+    }
+
+    if (!user) {
+        return <Navigate to="/signin" replace />;
+    }
+
+    // check role
+    if (user.role !== "admin") {
+        return <Navigate to="/home" replace />;
     }
 
     return (
