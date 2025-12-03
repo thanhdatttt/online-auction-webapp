@@ -12,22 +12,24 @@ const Header = () => {
   const {logout} = useAuthStore();
   const user = useAuthStore((state) => state.user);
 
-  // menu states
+  // menu states and refs handle click outside
   const [dropMenu, setDropMenu] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
-  const menuRef = useRef();
+  const menuRef = useRef();       // desktop
+  const mobileMenuRef = useRef(); // mobile menu
 
-  // close dropdown menu when click outside
   useEffect(() => {
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (
+        (menuRef.current && !menuRef.current.contains(e.target)) &&
+        (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target))
+      ) {
         setDropMenu(false);
         setMobileMenu(false);
       }
     };
 
     document.addEventListener("mousedown", handler);
-    // reset
     return () => document.removeEventListener("mousedown", handler);
   }, []);
   
@@ -77,7 +79,7 @@ const Header = () => {
 
           {/* dropdown menu */}
           {dropMenu && user && (
-            <div className="absolute right-0 mt-4 w-50 bg-dark shadow-lg rounded-md text-lighter font-lora font-semibold z-50 flex flex-col items-center">
+            <div ref={menuRef} className="absolute right-0 mt-4 w-50 bg-dark shadow-lg rounded-md text-lighter font-lora font-semibold z-50 flex flex-col items-center">
               <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
                 Profile
               </button>
@@ -89,19 +91,17 @@ const Header = () => {
         </div>
       </div>
 
-      {/* mobile menu */}
+      {/* open/close mobile menu button */}
       <button className="md:hidden text-white text-3xl" onClick={() => setMobileMenu(!mobileMenu)}>
         {mobileMenu ? <FiX/> : <FiMenu/>}
       </button>
 
       {/* mobile menu slide down */}
       {mobileMenu && (
-        <div className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col md:hidden shadow-lg z-50">
-          <button onClick={() => navigate("/signin")} className="w-full py-4 text-2xl bg-primary hover:text-black hover:bg-accent transition-colors">
-            Sign In
-          </button>
-          <button onClick={() => navigate("/profile")} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
-            Profile
+        <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col md:hidden shadow-lg z-50">
+          <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
+                  className="w-full py-4 text-2xl bg-primary hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+            {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
           </button>
           <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Categories
@@ -109,9 +109,16 @@ const Header = () => {
           <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Watch List
           </button>
-          <button onClick={handleLogout} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
-            Logout
-          </button>
+          
+          {user &&  
+          ( <div>
+            <button onClick={() => navigate("/profile")} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              Profile
+            </button>
+            <button onClick={handleLogout} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              Logout
+            </button>
+          </div>)}
         </div>
       )}
     </header>

@@ -8,6 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import { Controller } from "react-hook-form";
 import { useState, useEffect } from "react";
+
 // create schema for validate
 const signInSchema = z.object({
   username: z
@@ -17,7 +18,7 @@ const signInSchema = z.object({
   password: z
     .string()
     .min(1, "Please enter password")
-    .min(6, "Password must be at least 6 characters"),
+    .min(8, "Password must be at least 8 characters"),
   captcha: z.preprocess(
     (val) => val ?? "", // undefined → ""
     z.string().nonempty("Please verify the captcha")

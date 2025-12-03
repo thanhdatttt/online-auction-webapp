@@ -12,4 +12,5 @@ router.get("/users", adminOnly, getUsers);
 router.get("/requestRole", adminOnly, getRoleRequest);
 router.post("/users/delete/:userId", adminOnly, deleteUser);
 
+router.put("/auction/config", updateAuctionConfig);
 export default router;

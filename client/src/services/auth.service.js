@@ -8,6 +8,7 @@ export const authService = {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -17,6 +18,7 @@ export const authService = {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -26,6 +28,7 @@ export const authService = {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -35,6 +38,7 @@ export const authService = {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -48,6 +52,7 @@ export const authService = {
       return res.data;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -63,6 +68,7 @@ export const authService = {
       }
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -72,6 +78,7 @@ export const authService = {
       return res.data.user;
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -83,6 +90,7 @@ export const authService = {
       return res.data.accessToken;
     } catch(err) {
       console.log(err);
+      throw err;
     }
   },
 };

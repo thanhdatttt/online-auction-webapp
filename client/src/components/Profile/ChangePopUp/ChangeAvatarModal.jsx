@@ -4,6 +4,7 @@ import ChangeModalLayout from './ChangeModalLayout.jsx';
 import Divider from '../Divider.jsx';
 
 const ChangeAvatarModal = ({open, onClose, onUpload}) => {
+  // get user info
   const user = useAuthStore((state) => state.user);
 
   return (

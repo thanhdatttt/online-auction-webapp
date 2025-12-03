@@ -24,12 +24,12 @@ export const useAuthStore = create((set, get) => ({
       // call login api
       const data = await authService.login({ username, password, captcha });
       set({ accessToken: data.accessToken });
-      console.log(data);
 
       // fetch user
       await get().fetchMe();
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       // finish loading user login
       set({ loading: false });
@@ -42,6 +42,7 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.logout();
     } catch (err) {
       console.log(err);
+      throw err;
     }
   },
 
@@ -56,6 +57,7 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.signup({ email, captcha });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       // finish loading user login
       set({ loading: false });
@@ -78,6 +80,7 @@ export const useAuthStore = create((set, get) => ({
       set({ registerToken: data.token });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -110,6 +113,7 @@ export const useAuthStore = create((set, get) => ({
       });
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -117,10 +121,11 @@ export const useAuthStore = create((set, get) => ({
 
   continue_with_google: async () => {
     try {
-      set({loading: true});
+      set({ loading: true });
       await authService.continue_with_google();
     } catch (err) {
       console.log(err);
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -128,26 +133,27 @@ export const useAuthStore = create((set, get) => ({
 
   fetchMe: async () => {
     try {
-      set({loading: true});
+      set({ loading: true });
 
       const user = await authService.fetchMe();
-      set({user: user});
+      set({ user: user });
       console.log(user);
     } catch (err) {
-      set({user: null, accessToken: null});
+      set({ user: null, accessToken: null });
       console.log(err);
+      throw err;
     } finally {
-      set({loading: false});
+      set({ loading: false });
     }
   },
 
   refresh: async () => {
     try {
-      set({loading: true});
-      const {user, fetchMe} = get();
+      set({ loading: true });
+      const { user, fetchMe } = get();
       const accessToken = await authService.refresh();
 
-      set({accessToken: accessToken});
+      set({ accessToken: accessToken });
 
       if (!user) {
         await fetchMe();
@@ -155,10 +161,9 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       get().clearState();
       console.log(err);
+      throw err;
     } finally {
-      set({loading: false});
+      set({ loading: false });
     }
   },
-
-  // users info apis
 }));
