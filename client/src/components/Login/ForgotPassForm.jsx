@@ -24,7 +24,7 @@ const step2Schema = z.object({
 });
 
 const step3Schema = z.object({
-  password:  z
+  newPassword:  z
     .string()
     .min(1, "New password is required")
     .min(8, "Password must be at least 8 characters")
@@ -34,7 +34,7 @@ const step3Schema = z.object({
     ),
   confirmPassword: z.string().min(1, "Confirm your new password"),
 })
-.refine((data) => data.password === data.confirmPassword, {
+.refine((data) => data.newPassword === data.confirmPassword, {
   error: "Password does not match",
   path: ["confirmPassword"],
 });
@@ -97,8 +97,9 @@ const ForgetPassForm = () => {
           console.log(err.response?.data?.error);
         }
       }
-    } else {
+    } else if (step === 3) {
       try {
+        // const { newPassword } = data;
         await reset_password(data);
         navigate("/signin");
       } catch (err) {
@@ -182,12 +183,6 @@ const ForgetPassForm = () => {
               >
                 Next
               </button>
-              <button
-                className="w-1/2 bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition cursor-pointer"
-                onClick={prevStep}
-              >
-                Go back
-              </button>
             </div>
           </div>
         )}
@@ -196,25 +191,25 @@ const ForgetPassForm = () => {
         {step == 3 && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="password" className="block mb-1 text-3xl">
+              <label htmlFor="newPassword" className="block mb-1 text-3xl">
                 New password
               </label>
               <input
                 className={`w-full rounded-md p-2 text-black text-2xl bg-white ${
-                  errors.password ? "border-red-500" : "border-gray-500"
+                  errors.newPassword ? "border-red-500" : "border-gray-500"
                 } focus:outline-none focus:ring-2 focus:ring-primary`}
                 type="text"
-                id="password"
+                id="newPassword"
                 placeholder="Enter new password"
-                {...register("password")}
+                {...register("newPassword")}
               />
-              {errors.password && (
-              <Error message={errors.password.message}/>
+              {errors.newPassword && (
+              <Error message={errors.newPassword.message}/>
               )}
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block mb-1 text-3xl">
-                Adrress
+                Confirm new password
               </label>
               <input
                 className={`w-full rounded-md p-2 text-black text-2xl bg-white ${

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 export const useAuthStore = create((set, get) => ({
   accessToken: null,
-  registerToken: null,
+  token: null,
   registeredEmail: null,
   user: null,
   loading: false,
@@ -84,7 +84,7 @@ export const useAuthStore = create((set, get) => ({
         otp,
       });
       // store for step 3
-      set({ registerToken: data.token });
+      set({ token: data.token });
     } catch (err) {
       console.log(err);
       throw err;
@@ -96,9 +96,9 @@ export const useAuthStore = create((set, get) => ({
   create_user: async (username, password, firstName, lastName, address) => {
     try {
       set({ loading: true });
-      const { registerToken } = get();
+      const { token } = get();
 
-      if (!registerToken)
+      if (!token)
         throw new Error(
           "Something went wrong. Your register token is missing."
         );
@@ -110,12 +110,12 @@ export const useAuthStore = create((set, get) => ({
           lastName,
           address,
         },
-        registerToken
+        token
       );
       set({
         accessToken: data.accessToken,
         user: data.user,
-        registerToken: null,
+        token: null,
         registeredEmail: null,
       });
       toast.success("Registered successfully");
@@ -178,6 +178,9 @@ export const useAuthStore = create((set, get) => ({
   forgot_password: async ({ email }) => {
     try {
       set({ loading: true });
+      // store it for step 2
+      set({ registeredEmail: email });
+      // call register api
       const data = await authService.forgot_password({ email });
     } catch (err) {
       console.log(err);
@@ -189,9 +192,20 @@ export const useAuthStore = create((set, get) => ({
 
   reset_password: async ({ newPassword }) => {
     try {
-      set({loading: true});
+      set({ loading: true });
+      const { token } = get();
 
-      const res = await authService.reset_password({newPassword});
+      if (!token)
+        throw new Error(
+          "Something went wrong. Your register token is missing."
+        );
+
+      const res = await authService.reset_password(
+        {
+          newPassword
+        },
+        token
+      );
       toast.success("Reset password successfully");
     } catch (err) {
       console.log(err);
