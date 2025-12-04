@@ -3,6 +3,8 @@ import nodemailer from "nodemailer";
 import { config } from "../configs/config.js";
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
+import cron from "node-cron";
+import Auction from "../models/Auction.js";
 // singleton...
 export const initAuctionConfig = async () => {
   try {
@@ -18,6 +20,10 @@ export const initAuctionConfig = async () => {
     throw err;
   }
 };
+
+function formatPriceVND(amount) {
+  return new Intl.NumberFormat("vi-VN").format(amount) + " VND";
+}
 
 export const sendQuestionEmail = async (seller, link, question) => {
   try {
@@ -181,7 +187,9 @@ export const sendPlaceBidEmail = async (
       "email firstName lastName"
     );
 
-    const link = `http://localhost:5173/auctions/${auction._id}`;
+    console.log(auction.id);
+
+    const link = `${config.CLIENT_URL}/auctions/${auction._id}`;
 
     sendEmail(
       bidder.email,
@@ -197,15 +205,15 @@ export const sendPlaceBidEmail = async (
       }"</strong> has been placed successfully.</p>
 
       <p>Your current entry bid amount is:
-        <strong style="color:#4CAF50; font-size: 18px;">$${
+        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
           bidder.bidEntryAmount
-        }</strong>
+        )}</strong>
       </p>
 
       <p>Your max bid amount is:
-        <strong style="color:#4CAF50; font-size: 18px;">$${
+        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
           bidder.bidMaxAmount
-        }</strong>
+        )}</strong>
       </p>
 
       <a href="${link}"
@@ -235,14 +243,14 @@ export const sendPlaceBidEmail = async (
         bidder.firstName + " " + bidder.lastName
       }</strong> placed a max bid of:</p>
 
-      <p><strong style="color:#2196F3; font-size: 18px;">$${
+      <p><strong style="color:#2196F3; font-size: 18px;">${formatPriceVND(
         bidder.bidMaxAmount
-      }</strong></p>
+      )}</strong></p>
 
       <p>The current price of auction is:
-        <strong style="color:#4CAF50; font-size: 18px;">$${
+        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
           auction.currentPrice
-        }</strong>
+        )}</strong>
       </p>
 
       <a href="${link}"
@@ -275,9 +283,9 @@ export const sendPlaceBidEmail = async (
             bidder.firstName + " " + bidder.lastName
           }</strong> has placed a entry bid of:</p>
 
-          <p><strong style="color:#FF9800; font-size: 18px;">$${
+          <p><strong style="color:#FF9800; font-size: 18px;">${formatPriceVND(
             bidder.bidEntryAmount
-          }</strong></p>
+          )}</strong></p>
 
           <p>You can view the updated auction details here:</p>
 
@@ -291,6 +299,91 @@ export const sendPlaceBidEmail = async (
         `
         );
       });
+  } catch (err) {
+    console.log(err.message);
+    throw err;
+  }
+};
+
+export const sendWinnerEmail = async (
+  winner,
+  productName,
+  finalPrice,
+  link
+) => {
+  try {
+    sendEmail(
+      winner.email,
+      `[Auctiz] Congratulations! You Won the Auction`,
+      `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #4CAF50;">Congratulations!</h2>
+
+      <p>Hello <strong>${
+        winner.firstName + " " + winner.lastName || "Winner"
+      }</strong>,</p>
+
+      <p>We are pleased to inform you that you have <strong>won the auction</strong> for <strong>"${productName}"</strong> with a final bid of <strong>${finalPrice} VND</strong>.</p>
+
+      <p>You can view the auction and complete your purchase here:</p>
+      <a href="${link}"
+        style="display:inline-block; padding:10px 16px; background:#4CAF50; color:white; text-decoration:none; border-radius:5px;">
+        View Auction
+      </a>
+
+      <p style="font-size: 12px; color: #aaa;">
+        This is an automated message from <strong>Your Auctiz</strong>.
+      </p>
+    </div>
+  `
+    );
+  } catch (err) {
+    console.log(err.message);
+    throw err;
+  }
+};
+
+export const sendSellerEmail = async (
+  seller,
+  productName,
+  winner = null,
+  finalPrice = null,
+  link
+) => {
+  try {
+    const message = winner
+      ? `The winning bidder is <strong>${
+          winner.firstName + " " + winner.lastName
+        }</strong> with a final bid of <strong>${finalPrice} VND</strong>.`
+      : `Your auction ended with no winning bids.`;
+
+    sendEmail(
+      seller.email,
+      `[Auctiz] Your Auction Has Ended`,
+      `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #2196F3;">Auction Ended</h2>
+
+        <p>Hello <strong>${
+          seller.firstName + " " + seller.lastName || "Seller"
+        }</strong>,</p>
+
+        <p>Your auction for <strong>"${productName}"</strong> has ended.</p>
+
+        <p>${message}</p>
+
+        <p>You can view the auction details here:</p>
+        <a href="${link}"
+          style="display:inline-block; padding:10px 16px; background:#2196F3; color:white; text-decoration:none; border-radius:5px;">
+          View Auction
+        </a>
+
+        <p style="font-size: 12px; color: #aaa;">
+          This is an automated message from <strong>Your Auctiz</strong>.
+        </p>
+      </div>
+    `
+    );
   } catch (err) {
     console.log(err.message);
     throw err;
@@ -317,3 +410,35 @@ const sendEmail = async (to, subject, contentHTML) => {
     throw err;
   }
 };
+
+cron.schedule("* * * * *", async () => {
+  const now = new Date();
+  const auctionsToEnd = await Auction.find({
+    status: "ongoing",
+    endTime: { $lte: now },
+  });
+
+  for (const auction of auctionsToEnd) {
+    auction.status = "ended";
+
+    await auction.save({ validateBeforeSave: false });
+
+    const link = `${config.CLIENT_URL}/auctions/${auction.id}`;
+
+    const winner = await User.findById(auction.winnerId);
+
+    if (winner) {
+      sendWinnerEmail(winner, auction.product.name, auction.currentPrice, link);
+    }
+
+    const seller = await User.findById(auction.sellerId);
+
+    sendSellerEmail(
+      seller,
+      auction.product.name,
+      winner,
+      auction.currentPrice,
+      link
+    );
+  }
+});

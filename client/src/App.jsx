@@ -11,14 +11,14 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
-
+import { Toaster } from "sonner";
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" richColors closeButton />
       <Routes>
         {/* defaut route */}
         <Route index element={<Navigate to={"/home"} />} />
-
         {/* routes */}
         {/* public route */}
         <Route path="/signin" element={<SignInPage />} />
@@ -26,13 +26,13 @@ function App() {
         <Route path="/auth/success" element={<AuthSuccessPage />} />
 
         <Route path="/home" element={<HomePage />} />
-        <Route
-          path="/auctions/:id"
-          element={<AuctionDetailPage></AuctionDetailPage>}
-        />
         {/* protected route */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route
+            path="/auctions/:id"
+            element={<AuctionDetailPage></AuctionDetailPage>}
+          />
         </Route>
       </Routes>
     </Router>

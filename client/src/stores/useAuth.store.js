@@ -29,6 +29,8 @@ export const useAuthStore = create((set, get) => ({
 
       // fetch user
       await get().fetchMe();
+
+      console.log(data.accessToken);
     } catch (err) {
       console.log(err);
       throw err;

@@ -1,11 +1,8 @@
 import React from "react";
 
-const ProductCard = ({ key }) => {
+const ProductCard = () => {
   return (
-    <div
-      key={key}
-      className="relative group rounded-md overflow-hidden cursor-pointer shadow-md aspect-[4/5]"
-    >
+    <div className="relative group rounded-md overflow-hidden cursor-pointer shadow-md aspect-[4/5]">
       <img
         src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=300&auto=format&fit=crop"
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"

@@ -23,6 +23,11 @@ const bidSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isActive: {
+    type: Boolean,
+    required: true,
+    default: true,
+  },
 });
 
 export default mongoose.model("Bid", bidSchema);

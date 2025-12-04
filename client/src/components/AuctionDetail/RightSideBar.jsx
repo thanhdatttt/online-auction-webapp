@@ -1,9 +1,152 @@
 import { ThumbsUp, ChevronDown, Crown } from "lucide-react";
 import { FaRegCircleUser } from "react-icons/fa6";
-const RightSideBar = () => {
+import "dayjs/locale/vi";
+import { useAuctionStore } from "../../stores/useAuction.store";
+import { useState } from "react";
+import { NumericFormat } from "react-number-format";
+import { useAuthStore } from "../../stores/useAuth.store";
+import { useNavigate } from "react-router";
+import History from "./History";
+const RightSideBar = ({
+  auction,
+  seller,
+  currentPrice,
+  dataWinner,
+  endTime,
+}) => {
+  const newCurrentPrice = currentPrice
+    ? currentPrice
+    : auction.currentPrice
+    ? auction.currentPrice
+    : auction.startPrice;
+
+  const [showModal, setShowModal] = useState(false);
+
+  const newEndTime = endTime;
+
+  const newWinner = dataWinner.winner;
+
+  const newHighestPrice = dataWinner.highestPrice;
+
+  const isOnGoing = new Date() < new Date(newEndTime);
+
+  const user = useAuthStore((state) => state.user);
+
+  console.log(user);
+
+  const isGuest = user === null;
+
+  const isSeller = !isGuest ? user?._id === seller?._id : false;
+
+  const isBidder = !isGuest ? user?._id !== seller?._id : false;
+
+  const isWinner = isBidder ? user?._id === newWinner?._id : false;
+
+  const navigate = useNavigate();
+
+  const {
+    formatTime,
+    formatPrice,
+    handlePlaceBid,
+    handleBuyNow,
+    maskFirstHalf,
+  } = useAuctionStore();
+
+  const [bidMaxAmount, setBidMaxAmount] = useState(null);
+
+  const handleShowModal = (value) => {
+    setShowModal(value);
+  };
+
+  const confirm = () => {
+    handleBuyNow(auction?._id);
+    setShowModal(false);
+  };
+
   return (
-    <div className="bg-light border-0 border-dark shadow-sm rounded-sm overflow-hidden sticky top-20">
+    <div className="bg-light border border-dark shadow-sm rounded-sm overflow-hidden sticky top-20">
+      {showModal && (
+        <div>
+          <div
+            id="popup-modal"
+            tabIndex={-1}
+            className="flex justify-center items-center rounded-md bg-black/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-[calc(100%-1rem)] max-h-full"
+          >
+            <div className="relative p-4 w-full max-w-md max-h-full bg-white rounded-4xl">
+              <div className="relative bg-neutral-primary-soft p-4 md:p-6">
+                <button
+                  onClick={() => handleShowModal(false)}
+                  type="button"
+                  className="absolute top-3 end-2.5 text-body bg-transparent hover:bg-neutral-tertiary hover:bg-decor rounded-2xl hover:text-heading rounded-base text-sm w-9 h-9 ms-auto inline-flex justify-center items-center"
+                  data-modal-hide="popup-modal"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={24}
+                    height={24}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18 17.94 6M18 18 6.06 6"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+                <div className="p-4 md:p-5 text-center">
+                  <svg
+                    className="mx-auto mb-4 text-fg-disabled w-12 h-12"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={24}
+                    height={24}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                    />
+                  </svg>
+                  <h3 className="mb-6 text-body">
+                    Are you sure you want to buyout this product ?
+                  </h3>
+                  <div className="flex items-center space-x-4 justify-center">
+                    <button
+                      onClick={() => confirm()}
+                      data-modal-hide="popup-modal"
+                      type="button"
+                      className="text-white bg-red-600 hover:bg-red-400 hover:text-black rounded-2xl box-border border border-transparent hover:bg-danger-strong focus:ring-4 focus:ring-danger-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+                    >
+                      Yes, I'm sure
+                    </button>
+                    <button
+                      onClick={() => handleShowModal(false)}
+                      data-modal-hide="popup-modal"
+                      type="button"
+                      className="text-gray-300 bg-dark hover:bg-dark/80 hover:text-black rounded-2xl hover:bg-neutral-tertiary-medium hover:text-heading shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+                    >
+                      No, cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* BEIGE HEADER */}
+
       <div className="border-b border-decor">
         <div className="h-12 bg-decor py-2">
           <p className="text-[20px] text-[#D1AE8D] tracking-wider uppercase pl-10">
@@ -11,20 +154,50 @@ const RightSideBar = () => {
           </p>
         </div>
         <div className="flex items-center justify-center h-15">
-          <h2 className="text-[30px] text-[#D1AE8D] text- mt-1">11/20/2025</h2>
+          <h2 className="text-[30px] text-[#D1AE8D] text- mt-1">
+            {formatTime(newEndTime)}
+          </h2>
         </div>
       </div>
 
       <div className="px-5 py-5">
         <div className="mb-6">
-          <p className="text-xs text-dark uppercase tracking-widest mb-2">
-            Current Bid
-          </p>
-          <p className="text-3xl font-medium text-dark mb-4">
-            10.000.000.000 VND
-          </p>
-          <p className="text-xs text-dark mt-1 mb-2">BUY NOW</p>
-          <p className="text-3xl font-medium text-dark">30.000.000.000 VND</p>
+          {isOnGoing ? (
+            <>
+              <p className="text-xs text-dark uppercase tracking-widest mb-2">
+                Current Bid
+              </p>
+              <p className="text-3xl font-medium text-dark mb-4">
+                {formatPrice(newCurrentPrice)}
+              </p>
+              <p className="text-xs text-dark mt-1 mb-2">BUY NOW</p>
+              <div className="flex justify-between">
+                <p className="text-3xl font-medium text-dark">
+                  {auction.buyNowPrice
+                    ? formatPrice(auction.buyNowPrice)
+                    : "No buyout price."}
+                </p>
+                {isBidder && (
+                  <button
+                    onClick={() => handleShowModal(true)}
+                    disabled={!isOnGoing}
+                    className="h-10 px-2 bg-primary hover:bg-accent/80 hover:text-black text-white font-medium rounded-sm shadow-sm transition-colors uppercase tracking-wide ml-5 text-[14px]"
+                  >
+                    Buyout
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xl text-dark uppercase tracking-widest mb-2 text-center">
+                Final price
+              </p>
+              <p className="text-3xl font-medium text-dark mb-4 text-center">
+                {newWinner ? formatPrice(newCurrentPrice) : "There is no bids."}
+              </p>
+            </>
+          )}
         </div>
 
         {/* SELLER INFO */}
@@ -32,7 +205,17 @@ const RightSideBar = () => {
           <FaRegCircleUser className="w-10 h-10"></FaRegCircleUser>
           <div>
             <p className="text-[16px] text-dark">
-              Posted by <span className="font-bold text-sm">Dreckiez</span>
+              Posted by{" "}
+              <span
+                className={
+                  isSeller
+                    ? "font-bold text-sm text-accent"
+                    : "font-bold text-sm"
+                }
+              >
+                {isBidder && seller.firstName + " " + seller.lastName}
+                {isSeller && "You"}
+              </span>
             </p>
             <div className="flex items-center gap-2">
               <span className="text-[16px] px-1 rounded flex items-center gap-0.5">
@@ -43,90 +226,228 @@ const RightSideBar = () => {
         </div>
 
         {/* QUICK BIDS */}
-        <div className="flex justify-between gap-2 mb-3">
-          <button className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors">
-            11.000.000.000 VND
-          </button>
-          <button className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors">
-            12.000.000.000 VND
-          </button>
+        <div className="flex justify-between gap-2 mb-3 h-7">
+          {isBidder &&
+            isOnGoing &&
+            (!auction.buyNowPrice ||
+              newCurrentPrice + 2 * auction.gapPrice < auction.buyNowPrice) && (
+              <button
+                onClick={() =>
+                  setBidMaxAmount(newCurrentPrice + 2 * auction.gapPrice)
+                }
+                className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
+              >
+                {formatPrice(newCurrentPrice + 2 * auction.gapPrice)}
+              </button>
+            )}
+          {isBidder &&
+            isOnGoing &&
+            (!auction.buyNowPrice ||
+              newCurrentPrice + 3 * auction.gapPrice < auction.buyNowPrice) && (
+              <button
+                onClick={() =>
+                  setBidMaxAmount(newCurrentPrice + 3 * auction.gapPrice)
+                }
+                className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
+              >
+                {formatPrice(newCurrentPrice + 3 * auction.gapPrice)}
+              </button>
+            )}
         </div>
 
         {/* INPUT BID */}
-        <div className="h-15">
-          <input
-            type="text"
-            placeholder="10.000.000.000 VND or higher"
-            className="bg-grayinput rounded-sm p-3 mb-3 hover:bg-grayinput/80 focus:ring-dark focus:ring focus:bg-grayinput/80 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
-          />
-        </div>
 
-        <button className="w-full bg-primary hover:bg-primary/80 text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide">
-          Place Bid
-        </button>
+        {isGuest && (
+          <>
+            <div className="h-15">
+              <input
+                type="text"
+                disabled={true}
+                value={isOnGoing ? bidMaxAmount : ""}
+                placeholder={
+                  isOnGoing
+                    ? "Please sign in to place bid."
+                    : "This auction is already closed."
+                }
+                className={
+                  isOnGoing
+                    ? "bg-grayinput rounded-sm p-3 mb-3 hover:bg-grayinput/80 focus:ring-dark focus:ring focus:bg-grayinput/80 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                    : "bg-grayinput rounded-sm p-3 mb-3 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                }
+              />
+            </div>
+
+            <button
+              onClick={() => navigate("/home")}
+              disabled={!isOnGoing}
+              className={
+                isOnGoing
+                  ? "w-full bg-primary hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                  : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+              }
+            >
+              {isOnGoing ? "Sign in" : "Place bid"}
+            </button>
+          </>
+        )}
+
+        {/* {isBidder && (
+          <>
+            <div className="h-15">
+              <input
+                onChange={(e) => setBidMaxAmount(e.target.value)}
+                type="text"
+                disabled={!isOnGoing}
+                onKeyDown={(e) => {
+                  if (
+                    !/[0-9]/.test(e.key) &&
+                    ![
+                      "Delete",
+                      "ArrowLeft",
+                      "ArrowRight",
+                      "Tab",
+                      "Backspace",
+                    ].includes(e.key)
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
+                value={isOnGoing ? bidMaxAmount : ""}
+                placeholder={
+                  isOnGoing
+                    ? !auction.buyNowPrice ||
+                      newCurrentPrice + auction.gapPrice < auction.buyNowPrice
+                      ? `${formatPrice(
+                          newCurrentPrice + auction.gapPrice
+                        )} or higher.`
+                      : "You can buyout this product."
+                    : "This auction is already closed."
+                }
+                className={
+                  isOnGoing
+                    ? "bg-grayinput rounded-sm p-3 mb-3 hover:bg-grayinput/80 focus:ring-dark focus:ring focus:bg-grayinput/80 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                    : "bg-grayinput rounded-sm p-3 mb-3 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                }
+              />
+            </div>
+
+            <button
+              onClick={() =>
+                handlePlaceBid(
+                  bidMaxAmount,
+                  user._id,
+                  newWinner ? newWinner._id : null,
+                  newHighestPrice,
+                  newCurrentPrice,
+                  auction
+                )
+              }
+              disabled={!isOnGoing}
+              className={
+                isOnGoing
+                  ? "w-full bg-primary hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                  : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+              }
+            >
+              Place Bid
+            </button>
+          </>
+        )} */}
+
+        {isBidder && (
+          <>
+            <div className="h-15">
+              <NumericFormat
+                value={isOnGoing ? bidMaxAmount : ""}
+                onValueChange={(values) => {
+                  setBidMaxAmount(values.value);
+                }}
+                thousandSeparator="."
+                decimalSeparator=","
+                allowNegative={false}
+                disabled={!isOnGoing}
+                placeholder={
+                  isOnGoing
+                    ? !auction.buyNowPrice ||
+                      newCurrentPrice + auction.gapPrice < auction.buyNowPrice
+                      ? `${formatPrice(
+                          newCurrentPrice + auction.gapPrice
+                        )} or higher.`
+                      : "You can buyout this product."
+                    : "This auction is already closed."
+                }
+                className={
+                  isOnGoing
+                    ? "bg-grayinput rounded-sm p-3 mb-3 hover:bg-grayinput/80 focus:ring-dark focus:ring focus:bg-grayinput/80 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                    : "bg-grayinput rounded-sm p-3 mb-3 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
+                }
+              />
+            </div>
+
+            <button
+              onClick={() =>
+                handlePlaceBid(
+                  bidMaxAmount,
+                  user._id,
+                  newWinner ? newWinner._id : null,
+                  newHighestPrice,
+                  newCurrentPrice,
+                  auction
+                )
+              }
+              disabled={!isOnGoing}
+              className={
+                isOnGoing
+                  ? "w-full bg-primary hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                  : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+              }
+            >
+              Place Bid
+            </button>
+          </>
+        )}
 
         <div className="h-23 border-y border-dark mt-6">
           <p className="text-dark/70 text-[16px] mt-2">
-            CURRENT WINNING BIDDER
+            {isOnGoing ? "CURRENT WINNING BIDDER" : "WINNING BIDDER"}
           </p>
           <div className="flex items-center justify-center mt-3 gap-2 w-full">
-            <Crown></Crown>
-            <p className="text-[20px]">Onii-chan Baka Hentiaaaa</p>
+            {newWinner && (
+              <>
+                <Crown></Crown>
+                <p
+                  className={
+                    isWinner
+                      ? "text-amber-700 font-extrabold text-[20px]"
+                      : "text-[20px]"
+                  }
+                >
+                  {isWinner
+                    ? "You"
+                    : maskFirstHalf(
+                        newWinner.firstName + " " + newWinner.lastName
+                      )}
+                </p>
+              </>
+            )}
+            {!newWinner && (
+              <p>
+                {isOnGoing
+                  ? "No one has placed a bid yet. You could be the first!"
+                  : "There is no winner."}
+              </p>
+            )}
           </div>
         </div>
 
         {/* BIDDING HISTORY */}
-        <div className="mt-8">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold text-gray-700">Bidding History</h3>
-          </div>
-
-          <div className="bg-decor rounded border border-gray-100 text-xs">
-            {/* Row 1 */}
-            <div className="flex justify-between bg-decor p-2 border-b border-gray-100">
-              <span className="text-gray-600">****Diddy (90%)</span>
-              <div className="text-right">
-                <span className="block text-gray-500 text-[10px]">
-                  27/10/2025 10:43
-                </span>
-                <span className="font-semibold">10.000.000.000 VND</span>
-              </div>
-            </div>
-            {/* Row 2 */}
-            <div className="flex justify-between p-2 border-b border-gray-100 bg-decor">
-              <span className="text-gray-600">****Trump (85%)</span>
-              <div className="text-right">
-                <span className="block text-gray-500 text-[10px]">
-                  27/10/2025 10:43
-                </span>
-                <span className="font-semibold">9.000.000.000 VND</span>
-              </div>
-            </div>
-            {/* Row 3 */}
-            <div className="flex justify-between p-2 border-b border-gray-100 bg-decor">
-              <span className="text-gray-600">****Elon (80%)</span>
-              <div className="text-right">
-                <span className="block text-gray-500 text-[10px]">
-                  27/10/2025 10:43
-                </span>
-                <span className="font-semibold">8.000.000.000 VND</span>
-              </div>
-            </div>
-            {/* Row 4 */}
-            <div className="flex justify-between p-2 bg-decor">
-              <span className="text-gray-600">****JACK (89%)</span>
-              <div className="text-right">
-                <span className="block text-gray-500 text-[10px]">
-                  27/10/2025 10:43
-                </span>
-                <span className="font-semibold">5.000.000.000 VND</span>
-              </div>
-            </div>
-          </div>
-          <button className="text-[#EFA00B] text-xs font-bold mt-2 flex items-center gap-1">
-            See all bids <ChevronDown size={12} />
-          </button>
-        </div>
+        <History
+          isSeller={isSeller}
+          isBidder={isBidder}
+          isGuest={isGuest}
+          userId={!isGuest ? user._id : null}
+          endTime={newEndTime}
+        ></History>
       </div>
     </div>
   );

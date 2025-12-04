@@ -1,15 +1,28 @@
-import React from "react";
+import { useState } from "react";
 import { Heart, ChevronDown, ChevronUp } from "lucide-react";
-const Product = () => {
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
+import { useAuctionStore } from "../../stores/useAuction.store";
+const Product = ({ p, postedOn }) => {
+  const [curImg, setCurImg] = useState(0);
+  const updateCurImg = (value) => {
+    setCurImg(value);
+  };
+
+  const { formatTime } = useAuctionStore();
+
   return (
     <>
       {/* TITLE HEADER */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold leading-tight text-gray-900">
-            Nikon Nikonos V + 2,8/35mm | Underwater Analogue camera
+            {p.name}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Posted on 10/29/2025</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Posted on {formatTime(postedOn)}
+          </p>
         </div>
         <button className="border border-black rounded-full p-2 hover:bg-gray-100">
           <Heart className="w-5 h-5" />
@@ -21,7 +34,7 @@ const Product = () => {
         {/* MAIN IMAGE */}
         <div className="flex-1 bg-gray-200 rounded-sm overflow-hidden border border-gray-300 relative group">
           <img
-            src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop"
+            src={p.images[curImg].url}
             className="w-full h-full object-cover"
             alt="Main item"
           />
@@ -30,32 +43,51 @@ const Product = () => {
 
         {/* THUMBNAILS (Vertical Stack) */}
         <div className="flex flex-col gap-3 w-24 h-full justify-center">
-          <div className="flex items-center justify-center w-full h-8 cursor-pointer hover:bg-gray-50">
-            <ChevronUp size={20} />
+          <div className="h-15">
+            {curImg > 0 && (
+              <div
+                className="flex items-center justify-center w-full h-15 cursor-pointer hover:bg-decor select-none"
+                onClick={() => updateCurImg(curImg - 1)}
+              >
+                <ChevronUp size={25} />
+              </div>
+            )}
           </div>
-          <div className="w-full h-20 bg-gray-300 rounded-sm overflow-hidden border border-gray-400 cursor-pointer">
-            <img
-              src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=200&auto=format&fit=crop"
-              className="w-full h-full object-cover opacity-100"
-              alt=""
-            />
-          </div>
-          <div className="w-full h-20 bg-gray-300 rounded-sm overflow-hidden cursor-pointer opacity-70 hover:opacity-100">
-            <img
-              src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=200&auto=format&fit=crop"
-              className="w-full h-full object-cover"
-              alt=""
-            />
-          </div>
-          <div className="w-full h-20 bg-gray-300 rounded-sm overflow-hidden cursor-pointer opacity-70 hover:opacity-100">
-            <img
-              src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=200&auto=format&fit=crop"
-              className="w-full h-full object-cover"
-              alt=""
-            />
-          </div>
-          <div className="flex items-center justify-center w-full h-8 cursor-pointer hover:bg-gray-50">
-            <ChevronDown size={20} />
+          {Array.from(
+            {
+              length: Math.min(3, p.images.length - Math.floor(curImg / 3) * 3),
+            },
+            (_, i) => (
+              <div
+                className={
+                  curImg === Math.floor(curImg / 3) * 3 + i
+                    ? "w-full h-20 rounded-sm overflow-hidden cursor-pointer scale-110"
+                    : "w-full h-20 rounded-sm overflow-hidden cursor-pointer hover:scale-105"
+                }
+                key={i}
+              >
+                <img
+                  src={p.images[Math.floor(curImg / 3) * 3 + i].url}
+                  className={
+                    Math.floor(curImg / 3) * 3 + i === curImg
+                      ? "w-full h-full object-cover opacity-100 outline-none rounded-sm"
+                      : "w-full h-full object-cover opacity-60 rounded-sm hover:opacity-80"
+                  }
+                  alt="Can not load the image."
+                  onClick={() => updateCurImg(Math.floor(curImg / 3) * 3 + i)}
+                />
+              </div>
+            )
+          )}
+          <div className="h-15">
+            {curImg < p.images.length - 1 && (
+              <div
+                className="flex items-center justify-center w-full h-15 cursor-pointer hover:bg-decor select-none"
+                onClick={() => updateCurImg(curImg + 1)}
+              >
+                <ChevronDown size={25} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -64,19 +96,7 @@ const Product = () => {
       <div className="mt-8 border-b border-gray-300 pb-8">
         <h3 className="text-lg font-bold mb-3">Product Details</h3>
         <div className="text-sm md:text-base text-gray-700 space-y-2 leading-relaxed font-sans border-t border-gray-300 pt-3">
-          <p>電源入り撮影出来ましたが細部の機能までは確認していません。</p>
-          <p>
-            不得意ジャンルの買い取り品の為細かい確認出来る知識がありません、ご了承ください。
-          </p>
-          <p>
-            簡単な確認方法が有れば確認しますので方法等質問欄からお願いします、終了日の質問には答えられない場合があります。
-          </p>
-          <p className="mt-4 text-gray-500 text-xs">
-            ✏️ 31/10/2025 - が大きくなる事がありますがご了承下さい。
-            <br />
-            ✏️ 5/11/2025 -
-            不得意ジャンルの買い取り品の為細かい確認出来る知識がありません、ご了承ください。
-          </p>
+          <p>{p.description}</p>
         </div>
       </div>
     </>
