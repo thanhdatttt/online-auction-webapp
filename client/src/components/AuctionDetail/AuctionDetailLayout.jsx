@@ -71,6 +71,7 @@ const AuctionDetailLayout = () => {
       socket.off("priceUpdate");
       socket.off("winnerUpdate");
       socket.off("endTimeUpdate");
+      socket.disconnect();
     };
   }, [id]);
 

@@ -249,9 +249,11 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       }
                     >
                       <span className="text-gray-600">
-                        {maskFirstHalf(
-                          h.bidderId.firstName + " " + h.bidderId.lastName
-                        )}
+                        {userId === h.bidderId._id
+                          ? "You"
+                          : maskFirstHalf(
+                              h.bidderId.firstName + " " + h.bidderId.lastName
+                            )}
                       </span>
                       <div className="text-right">
                         <span className="block text-gray-500 text-[10px]">
