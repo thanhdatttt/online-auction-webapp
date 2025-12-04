@@ -15,6 +15,7 @@ import mongoose from "mongoose";
 import { config } from "../configs/config.js";
 import RejectedBidder from "../models/RejectedBidder.js";
 import { type } from "os";
+import { exists } from "fs";
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;
@@ -419,6 +420,15 @@ export const rejectBidder = async (req, res) => {
         .status(409)
         .json({ message: "You already rejected this bidder." });
 
+    const result = await Bid.updateMany(
+      {
+        auctionId: auctionId,
+        bidderId: bidderId,
+      },
+      {
+        $set: { isActive: false },
+      }
+    );
     // proceed the rejected bidder is the winner
 
     if (bidderId === auction.winnerId?.toString()) {
@@ -431,8 +441,11 @@ export const rejectBidder = async (req, res) => {
         .skip(1)
         .limit(2);
 
+      console.log("[]: ", secondThirdBidMaxAmount);
+
       // proceed to auction
       if (!secondThirdBidMaxAmount[0]) {
+        console.log("here");
         auction.winnerId = null;
         auction.currentPrice = null;
         auction.highestPrice = null;
@@ -456,16 +469,6 @@ export const rejectBidder = async (req, res) => {
 
     const io = req.app.get("io");
 
-    const result = await Bid.updateMany(
-      {
-        auctionId: auctionId,
-        bidderId: bidderId,
-      },
-      {
-        $set: { isActive: false },
-      }
-    );
-
     const rejectedBidder = await RejectedBidder.create({
       auctionId: auctionId,
       bidderId: bidderId,
@@ -473,7 +476,10 @@ export const rejectBidder = async (req, res) => {
 
     io.to(`auction_${auctionId}`).emit("rejectUpdate", bidderId);
 
-    io.to(`auction_${auctionId}`).emit("priceUpdate", auction.currentPrice);
+    io.to(`auction_${auctionId}`).emit(
+      "priceUpdate",
+      auction.currentPrice ? auction.currentPrice : auction.startPrice
+    );
 
     // set up sending email
     const link = `${config.CLIENT_URL}/auctions/${auctionId}`;
@@ -519,6 +525,16 @@ export const buyNow = async (req, res) => {
         .status(400)
         .json({ message: "This auction is already closed." });
     }
+
+    const exists = await RejectedBidder.findOne({
+      auctionId: auctionId,
+      bidderId: userId,
+    });
+
+    if (exists)
+      return res
+        .status(409)
+        .json({ message: "You can not buyout to this product anymore." });
 
     const newBid = await Bid.create({
       auctionId: auctionId,
@@ -573,6 +589,7 @@ export const buyNow = async (req, res) => {
 
     res.status(200).json({ message: "Buy now successfully." });
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ message: "System error", error: err.message });
   }
 };

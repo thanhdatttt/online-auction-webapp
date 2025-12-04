@@ -62,6 +62,13 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
         });
         socket.on("rejectUpdate", (newBidderId) => {
           if (isMounted) {
+            setHistory((prev) =>
+              prev.map((i) => {
+                return newBidderId === i.bidderId._id
+                  ? { ...i, isActive: false }
+                  : i;
+              })
+            );
             setRejectedBidderIds((prev) => [...prev, newBidderId]);
           }
         });
@@ -87,15 +94,6 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
 
   const confirm = () => {
     const res = handleRejectBidder(id, bidderId);
-
-    if (res.status === 201) {
-      setHistory((prev) =>
-        prev.map((i) => {
-          return bidderId === i.bidderId._id ? { ...i, isActive: false } : i;
-        })
-      );
-    }
-
     setShowModal(false);
   };
 
