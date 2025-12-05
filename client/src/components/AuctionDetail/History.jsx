@@ -252,6 +252,16 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                               h.bidderId.firstName + " " + h.bidderId.lastName
                             )}
                       </span>
+                      {userId === h.bidderId._id && (
+                        <div className="text-center">
+                          <span className="block text-gray-500 text-[10px]">
+                            Max
+                          </span>
+                          <span className="font-semibold">
+                            {formatPrice(h.bidMaxAmount)}
+                          </span>
+                        </div>
+                      )}
                       <div className="text-right">
                         <span className="block text-gray-500 text-[10px]">
                           {formatTime(h.bidTime)}
