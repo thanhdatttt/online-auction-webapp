@@ -27,8 +27,6 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
 
   const listRef = useRef(null);
 
-  console.log(endTime);
-
   const isOnGoing = new Date() < new Date(endTime);
 
   console.log(isOnGoing);
@@ -57,6 +55,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
 
         socket.on("historyUpdate", (newHistory) => {
           if (isMounted) {
+            console.log(newHistory);
             setHistory((prev) => [...newHistory, ...prev]);
           }
         });

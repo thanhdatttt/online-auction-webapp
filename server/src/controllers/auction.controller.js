@@ -181,7 +181,7 @@ export const placeBid = async (req, res) => {
             bidderId: auction.winnerId,
             bidEntryAmount: auction.highestPrice,
             bidMaxAmount: auction.highestPrice,
-            bidTime: now - 1000,
+            bidTime: new Date(now.getTime() - 1000),
           });
 
           auction.currentPrice = auction.highestPrice + auction.gapPrice;
@@ -202,7 +202,7 @@ export const placeBid = async (req, res) => {
             bidderId: auction.winnerId,
             bidEntryAmount: potentialPrice,
             bidMaxAmount: auction.highestPrice,
-            bidTime: now + 1000,
+            bidTime: new Date(now.getTime() + 1000),
           });
           auction.currentPrice = potentialPrice;
           bidEntryAmount = bidMaxAmount;
