@@ -46,9 +46,9 @@ app.use(cookieParser());
 app.use("/api/auth", authRoute);
 
 // bidder routes
+app.use("/api/auctions", auctionRoute);
 app.use(auth);
 app.use("/api/users", userRoute);
-app.use("/api/auctions", auctionRoute);
 
 // admin routes
 app.use(authorize("admin"));

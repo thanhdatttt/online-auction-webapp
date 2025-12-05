@@ -13,6 +13,7 @@ import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
+import CategoryPage from "./pages/CategoryPage.jsx";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgotPassword" element={<ForgotPassPage />} />
           <Route path="/auth/success" element={<AuthSuccessPage />} />
+          <Route path="/categories" element={<CategoryPage />} />
 
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
