@@ -8,16 +8,13 @@ const favoriteItemSchema = new mongoose.Schema({
     index: true,
   },
 
-  auctionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Auction",
-    required: true,
-    index: true,
-  }
+  auctions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Auction"
+    }
+  ]
 }, { timestamps: true }
 );
-
-// 1 user cannot like 1 autions twice
-favoriteItemSchema.index({userId: 1, auctionId: 1}, {unique: true});
 
 export default mongoose.model("Favorite", favoriteItemSchema);

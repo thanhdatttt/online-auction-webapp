@@ -11,6 +11,7 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
+import favoriteRoute from "./routes/favorite.route.js";
 
 // create server
 const app = express();
@@ -45,10 +46,11 @@ app.use(cookieParser());
 // routes
 app.use("/api/auth", authRoute);
 
-// bidder routes
+// user routes
 app.use(auth);
 app.use("/api/users", userRoute);
 app.use("/api/auctions", auctionRoute);
+app.use("/api/favorites", favoriteRoute);
 
 // admin routes
 app.use(authorize("admin"));

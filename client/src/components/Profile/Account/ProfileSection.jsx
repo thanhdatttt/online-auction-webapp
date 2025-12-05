@@ -73,7 +73,7 @@ const ProfileSection = () => {
         />
         <Divider/>
 
-        {!user.providers.google && (
+        {!user.providers?.google && (
         <div>
           <ProfileRow
             label="Password"
