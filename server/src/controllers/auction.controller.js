@@ -153,6 +153,7 @@ export const placeBid = async (req, res) => {
       auction.highestPrice = bidMaxAmount;
       auction.currentPrice = auction.startPrice + auction.gapPrice;
       bidEntryAmount = auction.currentPrice;
+      isNewWinner = true;
     } else {
       if (userId === auction.winnerId.toString()) {
         const minHighestPrice = auction.highestPrice + auction.gapPrice;

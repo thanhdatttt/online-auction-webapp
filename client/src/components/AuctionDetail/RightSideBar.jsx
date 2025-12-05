@@ -28,11 +28,15 @@ const RightSideBar = ({
 
   const newHighestPrice = dataWinner.highestPrice;
 
+  console.log(dataWinner);
+
   const isOnGoing = new Date() < new Date(newEndTime);
 
   const user = useAuthStore((state) => state.user);
 
   console.log(user);
+
+  console.log(newWinner);
 
   const isGuest = user === null;
 
