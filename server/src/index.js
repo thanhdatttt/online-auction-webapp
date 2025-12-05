@@ -12,7 +12,7 @@ import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
-
+import guestRoute from "./routes/guest.route.js";
 // create server
 const app = express();
 const server = http.createServer(app);
@@ -27,15 +27,10 @@ const io = new Server(server, {
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
   socket.on("joinAuction", (auctionId) => {
     socket.join(`auction_${auctionId}`);
-    console.log(`User ${socket.id} joined auction ${auctionId}`);
   });
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => {});
 });
 
 // set up server
@@ -45,8 +40,7 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRoute);
-
-// user routes
+app.use("/api/guest", guestRoute);
 app.use(auth);
 app.use("/api/users", userRoute);
 app.use("/api/auctions", auctionRoute);
