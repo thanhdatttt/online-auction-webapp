@@ -181,7 +181,7 @@ const RightSideBar = ({
                     ? formatPrice(auction.buyNowPrice)
                     : "No buyout price."}
                 </p>
-                {isBidder && (
+                {isBidder && auction.buyNowPrice && (
                   <button
                     onClick={() => handleShowModal(true)}
                     disabled={!isOnGoing}
