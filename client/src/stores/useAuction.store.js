@@ -81,7 +81,7 @@ export const useAuctionStore = create((set, get) => ({
         minValidBid
       )}`;
     }
-    if (!auction.buyNowPrice || bidMaxAmount >= auction.buyNowPrice)
+    if (auction.buyNowPrice && bidMaxAmount >= auction.buyNowPrice)
       return `The amount you entered meets or exceeds the buyout price. To secure this item immediately, please click "Buyout".`;
 
     console.log(typeof userId);

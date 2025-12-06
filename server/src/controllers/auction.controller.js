@@ -429,6 +429,8 @@ export const rejectBidder = async (req, res) => {
         $set: { isActive: false },
       }
     );
+
+    const io = req.app.get("io");
     // proceed the rejected bidder is the winner
 
     if (bidderId === auction.winnerId?.toString()) {
@@ -438,17 +440,19 @@ export const rejectBidder = async (req, res) => {
         isActive: true,
       })
         .sort({ bidMaxAmount: -1, bidTime: 1 })
-        .skip(1)
         .limit(2);
 
       console.log("[]: ", secondThirdBidMaxAmount);
 
       // proceed to auction
       if (!secondThirdBidMaxAmount[0]) {
-        console.log("here");
         auction.winnerId = null;
         auction.currentPrice = null;
         auction.highestPrice = null;
+        io.to(`auction_${auctionId}`).emit("winnerUpdate", {
+          winner: null,
+          highestPrice: null,
+        });
       } else {
         if (secondThirdBidMaxAmount[1]) {
           secondThirdBidMaxAmount[0].bidEntryAmount = Math.min(
@@ -458,16 +462,36 @@ export const rejectBidder = async (req, res) => {
           auction.currentPrice = secondThirdBidMaxAmount[0].bidEntryAmount;
         } else {
           auction.currentPrice = auction.startPrice + auction.gapPrice;
+          secondThirdBidMaxAmount[0].bidEntryAmount = auction.currentPrice;
         }
         auction.highestPrice = secondThirdBidMaxAmount[0].bidMaxAmount;
         auction.winnerId = secondThirdBidMaxAmount[0].bidderId;
         await secondThirdBidMaxAmount[0].save();
+
+        await secondThirdBidMaxAmount[0].populate(
+          "bidderId",
+          "firstName lastName avatar_url"
+        );
+
+        const winner = await User.findById(
+          secondThirdBidMaxAmount[0].bidderId.id
+        );
+
+        console.log("Winner:", winner);
+
+        const highestPrice = auction.highestPrice;
+
+        io.to(`auction_${auctionId}`).emit("historyUpdate", [
+          secondThirdBidMaxAmount[0],
+        ]);
+        io.to(`auction_${auctionId}`).emit("winnerUpdate", {
+          winner: winner,
+          highestPrice: highestPrice,
+        });
       }
 
       await auction.save();
     }
-
-    const io = req.app.get("io");
 
     const rejectedBidder = await RejectedBidder.create({
       auctionId: auctionId,

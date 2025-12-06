@@ -72,7 +72,8 @@ const CommentSection = ({ seller, endTime }) => {
     }
   };
 
-  const processAnswer = async (questionId) => {
+  const processAnswer = async (e, questionId) => {
+    e.preventDefault();
     const res = await handleAnswer(id, questionId, answer);
     console.log(res);
     if (res.status === 200) {
@@ -202,30 +203,29 @@ const CommentSection = ({ seller, endTime }) => {
                           </span>
                         </>
                       ) : (
-                        <div className="flex justify-between">
-                          <input
-                            type="text"
-                            disabled={!isOnGoing}
-                            placeholder={
-                              isOnGoing
-                                ? "Enter a answer."
-                                : "This auction is already closed."
-                            }
-                            onChange={(e) => setAnswer(e.target.value)}
-                            className="outline-none p-4 border border-gray-400 rounded-md h-7 w-[90%] text-1xl"
-                          ></input>
-                          <button
-                            disabled={!isOnGoing}
-                            onClick={() => processAnswer(c._id)}
-                            className={
-                              isOnGoing
-                                ? "bg-primary px-2 text-white rounded-md hover:bg-accent hover:text-dark"
-                                : "bg-gray-400 px-2 text-gray-700 rounded-md"
-                            }
-                          >
-                            Send
-                          </button>
-                        </div>
+                        <>
+                          <div className="flex justify-start gap-2">
+                            <span className="font-bold text-sm text-gray-800">
+                              Answer:
+                            </span>
+                            <form
+                              onSubmit={(e) => processAnswer(e, c._id)}
+                              className="w-[90%]"
+                            >
+                              <input
+                                type="text"
+                                disabled={!isOnGoing}
+                                placeholder={
+                                  isOnGoing
+                                    ? "Enter a answer."
+                                    : "This auction is already closed."
+                                }
+                                onChange={(e) => setAnswer(e.target.value)}
+                                className="mr-2 outline-none rounded-md text-sm flex items-center"
+                              ></input>
+                            </form>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}
