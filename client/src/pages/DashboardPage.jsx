@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Eye, Pencil, Trash2, Search, Plus } from 'lucide-react'; 
+import { useState } from 'react';
 import Sidebar from '../components/Dashboard/Sidebar';   
-import Table from '../components/Dashboard/Table';
+import CategoriesTable from '../components/Dashboard/Table/CategoriesTable';
+import ProductsTable from '../components/Dashboard/Table/ProductsTable';
+import UsersManagement from '../components/Dashboard/Table/UserManagement';
+import Pagination from '../components/Dashboard/Pagination';
 
 
 export default function DashboardPage() {
@@ -23,6 +25,8 @@ export default function DashboardPage() {
         setTotalItems(total);
     };
 
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
     return (
         <div className="flex h-screen bg-gray-900 overflow-hidden">
             {/* Sidebar */}
@@ -30,30 +34,31 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col bg-light overflow-hidden">
-                <Table activeNav={activeNav} currentPage={currentPage} itemsPerPage={itemsPerPage} onTotalChange={handleTotalChange} />
+                {activeNav === 'categories' && (
+                    <CategoriesTable 
+                        currentPage={currentPage} 
+                        itemsPerPage={itemsPerPage} 
+                        onTotalChange={handleTotalChange} 
+                    />
+                    )}
+                    {activeNav === 'products' && (
+                    <ProductsTable 
+                        currentPage={currentPage} 
+                        itemsPerPage={itemsPerPage} 
+                        onTotalChange={handleTotalChange} 
+                    />
+                    )}
+                    {activeNav === 'users' && (
+                    <UsersManagement 
+                        currentPage={currentPage} 
+                        itemsPerPage={itemsPerPage} 
+                        onTotalChange={handleTotalChange} 
+                    />
+                )}
+
 
                 {/* Pagination */}
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
-                    <button className="w-10 h-10 flex items-center justify-center bg-orange-500 text-white rounded-lg font-medium">
-                        1
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        2
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        3
-                    </button>
-                    <span className="px-2 text-gray-400">...</span>
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        8
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        9
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        10
-                    </button>
-                </div>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
         </div>
     );
