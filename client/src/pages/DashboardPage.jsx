@@ -5,10 +5,6 @@ import Table from '../components/Dashboard/Table';
 
 
 export default function DashboardPage() {
-    const [categories] = useState(
-        Array(9).fill({ name: 'Arts', products: 36 })
-    );
-
     const [activeNav, setActiveNav] = useState('categories');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);

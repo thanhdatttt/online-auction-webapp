@@ -9,8 +9,8 @@ export default function Table({ activeNav, currentPage, itemsPerPage, onTotalCha
     const [categories, setCategories] = useState([]);
 
     // Sort states
-    const [sortAlphabetical, setSortAlphabetical] = useState('asc');
-    const [sortProducts, setSortProducts] = useState('desc');
+    const [sortAlphabetical, setSortAlphabetical] = useState(null);
+    const [sortProducts, setSortProducts] = useState(null);
     const [filterStatus, setFilterStatus] = useState('all');
     const [sortBy, setSortBy] = useState('end-time');
     const [filterCategory, setFilterCategory] = useState('all');
@@ -123,78 +123,49 @@ export default function Table({ activeNav, currentPage, itemsPerPage, onTotalCha
 
         {/* Search Bar and Filters */}
         <div className="px-8 py-4 space-y-3">
-            {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-dark opacity-60" size={20} />
-                <input
-                    type="text"
-                    placeholder={`Search by ${activeNav === 'categories' ? 'category' : activeNav === 'products' ? 'product' : 'user'} name...`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-decor border-0 rounded-lg text-dark placeholder-dark placeholder:opacity-60 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
+            <div className="flex items-center gap-3">
+                {/* Search */}
+                <div className="relative flex-1">
+                    <Search className="absolute left-4.25 top-1/2 -translate-y-2 text-dark opacity-60" size={17} />
+                    <input
+                        type="text"
+                        placeholder={`Search by ${activeNav === 'categories' ? 'category' : activeNav === 'products' ? 'product' : 'user'} name...`}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-12 pr-4 py-2.5 bg-decor border-0 rounded-lg text-dark placeholder-dark placeholder:opacity-60 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                </div>
+
+                {/* Sort/Filter Bars */}
+                {activeNav === 'products' && (
+                <div className="flex gap-3">
+                    <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-4 py-2.5 font-lato font-medium opacity-80 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                    >
+                    <option value="all">All Status</option>
+                    <option value="live">Live</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="ended">Ended</option>
+                    </select>
+                    
+                    <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="px-4 py-2.5 bg-decor border border-decor rounded-lg font-lato font-medium opacity-80 text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                    >
+                    <option value="all">All Categories</option>
+                    {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                        </option>
+                    ))}
+                    </select>
+                </div>
+                )}
             </div>
 
-            {/* Sort/Filter Bars */}
-            {activeNav === 'categories' && (
-            <div className="flex gap-3">
-                <select
-                value={sortAlphabetical}
-                onChange={(e) => setSortAlphabetical(e.target.value)}
-                className="px-4 py-2.5 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                >
-                <option value="asc">Alphabetical (A-Z)</option>
-                <option value="desc">Alphabetical (Z-A)</option>
-                </select>
-                
-                <select
-                value={sortProducts}
-                onChange={(e) => setSortProducts(e.target.value)}
-                className="px-4 py-2.5 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                >
-                <option value="desc">Products (High to Low)</option>
-                <option value="asc">Products (Low to High)</option>
-                </select>
-            </div>
-            )}
-
-            {activeNav === 'products' && (
-            <div className="flex gap-3">
-                <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2.5 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                >
-                <option value="all">All Status</option>
-                <option value="live">Live</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="ended">Ended</option>
-                </select>
-                
-                <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2.5 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                >
-                <option value="end-time">Sort by: End Time</option>
-                <option value="alphabetical">Sort by: Alphabetical</option>
-                <option value="current-bid">Sort by: Current Bid</option>
-                </select>
-                
-                <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2.5 bg-decor border border-decor rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                >
-                <option value="all">All Categories</option>
-                {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                    </option>
-                ))}
-                </select>
-            </div>
-            )}
         </div>
 
         {/* Table Container */}
@@ -205,29 +176,47 @@ export default function Table({ activeNav, currentPage, itemsPerPage, onTotalCha
                 {activeNav === 'categories' && (
                 <>
                     <div className="col-span-5 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide flex items-center justify-center">
-                        Category Name
+                        <span className="flex items-center cursor-pointer"
+                            onClick={() => {
+                                // toggle alphabetical
+                                setSortAlphabetical(prev => prev === null ? "asc" : prev === "asc" ? "desc" : null);
+                            }}>
+                            Category Name
+                            <span className="ml-1 mb-[.1rem] text-xs">
+                                {sortAlphabetical === null ? "" : sortAlphabetical === "asc" ? "▲" : "▼"}
+                            </span>
+                        </span>
                     </div>
                     <div className="col-span-3 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide flex items-center justify-center">
-                        No. of Products
+                        <span className="flex items-center cursor-pointer"
+                            onClick={() => {
+                                setSortProducts(prev => prev === null ? "asc" : prev === "asc" ? "desc" : null);
+                            }}
+                        >
+                            No. of Products
+                            <span className="ml-1 mb-[.1rem] text-xs">
+                                {sortProducts === null ? "" : sortProducts === "asc" ? "▲" : "▼"}
+                            </span>
+                        </span>
                     </div>
                 </>
                 )}
                 {activeNav === 'products' && (
                 <>
-                    <div className="col-span-6 text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                    <div className="col-span-6 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide">
                     Product Name
                     </div>
-                    <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                    <div className="col-span-3 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide">
                     Price
                     </div>
                 </>
                 )}
                 {activeNav === 'users' && (
                 <>
-                    <div className="col-span-6 text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                    <div className="col-span-6 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide">
                     User Name
                     </div>
-                    <div className="col-span-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                    <div className="col-span-3 text-sm font-regular font-lato text-dark opacity-60 uppercase tracking-wide">
                     Email
                     </div>
                 </>
