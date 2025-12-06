@@ -32,7 +32,7 @@ export default function BaseUserTable({ searchPlaceholder, filters, columns, dat
                     {/* Table Header */}
                     <div className="grid gap-4 px-6 py-3 bg-decor border-b border-decor" style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}>
                         {columns.map((col, idx) => (
-                            <div key={idx} className="text-sm font-regular font-lato text-dark/60 uppercase tracking-wide flex items-center">
+                            <div key={idx} className="text-sm font-regular font-lato text-dark/60 uppercase tracking-wide flex items-center justify-center">
                                 {col.header}
                             </div>
                         ))}

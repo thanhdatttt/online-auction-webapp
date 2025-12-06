@@ -10,6 +10,18 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
     const [sortBy, setSortBy] = useState('join-date');
     const [filterRole, setFilterRole] = useState('all');
 
+    const userNames = [
+        "Heheheh",
+        "Fan Thang Ngot",
+        "J97 idol cua em",
+        "Mì Hảo Hảo tôm chua cay",
+        "Dreckiez",
+        "abcxyz",
+        "DM KEO CON",
+        "w123",
+        "Cà phê lon Highlands"
+    ];
+
     // Simulate data fetch
     useEffect(() => {
         setLoading(true);
@@ -17,7 +29,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         const mockData = Array(8).fill(null).map((_, i) => ({
             id: i + 1,
             image: './dashboard/aquafina.jpeg',
-            name: 'KeoCon',
+            name: userNames[Math.floor(Math.random() * userNames.length)],
             email: 'thangngot@gmail.com',
             role: 'Seller',
             status: i === 1 ? 'blocked' : 'active',
@@ -54,10 +66,10 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
     );
 
     const columns = [
-        { header: 'USER', width: '2fr' },
-        { header: 'EMAIL', width: '3fr' },
-        { header: 'ROLE', width: '2fr' },
-        { header: 'STATUS', width: '2fr' },
+        { header: 'USER', width: '3fr' },
+        { header: 'EMAIL', width: '2fr' },
+        { header: 'ROLE', width: '1fr' },
+        { header: 'STATUS', width: '1fr' },
         { header: 'DATE JOINED', width: '2fr' },
         { header: '', width: '1fr' }
     ];
@@ -68,28 +80,28 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         className="grid gap-4 px-6 py-[0.565rem] border-2 border-b border-decor hover:bg-amber-50 transition-colors"
         style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
         >
-            <div className="font-semibold text-dark font-lato flex items-center gap-2">
+            <div className="font-semibold text-dark font-lato flex items-center ml-16 gap-2">
                 <img src={item.image} className="w-[2rem] h-[2rem] rounded-full" />
                 {item.name}
             </div>
-            <div className="font-medium text-dark/80 font-lato flex items-center">{item.email}</div>
-            <div className="font-medium text-dark/80 font-lato flex items-center">{item.role}</div>
-            <div className="flex items-center">
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.email}</div>
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.role}</div>
+            <div className="flex items-center justify-center">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 item.status === 'active' ? 'bg-green-200 text-[#34A853]' : 'bg-red-200 text-secondary'
                 }`}>
                     {item.status === 'active' ? 'Active' : 'Blocked'}
                 </span>
             </div>
-            <div className="font-medium text-dark font-lato flex items-center">{item.dateJoined}</div>
-            <div className="flex items-center justify-end gap-2">
-                <button className="p-2 text-dark/80 hover:text-orange-500 rounded transition-colors">
+            <div className="font-medium text-dark font-lato flex items-center justify-center">{item.dateJoined}</div>
+            <div className="flex items-center justify-end gap-1">
+                <button className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
                     <Eye size={18} />
                 </button>
-                <button className="p-2 text-dark/80 hover:text-orange-500 rounded transition-colors">
+                <button className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
                     <Pencil size={18} />
                 </button>
-                <button className="p-2 text-dark/80 hover:text-red-500 rounded transition-colors">
+                <button className="cursor-pointer p-2 text-dark/80 hover:text-secondary rounded transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>

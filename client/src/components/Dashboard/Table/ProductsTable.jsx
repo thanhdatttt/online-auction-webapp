@@ -15,18 +15,54 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
         { id: 4, name: 'Collectibles' }
     ];
 
+    const productNames = [
+        "Nước suối Aquafina 500ml",
+        "Nước ngọt Coca-Cola lon",
+        "Snack Oishi vị tôm cay",
+        "Mì Hảo Hảo tôm chua cay",
+        "Trà xanh C2 330ml",
+        "Sữa tươi Vinamilk 1L",
+        "Bánh Oreo vani",
+        "Nước tăng lực Sting dâu",
+        "Cà phê lon Highlands"
+    ];
+
+    function generateRelativeTime() {
+        const days = Math.floor(Math.random() * 5) + 1; // 1–5 days
+        const hours = Math.floor(Math.random() * 24);
+        const minutes = Math.floor(Math.random() * 60);
+
+        return `${days} days ${hours}h ${minutes}m`;
+    }
+
+    function generateAbsoluteTime() {
+        const date = new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000); // within 7 days
+
+        return date.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        }).toUpperCase(); // JAN 10, 10:00 AM
+    }
+
     // Simulate data fetch
     useEffect(() => {
         setLoading(true);
         setTimeout(() => {
-        const mockData = Array(9).fill(null).map((_, i) => ({
-            id: i + 1,
-            image: './dashboard/aquafina.jpeg',
-            name: `Product ${i + 1}`,
-            status: ['live', 'ended'][i % 2],
-            currentBid: Math.floor(Math.random() * 1000) + 100,
-            endTime: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
-        }));
+        const mockData = Array(9).fill(null).map((_, i) => {
+            const randomPrice = Math.floor(Math.random() * (10_000_000_000 - 10_000)) + 10_000;
+
+            return {
+                id: i + 1,
+                image: './dashboard/aquafina.jpeg',
+                name: productNames[Math.floor(Math.random() * productNames.length)],
+                status: ['live', 'ended'][i % 2],
+                currentBid: randomPrice.toLocaleString("vi-VN"),
+                endTime: Math.random() > 0.5 ? generateRelativeTime() : generateAbsoluteTime()
+            }
+        });
         setData(mockData);
         onTotalChange(156);
         setLoading(false);
@@ -72,13 +108,13 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
         className="grid gap-4 px-6 py-[0.565rem] border-2 border-b border-decor hover:bg-amber-50 transition-colors"
         style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
         >
-            <div className="font-semibold text-dark font-lato flex gap-2 items-center">
+            <div className="font-semibold text-dark font-lato flex gap-2 items-center ml-16">
                 <img src={item.image} className="w-[2rem] h-[2rem] rounded-sm" />
                 {item.name}
             </div>
-            <div className="font-medium text-dark/80 font-lato flex items-center">{item.currentBid} VNĐ</div>
-            <div className="font-medium text-dark/80 font-lato flex items-center">{item.endTime}</div>
-            <div className="flex items-center">
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.currentBid} VNĐ</div>
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.endTime}</div>
+            <div className="flex items-center justify-center">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 item.status === 'live' ? 'bg-green-200 text-[#34A853]' :
                 'bg-red-200 text-secondary'
@@ -86,8 +122,8 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                 </span>
             </div>
-            <div className="flex items-center justify-end gap-2">
-                <button className="px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
+            <div className="flex items-center justify-end gap-2 mr-8">
+                <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>
