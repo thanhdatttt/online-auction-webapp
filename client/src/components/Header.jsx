@@ -44,9 +44,9 @@ const Header = () => {
   }
 
   return (
-    <header className="w-full bg-dark px-4 md:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
+    <header className="w-full bg-dark px-4 lg:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
       {/* logo */}
-      <div className="text-lighter text-3xl md:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
+      <div className="text-lighter text-3xl lg:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
         Auctiz
       </div>
 
@@ -61,7 +61,7 @@ const Header = () => {
       </div>
 
       {/* menu */}
-      <div className="hidden md:flex font-lora items-center gap-12 text-lighter text-2xl">
+      <div className="hidden lg:flex font-lora items-center gap-12 text-lighter text-2xl">
         {/* buttons */}
         <button className="hover:text-primary transition cursor-pointer">Categories</button>
         <button className="hover:text-primary transition cursor-pointer">Watch List</button>
@@ -92,13 +92,13 @@ const Header = () => {
       </div>
 
       {/* open/close mobile menu button */}
-      <button className="md:hidden text-white text-3xl" onClick={() => setMobileMenu(!mobileMenu)}>
+      <button className="lg:hidden text-white text-3xl" onClick={() => setMobileMenu(!mobileMenu)}>
         {mobileMenu ? <FiX/> : <FiMenu/>}
       </button>
 
       {/* mobile menu slide down */}
       {mobileMenu && (
-        <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col md:hidden shadow-lg z-50">
+        <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col lg:hidden shadow-lg z-50">
           <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
                   className="w-full py-4 text-2xl bg-primary hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}

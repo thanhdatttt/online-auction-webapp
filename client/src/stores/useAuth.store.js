@@ -163,6 +163,7 @@ export const useAuthStore = create((set, get) => ({
       const accessToken = await authService.refresh();
 
       set({ accessToken: accessToken });
+      console.log(accessToken);
 
       if (!user) {
         await fetchMe();

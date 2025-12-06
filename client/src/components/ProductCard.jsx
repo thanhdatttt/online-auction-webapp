@@ -1,4 +1,5 @@
 import React from "react";
+import {Heart} from "lucide-react";
 
 const ProductCard = () => {
   return (
@@ -8,17 +9,21 @@ const ProductCard = () => {
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         alt="Similar"
       />
+      <button className="absolute top-3 left-3 p-2 bg-gray-600 bg-opacity-50 hover:bg-opacity-75 rounded-full transition">
+        <Heart size={20} className={"fill-red-500 text-red-500"} />
+      </button>
       {/* OVERLAY CONTENT */}
       <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 text-white">
-        <h4 className="font-bold text-sm leading-tight mb-1">
+        <h4 className="font-bold text-lg leading-tight mb-1">
           Fuji GS645 Professional Wide 60
         </h4>
-        <p className="text-xs text-gray-300 mb-2">Current Bid</p>
-        <p className="text-[#EFA00B] font-bold text-lg mb-2">10.350.000 VND</p>
+        <p className="text-md text-gray-300 mb-2">Current Bid</p>
+        <p className="text-[#EFA00B] font-bold text-xl mb-2">10.350.000 VND</p>
 
-        <div className="flex justify-between items-center text-[10px] text-gray-400 mb-2">
+        <div className="flex justify-between items-center text-lg text-gray-400 mb-2">
           <span>3.000.000</span>
-          <span>End in: 11/10/2025</span>
+          <span>End in: <span className="text-red-500 font-bold">11/10/2025</span> 
+          </span>
         </div>
         <button className="w-full bg-[#EFA00B] text-black font-bold py-1.5 rounded text-sm hover:bg-yellow-500">
           Bid

@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
-import { Toaster } from "sonner";import ForgotPassPage from "./pages/ForgotPassPage.jsx";
+import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 
 function App() {
   return (
