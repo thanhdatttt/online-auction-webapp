@@ -63,14 +63,14 @@ const ChangeEmailModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} title={"Change Email Address"} onSubmit={handleSubmit(onSubmit)}>
       {/* current email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Current Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Email</label>
         <p className="text-2xl">{user.email}</p>
       </div>
       <Divider/>
 
       {/* New email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">New Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Email</label>
         <input 
           type="email" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -91,7 +91,7 @@ const ChangeEmailModal = ({open, onClose}) => {
 
       {/* confirm email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Confirm Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Confirm Email</label>
         <input 
           type="email" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"

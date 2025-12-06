@@ -16,6 +16,7 @@ import { config } from "../configs/config.js";
 import RejectedBidder from "../models/RejectedBidder.js";
 import { type } from "os";
 import { exists } from "fs";
+
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;

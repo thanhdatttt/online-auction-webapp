@@ -1,17 +1,17 @@
+import { config } from "./configs/config.js";
+import { connectDB } from "./libs/db.js";
+import { adminOnly, auth, authorize } from "./middlewares/auth.js";
+import { initAuctionConfig } from "./utils/auction.utils.js";
+import { Server } from "socket.io";
 import express from "express";
 import cors from "cors";
 import http from "http";
 import cookieParser from "cookie-parser";
-import { config } from "./configs/config.js";
-import { connectDB } from "./libs/db.js";
-import { auth, authorize } from "./middlewares/auth.js";
 import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
-import bidderRoute from "./routes/bidder.route.js";
 import auctionRoute from "./routes/auction.route.js";
-import { initAuctionConfig } from "./utils/auction.utils.js";
-import { Server } from "socket.io";
+import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
 // create server
 const app = express();
@@ -44,9 +44,11 @@ app.use("/api/guest", guestRoute);
 app.use(auth);
 app.use("/api/users", userRoute);
 app.use("/api/auctions", auctionRoute);
-app.use("/api/bidder", authorize("bidder", "admin"), bidderRoute);
+app.use("/api/favorites", favoriteRoute);
 
-app.use("/api/admin", authorize("admin"), adminRoute);
+// admin routes
+app.use(authorize("admin"));
+app.use("/api/admin", adminRoute);
 
 // run server
 connectDB().then(async () => {

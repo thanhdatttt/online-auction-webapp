@@ -1,4 +1,3 @@
-import { useAuthStore } from "../../../stores/useAuth.store.js";
 import { useUserStore } from "../../../stores/useUser.store.js";
 import { regex } from "../../../utils/regex.js";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,9 +30,6 @@ const passSchema = z.object({
 });
 
 const ChangePassModal = ({open, onClose}) => {
-  //  get user info
-  const user = useAuthStore((state) => state.user);
-
   // get api
   const {changePassword} = useUserStore();
 
@@ -70,7 +66,7 @@ const ChangePassModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} onSubmit={handleSubmit(onSubmit)} title={"Change Password"}>
       {/* current password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Current Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Password</label>
         <input 
           type="text" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -91,7 +87,7 @@ const ChangePassModal = ({open, onClose}) => {
 
       {/* new password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">New Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Password</label>
         <input 
           type="text" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -107,7 +103,7 @@ const ChangePassModal = ({open, onClose}) => {
 
       {/* confirm password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Confirm New Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Confirm New Password</label>
         <input 
           type="text"
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"

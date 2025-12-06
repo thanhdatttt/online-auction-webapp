@@ -67,7 +67,7 @@ export const authOTP = (req, res, next) => {
 
 export const adminOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied: Admins only." });
+    return res.status(403).json({ message: "forbidden: Admins only." });
   }
   next();
 };
@@ -75,11 +75,11 @@ export const adminOnly = (req, res, next) => {
 export const authorize = (...validRoles) => {
   return (req, res, next) => {
     if (!req.user)
-      return res.status(403).json({ message: "You are not authenticated." });
+      return res.status(403).json({ message: "You are forbidden." });
     if (!validRoles.includes(req.user.role))
       return res
         .status(403)
-        .json({ message: "You are not allowed to perform this action." });
+        .json({ message: "You are forbidden to perform this action." });
     next();
   };
 };
