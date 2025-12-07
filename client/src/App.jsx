@@ -13,16 +13,20 @@ import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
-
+import { useAuthStore } from "./stores/useAuth.store.js";
+import { useEffect } from "react";
 function App() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
+
+  useEffect(() => {
+    if (accessToken) fetchMe();
+  }, [accessToken]);
+
   return (
     <>
       {/* toaster */}
-      <Toaster 
-        position="top-right"
-        richColors 
-        closeButton
-      />
+      <Toaster position="top-right" richColors closeButton />
       {/* routes */}
       <Router>
         <Routes>
@@ -35,15 +39,14 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgotPassword" element={<ForgotPassPage />} />
           <Route path="/auth/success" element={<AuthSuccessPage />} />
-
+          <Route
+            path="/auctions/:id"
+            element={<AuctionDetailPage></AuctionDetailPage>}
+          />
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
-            <Route
-              path="/auctions/:id"
-              element={<AuctionDetailPage></AuctionDetailPage>}
-            />
           </Route>
         </Routes>
       </Router>
