@@ -12,19 +12,22 @@ const Header = () => {
   const {logout} = useAuthStore();
   const user = useAuthStore((state) => state.user);
 
-  // menu states and refs handle click outside
+  // menu states and refs 
   const [dropMenu, setDropMenu] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const menuRef = useRef();       // desktop
   const mobileMenuRef = useRef(); // mobile menu
 
+  // handle click outside 
   useEffect(() => {
     const handler = (e) => {
-      if (
-        (menuRef.current && !menuRef.current.contains(e.target)) &&
-        (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target))
-      ) {
+      // pc menu
+      if ( menuRef.current && !menuRef.current.contains(e.target)) {
         setDropMenu(false);
+      }
+
+      // mobile menu
+      if ( mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
         setMobileMenu(false);
       }
     };
@@ -41,6 +44,15 @@ const Header = () => {
       } catch (err) {
           throw err;
       }
+  }
+
+  // go to watch list if logged in
+  const handleWatchList = () => {
+    if (!user) {
+      navigate("/signin");
+    } else {
+      navigate("/profile?section=watchlist");
+    }
   }
 
   return (
@@ -64,7 +76,7 @@ const Header = () => {
       <div className="hidden lg:flex font-lora items-center gap-12 text-lighter text-2xl">
         {/* buttons */}
         <button className="hover:text-primary transition cursor-pointer">Categories</button>
-        <button className="hover:text-primary transition cursor-pointer">Watch List</button>
+        <button onClick={handleWatchList} className="hover:text-primary transition cursor-pointer">Watch List</button>
         <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
                 className="bg-primary px-8 py-2 rounded-md font-semibold hover:bg-accent hover:text-black transition cursor-pointer">
           {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
@@ -80,10 +92,10 @@ const Header = () => {
           {/* dropdown menu */}
           {dropMenu && user && (
             <div ref={menuRef} className="absolute right-0 mt-4 w-50 bg-dark shadow-lg rounded-md text-lighter font-lora font-semibold z-50 flex flex-col items-center">
-              <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                 Profile
               </button>
-              <button onClick={handleLogout} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              <button onClick={handleLogout} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                   Logout
               </button>
             </div>
@@ -106,7 +118,7 @@ const Header = () => {
           <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Categories
           </button>
-          <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+          <button onClick={handleWatchList} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Watch List
           </button>
           

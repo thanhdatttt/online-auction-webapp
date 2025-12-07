@@ -1,44 +1,83 @@
-import React from 'react'
+import { memo, useCallback, useMemo } from "react";
 
-const Pagination = ({ totalPages, currentPage, onPageChange }) => {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  const maxVisiblePages = 5;
-
-  let visiblePages = pages;
-  if (pages.length > maxVisiblePages) {
-    const startIndex = Math.max(0, currentPage - 2);
-    visiblePages = pages.slice(startIndex, startIndex + maxVisiblePages);
+const PageButton = memo(({ page, active, onClick }) => {
+  if (page === "...") {
+    return <span className="px-3 py-3">...</span>;
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {visiblePages.map((page) => (
-        <button
-          key={page}
-          onClick={() => onPageChange(page)}
-          className={`w-10 h-10 rounded-md border flex items-center justify-center
-            ${currentPage === page ? "bg-black text-white" : "bg-white"}
-          `}
-        >
-          {page}
-        </button>
+    <button
+      onClick={() => onClick(page)}
+      className={`
+        w-12 h-12 rounded-md border flex items-center justify-center cursor-pointer
+        ${active ? "bg-black text-white" : "bg-white hover:bg-gray-400"}
+      `}
+    >
+      {page}
+    </button>
+  );
+});
+
+const Pagination = ({ totalPages, currentPage, onPageChange }) => {
+
+  //  handle change page
+  const handleClick = useCallback((page) => {
+    if (page !== "..." && page !== currentPage) 
+      onPageChange(page);
+  }, [onPageChange, currentPage]);
+
+  // calculate pages  
+  const pages = useMemo(() => {
+    const result = [];
+
+    const FIRST = 1;
+    const LAST = totalPages;
+
+    // Always include first page
+    result.push(FIRST);
+
+    // Determine dynamic window around current page
+    let start = currentPage - 2;
+    let end = currentPage + 2;
+
+    if (start <= 2) start = 2;
+    if (end >= LAST - 1) end = LAST - 1;
+
+    // Add ellipsis after first if needed
+    if (start > 2) {
+      result.push("...");
+    }
+
+    // Add pages in window
+    for (let i = start; i <= end; i++) {
+      result.push(i);
+    }
+
+    // Add ellipsis before last if needed
+    if (end < LAST - 1) {
+      result.push("...");
+    }
+
+    // Always include last page
+    if (LAST > 1) {
+      result.push(LAST);
+    }
+
+    return result;
+  }, [currentPage, totalPages]);
+
+  return (
+    <div className="flex gap-2">
+      {pages.map((page, index) => (
+        <PageButton
+          key={index}
+          page={page}
+          active={page === currentPage}
+          onClick={handleClick}
+        />
       ))}
-      {pages.length > maxVisiblePages && visiblePages[visiblePages.length - 1] < pages.length && (
-        <>
-          <span className="px-2">...</span>
-          <button
-            key={pages.length} 
-            onClick={() => onPageChange(pages.length)}
-            className={`w-10 h-10 rounded-md border flex items-center justify-center
-              ${currentPage === pages.length ? "bg-black text-white" : "bg-white"}
-            `}
-          >
-            {pages.length}
-          </button>
-        </>
-      )}
     </div>
   );
-}
+};
 
-export default Pagination;
+export default memo(Pagination);

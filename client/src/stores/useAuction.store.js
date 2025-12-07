@@ -1,9 +1,9 @@
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/vi";
 import { create } from "zustand";
 import { auctionService } from "../services/auction.service";
 import { toast } from "sonner";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
 export const useAuctionStore = create((set, get) => ({
   maskFirstHalf: function (str) {
     if (!str) return "";

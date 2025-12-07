@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import Header from "../Header.jsx";
 import Product from "./Product.jsx";
@@ -9,6 +9,7 @@ import { useParams } from "react-router";
 import api from "../../utils/axios.js";
 import Error from "../Error.jsx";
 import { socket } from "../../utils/socket.js";
+import Loading from "../Loading.jsx";
 const AuctionDetailLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,7 +78,7 @@ const AuctionDetailLayout = () => {
 
   return (
     <>
-      {isLoading && <p>loading......</p>}
+      {isLoading && <Loading/>}
       {error && <Error message={error}></Error>}
       {!isLoading && !error && (
         <div className="min-h-screen text-gray-800 bg-light font-lato pb-20">

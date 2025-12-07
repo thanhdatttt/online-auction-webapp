@@ -24,7 +24,7 @@ export const addToFavorite = async (req, res) => {
         auctions: [auctionId],
       });
 
-      return res.status(200).json({message: "Create favorite list", data: fav});
+      return res.status(200).json({message: "Create favorite list", auctions: favorite.auctions});
     }
 
     // add auction to favorite
@@ -36,7 +36,7 @@ export const addToFavorite = async (req, res) => {
 
     return res.status(201).json({
       message: "Added to favorites",
-      data: favorite
+      auctions: favorite.auctions
     });
   } catch (err) {
     return res.status(500).json({message: err.message});
@@ -71,7 +71,7 @@ export const removeFromFavorite = async (req, res) => {
 
     return res.status(200).json({
       message: "Removed from favorite successfully",
-      data: favorite
+      auctions: favorite.auctions
     });
   } catch (err) {
     return res.status(500).json({message: err.message});
@@ -87,10 +87,23 @@ export const getFavorites = async (req, res) => {
     }
 
     let page = parseInt(req.query.page) || 1;   // default page 1
-    let limit = parseInt(req.query.limit) || 12; // default 10 items per page
+    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
     const skip = (page - 1) * limit;
 
-    const favorite = await Favorite.findOne({ userId })
+    const favorite = await Favorite.findOne({ userId });
+    if (!favorite || favorite == null || favorite.auctions.length === 0) {
+      return res.status(200).json({
+        message: "No favorite auctions found",
+        page,
+        limit,
+        total: 0,
+        auctions: [],
+      });
+    }
+    
+    const total = favorite.auctions.length;
+
+    const paginated = await Favorite.findOne({ userId })
     .populate({
       path: "auctions",
       options: {
@@ -99,24 +112,13 @@ export const getFavorites = async (req, res) => {
         sort: { createdAt: -1 } 
       }
     });
-    const total = favorite.auctions.length;
-
-    if (!favorite || favorite == null || favorite.auctions.length === 0) {
-      return res.status(200).json({
-        message: "No favorite auctions found",
-        page,
-        limit,
-        total: 0,
-        data: [],
-      });
-    }
 
     return res.status(200).json({
       message: "Get favorites successfully",
       page: page,
       limit: limit,
       total: total,
-      data: favorite,
+      auctions: paginated.auctions,
     });
   } catch (err) {
     return res.status(500).json({message: err.message});
@@ -129,13 +131,13 @@ export const checkFavorite = async(req, res) => {
     const userId = req.user.id;
     const { auctionId } = req.params;
   
+    if (!userId || !auctionId) {
+      return res.status(400).json({ message: "Missing userId or auctionId" });
+    }
+
     // check if auction is existed
     if (!await Auction.findOne({_id: auctionId})) {
       return res.status(400).json({message: "Auction is not exists"});
-    }
-
-    if (!userId || !auctionId) {
-      return res.status(400).json({ message: "Missing userId or auctionId" });
     }
 
     const favorite = await Favorite.findOne({userId: userId, auctions: auctionId});

@@ -1,7 +1,42 @@
-import React from "react";
 import {Heart} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useWatchListStore } from "../stores/useWatchList.store";
 
-const ProductCard = () => {
+const ProductCard = ({auction}) => {
+  // is favorite state
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const {addToFavorite, removeFromFavorite, checkFavorite} = useWatchListStore();
+
+  // check favorite
+  useEffect(() => {
+    if (!auction?._id) return;
+    const check = async () => {
+      try {
+        const isFav = await checkFavorite(auction._id);
+        setIsFavorite(isFav);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+  check();
+
+  }, [auction?._id]);
+
+  // add favorite / remove favorite
+  const toogleFavorite = async(e) => {
+    e.stopPropagation(); 
+
+    if (isFavorite) {
+      await removeFromFavorite(auction._id);     
+      setIsFavorite(false);
+    } else {
+      await addToFavorite(auction._id);
+      setIsFavorite(true);
+    }
+  }
+
   return (
     <div className="relative group rounded-md overflow-hidden cursor-pointer shadow-md aspect-4/5">
       <img
@@ -9,9 +44,16 @@ const ProductCard = () => {
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         alt="Similar"
       />
-      <button className="absolute top-3 left-3 p-2 bg-gray-600 bg-opacity-50 hover:bg-opacity-75 rounded-full transition">
-        <Heart size={20} className={"fill-red-500 text-red-500"} />
+
+      {/* favorite button */}
+      <button 
+        onClick={toogleFavorite}
+        className="absolute top-3 left-3 p-2 bg-gray-600 bg-opacity-50 hover:bg-opacity-75 rounded-full transition z-20 cursor-pointer">
+        <Heart size={20} className={isFavorite
+              ? "fill-red-500 text-red-500"
+              : "text-white hover:text-red-300"} />
       </button>
+
       {/* OVERLAY CONTENT */}
       <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 text-white">
         <h4 className="font-bold text-lg leading-tight mb-1">

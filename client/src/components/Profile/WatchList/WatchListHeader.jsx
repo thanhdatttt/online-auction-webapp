@@ -1,6 +1,5 @@
 import { FiSearch } from "react-icons/fi";
 
-
 const WatchListHeader = () => {
   return (
     <div className="flex items-center justify-between my-4 gap-4">
@@ -14,7 +13,6 @@ const WatchListHeader = () => {
       </div>
 
       <select className="px-4 py-2 border rounded-lg bg-gray-100">
-        <option>Sort By</option>
         <option>Recently Added</option>
         <option>Ending Soon</option>
         <option>Highest Bid</option>
