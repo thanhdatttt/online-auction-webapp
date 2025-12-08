@@ -72,7 +72,7 @@ const SignInForm = () => {
       } else {
         setError("root", {
           type: "backend",
-          message: err.response?.data?.error,
+          message: err.response?.data?.error || err.message,
         });
         console.log(err.response);
       }

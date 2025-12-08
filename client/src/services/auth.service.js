@@ -86,7 +86,6 @@ export const authService = {
     try {
       // remember to add credential for sending cookies
       const res = await api.post("/auth/refresh");
-      console.log(res.data.accessToken);
       return res.data.accessToken;
     } catch(err) {
       console.log(err);

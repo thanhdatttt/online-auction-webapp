@@ -15,23 +15,27 @@ import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
 
-import useTimeStore from "./stores/useTime.store.js";
+import { useAuthStore } from "./stores/useAuth.store.js";
+import { useTimeStore } from "./stores/useTime.store.js";
 import { useEffect } from "react";
 
 function App() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
   const startClock = useTimeStore((state) => state.startClock);
+
+  useEffect(() => {
+    if (accessToken) fetchMe();
+  }, [accessToken]);
 
   useEffect(() => {
     startClock();
   }, []);
+
   return (
     <>
       {/* toaster */}
-      <Toaster 
-        position="top-right"
-        richColors 
-        closeButton
-      />
+      <Toaster position="top-right" richColors closeButton />
       {/* routes */}
       <Router>
         <Routes>
@@ -44,16 +48,16 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgotPassword" element={<ForgotPassPage />} />
           <Route path="/auth/success" element={<AuthSuccessPage />} />
+          <Route
+            path="/auctions/:id"
+            element={<AuctionDetailPage></AuctionDetailPage>}
+          />
           <Route path="/auctions" element={<AuctionPage />} />
 
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
-            <Route
-              path="/auctions/:id"
-              element={<AuctionDetailPage></AuctionDetailPage>}
-            />
           </Route>
         </Routes>
       </Router>

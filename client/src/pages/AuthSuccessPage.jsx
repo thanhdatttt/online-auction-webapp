@@ -18,7 +18,7 @@ const AuthSuccessPage = () => {
         if (token) {
           // set access token
           setAccessToken(token);
-          
+          console.log(token);
           // get user info
           try {
             await fetchUser();

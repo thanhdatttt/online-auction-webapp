@@ -11,7 +11,6 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
-import categoriesRoute from "./routes/category.route.js"
 
 // create server
 const app = express();
@@ -27,15 +26,10 @@ const io = new Server(server, {
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
   socket.on("joinAuction", (auctionId) => {
     socket.join(`auction_${auctionId}`);
-    console.log(`User ${socket.id} joined auction ${auctionId}`);
   });
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => {});
 });
 
 // set up server
@@ -45,12 +39,14 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRoute);
+app.use("/api/guest", guestRoute);
 
 // bidder routes
 app.use("/api/auctions", auctionRoute);
 app.use("/api/categories", categoriesRoute);
 app.use(auth);
 app.use("/api/users", userRoute);
+app.use("/api/favorites", favoriteRoute);
 
 // admin routes
 app.use(authorize("admin"));
