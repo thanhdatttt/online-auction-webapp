@@ -41,6 +41,7 @@ app.use(cookieParser());
 // routes
 app.use("/api/auth", authRoute);
 app.use("/api/guest", guestRoute);
+
 app.use(auth);
 app.use("/api/users", userRoute);
 app.use("/api/auctions", auctionRoute);

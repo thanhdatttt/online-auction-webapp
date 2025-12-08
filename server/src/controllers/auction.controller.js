@@ -3,6 +3,7 @@ import Bid from "../models/Bid.js";
 import Auction from "../models/Auction.js";
 import Comment from "../models/Comment.js";
 import AuctionConfig from "../models/AuctionConfig.js";
+import mongoose from "mongoose";
 import {
   sendAnswerEmail,
   sendPlaceBidEmail,
@@ -11,11 +12,8 @@ import {
   sendWinnerEmail,
   sendSellerEmail,
 } from "../utils/auction.utils.js";
-import mongoose from "mongoose";
 import { config } from "../configs/config.js";
 import RejectedBidder from "../models/RejectedBidder.js";
-import { type } from "os";
-import { exists } from "fs";
 
 export const createAuction = async (req, res) => {
   try {

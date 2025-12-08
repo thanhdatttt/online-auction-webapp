@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuth.store.js";
 import { useEffect, useState } from "react";
+import Loading from "./Loading.jsx";
 
 // component to check whether user has authenticated
 const ProtectedRoute = () => {
@@ -31,7 +32,7 @@ const ProtectedRoute = () => {
   if (starting || loading) {
     return (
       <div className="flex h-screen items-center justify-center text-4xl text-black font-semibold">
-        Loading page ...
+        <Loading message="Loading page ..."/>
       </div>
     );
   }

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { authService } from "../services/auth.service.js";
 import { toast } from "sonner";
+import { useWatchListStore } from "./useWatchList.store.js";
 
 export const useAuthStore = create((set, get) => ({
   accessToken: null,
@@ -44,8 +45,12 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
+      // clear auth states and watchlist states
       get().clearState();
+      useWatchListStore.getState().clearState();
+
       const data = await authService.logout();
+
       toast.success("Logout successfully");
     } catch (err) {
       console.log(err);

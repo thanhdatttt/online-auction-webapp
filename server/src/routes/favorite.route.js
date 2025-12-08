@@ -3,8 +3,8 @@ import {addToFavorite, removeFromFavorite, getFavorites, checkFavorite} from "..
 
 const router = express.Router();
 
-router.post("/", addToFavorite);
-router.post("/:auctionId", removeFromFavorite);
+router.post("/:auctionId", addToFavorite);
+router.put("/:auctionId", removeFromFavorite);
 router.get("/", getFavorites);
 router.get("/:auctionId", checkFavorite);
 export default router;

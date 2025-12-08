@@ -1,17 +1,34 @@
 import Favorite from "../models/Favorite.js";
+import Auction from "../models/Auction.js";
 // FAVORITE LIST
 // add auction to favorite
 export const addToFavorite = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { auctionId } = req.body;
+    const { auctionId } = req.params;
 
     if (!userId || !auctionId) {
       return res.status(400).json({ message: "Missing userId or auctionId" });
     }
 
+    // check if auction is existed
+    if (!await Auction.findOne({_id: auctionId})) {
+      return res.status(400).json({message: "Auction is not exists"});
+    }
+
+    // create favorite list if not existed
+    let favorite = await Favorite.findOne({userId});
+    if (!favorite) {
+      favorite = await Favorite.create({
+        userId,
+        auctions: [auctionId],
+      });
+
+      return res.status(200).json({message: "Create favorite list", auctions: favorite.auctions});
+    }
+
     // add auction to favorite
-    const favorite = await Favorite.findOneAndUpdate(
+    favorite = await Favorite.findOneAndUpdate(
       { userId },
       { $addToSet: { auctions: auctionId } }, // no dupplicate
       { new: true, upsert: true } // create one if not have
@@ -19,7 +36,7 @@ export const addToFavorite = async (req, res) => {
 
     return res.status(201).json({
       message: "Added to favorites",
-      data: favorite
+      auctions: favorite.auctions
     });
   } catch (err) {
     return res.status(500).json({message: err.message});
@@ -36,6 +53,11 @@ export const removeFromFavorite = async (req, res) => {
       return res.status(400).json({ message: "Missing userId or auctionId" });
     }
 
+    // check if auction is existed
+    if (!await Auction.findOne({ _id: auctionId})) {
+      return res.status(400).json({message: "Auction is not exists"});
+    }
+
     // remove auction from favorite
      const favorite = await Favorite.findOneAndUpdate(
       { userId },
@@ -43,9 +65,13 @@ export const removeFromFavorite = async (req, res) => {
       { new: true }
     ).populate("auctions");
 
+    if (!favorite) {
+      return res.status(400).json({message: "Auction is not in favorite list"});
+    }
+
     return res.status(200).json({
       message: "Removed from favorite successfully",
-      data: favorite
+      auctions: favorite.auctions
     });
   } catch (err) {
     return res.status(500).json({message: err.message});
@@ -61,10 +87,23 @@ export const getFavorites = async (req, res) => {
     }
 
     let page = parseInt(req.query.page) || 1;   // default page 1
-    let limit = parseInt(req.query.limit) || 10; // default 10 items per page
+    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
     const skip = (page - 1) * limit;
 
-    const favorite = await Favorite.findOne({ userId })
+    const favorite = await Favorite.findOne({ userId });
+    if (!favorite || favorite == null || favorite.auctions.length === 0) {
+      return res.status(200).json({
+        message: "No favorite auctions found",
+        page,
+        limit,
+        total: 0,
+        auctions: [],
+      });
+    }
+    
+    const total = favorite.auctions.length;
+
+    const paginated = await Favorite.findOne({ userId })
     .populate({
       path: "auctions",
       options: {
@@ -73,30 +112,20 @@ export const getFavorites = async (req, res) => {
         sort: { createdAt: -1 } 
       }
     });
-    const total = favorite.auctions.length;
-
-    if (!favorite || favorite.auctions.length === 0) {
-      return res.status(200).json({
-        message: "No favorite auctions found",
-        data: [],
-        page,
-        limit,
-        total: 0
-      });
-    }
 
     return res.status(200).json({
       message: "Get favorites successfully",
-      data: favorite,
       page: page,
       limit: limit,
       total: total,
+      auctions: paginated.auctions,
     });
   } catch (err) {
-    return res.statusd(500).json({message: err.message});
+    return res.status(500).json({message: err.message});
   }
 }
 
+// check if auctions is in favorite
 export const checkFavorite = async(req, res) => {
   try {
     const userId = req.user.id;
@@ -106,8 +135,16 @@ export const checkFavorite = async(req, res) => {
       return res.status(400).json({ message: "Missing userId or auctionId" });
     }
 
+    // check if auction is existed
+    if (!await Auction.findOne({_id: auctionId})) {
+      return res.status(400).json({message: "Auction is not exists"});
+    }
+
     const favorite = await Favorite.findOne({userId: userId, auctions: auctionId});
-    res.status(200).json({ isFavorite: !!favorite });
+    if (!favorite) {
+      res.status(200).json({ isFavorite: false });
+    }
+    res.status(200).json({ isFavorite: true});
   } catch (err) {
     return res.status(500).json({message: err.message});
   }
