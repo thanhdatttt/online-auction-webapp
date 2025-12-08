@@ -218,8 +218,9 @@ export const login = async (req, res) => {
     // save refresh token to cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
+      path: "/",
       maxAge: REFRESH_TOKEN_TTL,
     });
     res.status(201).json({
