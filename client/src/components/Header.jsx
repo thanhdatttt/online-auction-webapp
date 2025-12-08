@@ -1,12 +1,15 @@
 import {FiSearch, FiMenu, FiX} from "react-icons/fi";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { useAuthStore } from "../stores/useAuth.store.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const Header = () => {
   // navigate
   const navigate = useNavigate();
+
+  // search
+  const [searchValue, setSearchValue] = useState('');
   
   // auth actions
   const {logout} = useAuthStore();
@@ -43,6 +46,21 @@ const Header = () => {
       }
   }
 
+  const handleSearch = () => {
+    navigate({
+      pathname: '/auctions',
+      search: createSearchParams({
+        search: searchValue.trim()
+      }).toString()
+    });
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }
+
   return (
     <header className="w-full bg-dark px-4 md:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
       {/* logo */}
@@ -55,9 +73,11 @@ const Header = () => {
         <input 
           type="text" 
           placeholder="Search items"
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full bg-light text-gray-700 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-primary"
         />
-        <FiSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 text-xl cursor-pointer"/>
+        <FiSearch onClick={handleSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 text-xl cursor-pointer"/>
       </div>
 
       {/* menu */}

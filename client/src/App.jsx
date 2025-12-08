@@ -13,9 +13,17 @@ import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
-import CategoryPage from "./pages/CategoryPage.jsx";
+import AuctionPage from "./pages/AuctionPage.jsx";
+
+import useTimeStore from "./stores/useTime.store.js";
+import { useEffect } from "react";
 
 function App() {
+  const startClock = useTimeStore((state) => state.startClock);
+
+  useEffect(() => {
+    startClock();
+  }, []);
   return (
     <>
       {/* toaster */}
@@ -36,7 +44,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgotPassword" element={<ForgotPassPage />} />
           <Route path="/auth/success" element={<AuthSuccessPage />} />
-          <Route path="/categories" element={<CategoryPage />} />
+          <Route path="/auctions" element={<AuctionPage />} />
 
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
