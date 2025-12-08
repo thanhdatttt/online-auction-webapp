@@ -11,6 +11,7 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
+import categoriesRoute from "./routes/category.route.js"
 
 // create server
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/auth", authRoute);
 
 // bidder routes
 app.use("/api/auctions", auctionRoute);
+app.use("/api/categories", categoriesRoute);
 app.use(auth);
 app.use("/api/users", userRoute);
 

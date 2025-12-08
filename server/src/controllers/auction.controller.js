@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import Auction from "../models/Auction.js";
+import Category from "../models/Category.js";
 import Comment from "../models/Comment.js";
 import RejectedBidder from "../models/RejectedBidder.js";
 import AuctionConfig from "../models/AuctionConfig.js";
@@ -535,7 +536,8 @@ export const getAuctions = async (req, res) => {
     }
 
     if (categoryId){
-      filter['product.categoryId'] = categoryId;
+      const categoriesToInclude = await getCategoryAndDescendants(categoryId);
+      filter['product.categoryId'] = { $in: categoriesToInclude };
     }
 
     const pageNum = parseInt(page);
@@ -575,7 +577,7 @@ export const getAuctions = async (req, res) => {
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
-        .populate('sellerId', 'username avatar_url rating'),
+        .populate('winnerId', 'username avatar_url rating'),
       
       Auction.countDocuments(filter)
     ]);
@@ -594,4 +596,19 @@ export const getAuctions = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to get auctions list", error: error.message });
   }
+};
+
+const getCategoryAndDescendants = async (rootId) => {
+  let ids = [rootId];
+
+  // Find immediate children
+  const children = await Category.find({ parentId: rootId });
+
+  // If children exist, recursively find their children
+  for (const child of children) {
+    const descendantIds = await getCategoryAndDescendants(child._id);
+    ids = [...ids, ...descendantIds];
+  }
+
+  return ids;
 };
