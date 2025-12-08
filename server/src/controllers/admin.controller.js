@@ -33,19 +33,49 @@ export const deleteUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const { username, page = 1 } = req.query;
+    const {
+      search,        // full text search (username or email)
+      status,        // specific status
+      role,          // specific role
+      sort,
+      page = 1,
+    } = req.query;
 
     const filter = {};
 
-    if (username) filter.username = { $regex: username, $options: "i" };
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
 
-    const limit = 10;
+    if (status) filter.status = status;
+    if (role) filter.role = role;
+
+    // --- Multi-field sorting ---
+    let sortObj = { createdAt: -1 }; // default
+
+    if (sort) {
+      sortObj = {}; // reset
+      const fields = sort.split(",");
+
+      fields.forEach((pair) => {
+        const [field, order] = pair.split(":");
+        sortObj[field] = order === "asc" ? 1 : -1;
+      });
+
+      // If createdAt not specified, add default
+      if (!sortObj.createdAt) sortObj.createdAt = -1;
+    }
+
+    const limit = 8;
     const skip = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
       User.find(filter)
         .select("_id username email avatar_url role status createdAt")
-        .sort({ createdAt: -1 })
+        .sort(sortObj)
         .skip(skip)
         .limit(limit),
       User.countDocuments(filter),
@@ -57,6 +87,7 @@ export const getUsers = async (req, res) => {
       page: Number(page),
       totalPages,
       totalUsers: total,
+      sortApplied: sortObj,
       users,
     });
   } catch (error) {
@@ -136,36 +167,111 @@ export const demoteSeller = async (req, res) => {
   }
 };
 
+export const getRequestCount = async (req, res) => {
+  try {
+    // Count all requests
+    const count = await RoleRequest.countDocuments();
+
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 export const getRoleRequest = async (req, res) => {
   try {
-    const { status, page = 1 } = req.query;
+    const { search, sort, page = 1 } = req.query;
 
-    const filter = {};
-
-    if (status) filter.status = status;
-
-    const limit = 10;
+    const limit = 8;
     const skip = (page - 1) * limit;
 
-    const [requests, total] = await Promise.all([
-      RoleRequest.find(filter)
-        .populate("userId", "username email role")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      RoleRequest.countDocuments(filter),
+    let sortObj = { requestedAt: -1 }; // default
+    if (sort) {
+      sortObj = {};
+      sort.split(",").forEach((pair) => {
+        const [field, order] = pair.split(":");
+        if (field === "username") sortObj["user.username"] = order === "asc" ? 1 : -1;
+        else if (field === "requestedAt") sortObj.requestedAt = order === "asc" ? 1 : -1;
+      });
+      if (!sortObj.requestedAt) sortObj.requestedAt = -1;
+    }
+
+    // --- Build aggregation pipeline ---
+    const pipeline = [];
+
+    // Populate user
+    pipeline.push({
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user"
+      }
+    });
+    pipeline.push({ $unwind: "$user" });
+
+    // Search by username
+    if (search && search.trim() !== "") {
+      pipeline.push({
+        $match: { "user.username": { $regex: search.trim(), $options: "i" } }
+      });
+    }
+
+    // Sort
+    pipeline.push({ $sort: sortObj });
+
+    // Pagination
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: limit });
+
+    // Select fields to return
+    pipeline.push({
+      $project: {
+        _id: 1,
+        status: 1,
+        requestedAt: 1,
+        user: {
+          username: 1,
+          email: 1,
+          role: 1,
+          avatar_url: 1,
+        },
+      }
+    });
+
+    // --- Execute queries in parallel ---
+    const [requests, totalResult] = await Promise.all([
+      RoleRequest.aggregate(pipeline),
+      RoleRequest.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user"
+          }
+        },
+        { $unwind: "$user" },
+        ...(search && search.trim() !== "" ? [{
+          $match: { "user.username": { $regex: search.trim(), $options: "i" } }
+        }] : []),
+        { $count: "total" }
+      ])
     ]);
 
+    const total = totalResult[0]?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
     return res.status(200).json({
       page: Number(page),
       totalPages,
       totalRequests: total,
+      sortApplied: sortObj,
       requests,
     });
   } catch (error) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

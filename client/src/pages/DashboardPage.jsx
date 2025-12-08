@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Dashboard/Sidebar';   
 import CategoriesTable from '../components/Dashboard/Table/CategoriesTable';
 import ProductsTable from '../components/Dashboard/Table/ProductsTable';
@@ -7,10 +7,16 @@ import Pagination from '../components/Dashboard/Pagination';
 
 
 export default function DashboardPage() {
-    const [activeNav, setActiveNav] = useState('categories');
+    const [activeNav, setActiveNav] = useState(() => {
+        return localStorage.getItem('activeNav') || 'categories';
+    });
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 9;
+
+    useEffect(() => {
+        localStorage.setItem('activeNav', activeNav);
+    }, [activeNav]);
 
     const handleNavChange = (nav) => {
         setActiveNav(nav);
@@ -22,10 +28,9 @@ export default function DashboardPage() {
     };
 
     const handleTotalChange = (total) => {
-        setTotalItems(total);
+        setTotalPages(total);
     };
 
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     return (
         <div className="flex h-screen bg-gray-900 overflow-hidden">

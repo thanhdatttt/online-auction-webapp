@@ -1,9 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import AllUsersTable from "./AllUsersTable";
 import UpgradeRequestsTable from "./UpgradeRequestsTable";
+import api from "../../../utils/axios";
 
 export default function UsersManagement({ currentPage, itemsPerPage, onTotalChange }) {
     const [activeTab, setActiveTab] = useState('all-users');
+    const [unreadRequestCount, setUnreadRequestCount] = useState(0);
+    const lastTotalRef = useRef(0);
+
+    const fetchUpgradeRequestCount = async () => {
+        try {
+            const res = await api.get("/admin/requestRole/count");
+            const total = res.data.count;
+
+            if (activeTab !== 'upgrade-requests') {
+                setUnreadRequestCount(Math.max(total - lastTotalRef.current, 0));
+            }
+
+            // Always update last total
+            lastTotalRef.current = total;
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchUpgradeRequestCount(); // initial fetch
+        const interval = setInterval(fetchUpgradeRequestCount, 5000);
+        return () => clearInterval(interval);
+    }, [activeTab]);
+
+    const handleTabSwitch = (tab) => {
+        setActiveTab(tab);
+
+        if (tab === 'upgrade-requests') {
+            setUnreadRequestCount(0);
+        }
+    };
 
     return (
         <div className="flex-1 flex flex-col bg-light overflow-hidden">
@@ -23,7 +56,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                 {/* Tabs */}
                 <div className="flex gap-6 mt-4">
                     <button
-                        onClick={() => setActiveTab('all-users')}
+                        onClick={() => handleTabSwitch('all-users')}
                         className={`pb-2 border-b-[2.5px] font-semibold font-lato transition-colors ${
                         activeTab === 'all-users'
                             ? 'border-primary text-primary'
@@ -33,7 +66,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                         All Users
                     </button>
                     <button
-                        onClick={() => setActiveTab('upgrade-requests')}
+                        onClick={() => handleTabSwitch('upgrade-requests')}
                         className={`pb-2 border-b-[2.5px] font-semibold font-lato transition-colors flex items-center gap-2 ${
                         activeTab === 'upgrade-requests'
                             ? 'border-primary text-primary'
@@ -41,7 +74,11 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                         }`}
                     >
                         Upgrade Requests
-                        <span className="px-1.5 py-1 bg-primary text-light text-[10px] rounded-full">9+</span>
+                        {unreadRequestCount > 0 && (
+                            <span className="px-1.5 py-1 bg-primary text-light text-[10px] rounded-full">
+                                {unreadRequestCount > 9 ? "9+" : unreadRequestCount}
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>
