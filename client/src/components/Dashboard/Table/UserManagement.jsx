@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import AllUsersTable from "./AllUsersTable";
 import UpgradeRequestsTable from "./UpgradeRequestsTable";
 import api from "../../../utils/axios";
+import AddUserModal from "../AddUserModal";
 
 export default function UsersManagement({ currentPage, itemsPerPage, onTotalChange }) {
     const [activeTab, setActiveTab] = useState('all-users');
+    const [showModal, setShowModal] = useState(false);
     const [unreadRequestCount, setUnreadRequestCount] = useState(
         Number(localStorage.getItem("unreadRequests")) || 0
     );
@@ -59,6 +61,10 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
         }
     };
 
+    const handleUserCreated = () => {
+        setActiveTab("all-users");
+    };
+
     return (
         <div className="flex-1 flex flex-col bg-light overflow-hidden">
             {/* Header */}
@@ -68,7 +74,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                         <h2 className="text-3xl font-bold font-lato text-dark">Users Management</h2>
                         <p className="font-lato text-dark/70 mt-1">View, add, and manage users</p>
                     </div>
-                    <button className="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    <button onClick={() => setShowModal(true)} className="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
                         <img src="./dashboard/plus.svg" className="w-5 h-5" />
                         Add New User
                     </button>
@@ -81,7 +87,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                         className={`pb-2 border-b-[2.5px] font-semibold font-lato transition-colors ${
                         activeTab === 'all-users'
                             ? 'border-primary text-primary'
-                            : 'border-transparent text-dark/60 hover:text-gray-700'
+                            : 'border-transparent text-dark/60 hover:text-gray-700 cursor-pointer'
                         }`}
                     >
                         All Users
@@ -91,7 +97,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                         className={`pb-2 border-b-[2.5px] font-semibold font-lato transition-colors flex items-center gap-2 ${
                         activeTab === 'upgrade-requests'
                             ? 'border-primary text-primary'
-                            : 'border-transparent text-dark/60 hover:text-gray-700'
+                            : 'border-transparent text-dark/60 hover:text-gray-700 cursor-pointer'
                         }`}
                     >
                         Upgrade Requests
@@ -114,6 +120,12 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                     <UpgradeRequestsTable currentPage={currentPage} itemsPerPage={itemsPerPage} onTotalChange={onTotalChange} />
                 </div>
             )}
+
+            <AddUserModal 
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onUserCreated={handleUserCreated}
+            />
         </div>
     );
 }

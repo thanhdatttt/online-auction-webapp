@@ -31,6 +31,49 @@ export const deleteUser = async (req, res) => {
     }
 }
 
+export const createUser = async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+
+    if (!email || !username || !password || !role) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Check if email exists
+    const existEmail = await User.findOne({ email });
+    if (existEmail) {
+      return res.status(400).json({ field: "email", message: "Email already in use" });
+    }
+
+    // Check if username exists
+    const existUsername = await User.findOne({ username });
+    if (existUsername) {
+      return res.status(400).json({ field: "username", message: "Username already in use" });
+    }
+
+    // Create user (password hashing is handled in User model pre-save)
+    const newUser = await User.create({
+      email,
+      username,
+      passwordHash: password,
+      role,
+    });
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        username: newUser.username,
+        role: newUser.role,
+      }
+    });
+
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+}
+
 export const getUsers = async (req, res) => {
   try {
     const {
