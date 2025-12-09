@@ -199,6 +199,8 @@ export const getRoleRequest = async (req, res) => {
 
     // --- Build aggregation pipeline ---
     const pipeline = [];
+    
+    pipeline.push({ $match: { status: "pending" } });
 
     // Populate user
     pipeline.push({
