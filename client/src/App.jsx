@@ -16,7 +16,7 @@ import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
 
 import { useAuthStore } from "./stores/useAuth.store.js";
-import { useTimeStore } from "./stores/useTime.store.js";
+import useTimeStore from "./stores/useTime.store.js";
 import { useEffect } from "react";
 
 function App() {

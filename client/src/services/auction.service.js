@@ -1,4 +1,3 @@
-import { PawPrint } from "lucide-react";
 import api from "../utils/axios.js";
 
 export const auctionService = {
@@ -61,7 +60,7 @@ export const auctionService = {
   },
   getAuctions: async ({ page = 1, limit = 9, sort, search, categoryId }) => {
     try {
-      const res = await api.get("/auctions", {
+      const res = await api.get("/guest/auctions", {
         params: {page, limit, sort, search, categoryId}
       });
       return res.data;
