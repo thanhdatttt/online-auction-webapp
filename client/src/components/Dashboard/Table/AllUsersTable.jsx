@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import BaseUserTable from "./BaseUserTable";
 import api from "../../../utils/axios";
+import DeleteUserModal from "../DeleteUserModal";
 
 export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
@@ -11,11 +12,20 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterRole, setFilterRole] = useState("all");
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    
+
     const [sortState, setSortState] = useState({
         username: "none",
         email: "none",
         createdAt: "none"
     });
+
+    const handleDeleteClick = (user) => {
+        setUserToDelete(user);
+        setShowDeleteModal(true);
+    };
 
     const toggleSort = (field) => {
         setSortState((prev) => {
@@ -49,30 +59,29 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         return params.toString();
     };
 
+    const loadData = async () => {
+        try {
+            setLoading(true);
+
+            const query = buildQueryString();
+
+            const res = await api.get(`/admin/users?${query}`);
+
+            console.log(res);
+            const data = res.data;
+            onTotalChange(data.totalPages);
+            setData(data.users);
+        } catch (error) {
+            console.error(error);
+        }
+        finally {
+            setLoading(false);
+        }
+
+    };
 
     // Simulate data fetch
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-
-                const query = buildQueryString();
-
-                const res = await api.get(`/admin/users?${query}`);
-    
-                console.log(res);
-                const data = res.data;
-                onTotalChange(data.totalPages);
-                setData(data.users);
-            } catch (error) {
-                console.error(error);
-            }
-            finally {
-                setLoading(false);
-            }
-
-        };
-
         loadData();
     }, [currentPage, searchQuery, filterStatus, filterRole, sortState]);
 
@@ -117,7 +126,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
         >
             <div className="font-semibold text-dark font-lato flex items-center ml-16 gap-2">
-                <img src={item.avatar_url ? item.avatar_url : "/default_person.webp"} referrerPolicy="no-referrer" className="w-[2rem] h-[2rem] rounded-full" />
+                <img src={item.avatar_url ? item.avatar_url : "/default_person.webp"} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full" />
                 {item.username.length > 20 ? item.username.slice(0, 20) + "..." : item.username}
             </div>
             <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.email.length > 20 ? item.email.slice(0, 20) + "..." : item.email}</div>
@@ -137,7 +146,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
                 <button className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
                     <Pencil size={18} />
                 </button>
-                <button className="cursor-pointer p-2 text-dark/80 hover:text-secondary rounded transition-colors">
+                <button onClick={() => handleDeleteClick(item)} className="cursor-pointer p-2 text-dark/80 hover:text-secondary rounded transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>
@@ -145,18 +154,33 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
     );
 
     return (
-        <BaseUserTable
-        searchPlaceholder="Search by username or email..."
-        filters={filters}
-        columns={columns}
-        data={data}
-        loading={loading}
-        onAdd={() => console.log('Add user')}
-        renderRow={renderRow}
-        sortState={sortState}
-        onSortChange={toggleSort}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        />
+        <>
+            <BaseUserTable
+            searchPlaceholder="Search by username or email..."
+            filters={filters}
+            columns={columns}
+            data={data}
+            loading={loading}
+            onAdd={() => console.log('Add user')}
+            renderRow={renderRow}
+            sortState={sortState}
+            onSortChange={toggleSort}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            />
+
+            <DeleteUserModal
+                open={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                }}
+                onDeleted={() => {
+                    setShowDeleteModal(false);
+                    setUserToDelete(null);
+                    loadData();
+                }}
+                user={userToDelete}
+            />
+        </>
     );
 }

@@ -99,11 +99,11 @@ export default function UpgradeRequestsTable({ currentPage, itemsPerPage, onTota
         return (
             <div
             key={item._id}
-            className="grid gap-4 px-6 py-[0.5rem] border-2 border-b border-decor hover:bg-amber-50 transition-colors"
+            className="grid gap-4 px-6 py-2 border-2 border-b border-decor hover:bg-amber-50 transition-colors"
             style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
             >
                 <div className="font-semibold text-dark font-lato flex items-center ml-32 gap-2">
-                    <img src={item.user.avatar_url ? item.user.avatar_url : "/default_person.webp"} referrerPolicy="no-referrer" className="w-[2rem] h-[2rem] rounded-full" />
+                    <img src={item.user.avatar_url ? item.user.avatar_url : "/default_person.webp"} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full" />
                     {item.user.username.length > 20 ? item.user.username.slice(0, 20) + "..." : item.user.username}
                 </div>
                 <div className="text-dark/80 font-lato font-medium flex items-center justify-center">{new Date(item.requestedAt).toLocaleDateString()}</div>
