@@ -5,36 +5,57 @@ import api from "../../../utils/axios";
 
 export default function UsersManagement({ currentPage, itemsPerPage, onTotalChange }) {
     const [activeTab, setActiveTab] = useState('all-users');
-    const [unreadRequestCount, setUnreadRequestCount] = useState(0);
-    const lastTotalRef = useRef(0);
+    const [unreadRequestCount, setUnreadRequestCount] = useState(
+        Number(localStorage.getItem("unreadRequests")) || 0
+    );
+
+    const lastTotalRef = useRef(
+        Number(localStorage.getItem("lastRequestTotal")) || 0
+    );
 
     const fetchUpgradeRequestCount = async () => {
         try {
             const res = await api.get("/admin/requestRole/count");
             const total = res.data.count;
 
-            if (activeTab !== 'upgrade-requests') {
-                setUnreadRequestCount(Math.max(total - lastTotalRef.current, 0));
+            if (activeTab === 'upgrade-requests') {
+                // mark all as read
+                lastTotalRef.current = total;
+                localStorage.setItem("lastRequestTotal", total);
+                setUnreadRequestCount(0);
+                if (unreadRequestCount !== 0) setUnreadRequestCount(0);
+                return;
+            } 
+
+            const diff = total - lastTotalRef.current;
+
+            if (diff > 0) {
+                setUnreadRequestCount(diff);
             }
 
-            // Always update last total
+            // always store total
             lastTotalRef.current = total;
+            localStorage.setItem("lastRequestTotal", total);
         } catch (err) {
             console.error(err);
         }
     };
 
     useEffect(() => {
+        localStorage.setItem("unreadRequests", unreadRequestCount);
+    }, [unreadRequestCount]);
+
+    useEffect(() => {
         fetchUpgradeRequestCount(); // initial fetch
         const interval = setInterval(fetchUpgradeRequestCount, 5000);
         return () => clearInterval(interval);
-    }, [activeTab]);
+    }, []);
 
     const handleTabSwitch = (tab) => {
         setActiveTab(tab);
-
-        if (tab === 'upgrade-requests') {
-            setUnreadRequestCount(0);
+        if (tab === "upgrade-requests") {
+            setUnreadRequestCount(0);                        // clear badge immediately
+            localStorage.setItem("unreadRequests", 0);
         }
     };
 
@@ -75,7 +96,7 @@ export default function UsersManagement({ currentPage, itemsPerPage, onTotalChan
                     >
                         Upgrade Requests
                         {unreadRequestCount > 0 && (
-                            <span className="px-1.5 py-1 bg-primary text-light text-[10px] rounded-full">
+                            <span className="px-2 py-1 bg-primary text-light text-[10px] rounded-full">
                                 {unreadRequestCount > 9 ? "9+" : unreadRequestCount}
                             </span>
                         )}
