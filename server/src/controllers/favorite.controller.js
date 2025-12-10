@@ -1,6 +1,6 @@
 import Favorite from "../models/Favorite.js";
 import Auction from "../models/Auction.js";
-// FAVORITE LIST
+
 // add auction to favorite
 export const addToFavorite = async (req, res) => {
   try {
