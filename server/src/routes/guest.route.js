@@ -3,7 +3,7 @@ import {
   getAuctionDetail,
   getComments,
   getHistoryBid,
-} from "../controllers/guest.controller.js";
+} from "../controllers/auction.controller.js";
 
 const router = express.Router();
 
