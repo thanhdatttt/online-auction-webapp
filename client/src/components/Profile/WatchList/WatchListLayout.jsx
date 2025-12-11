@@ -28,12 +28,19 @@ const WatchListSection = () => {
       <h1 className="text-5xl mb-6">Watch List</h1>
       <Divider/>
 
-      <WatchListHeader/>
-      <WatchListGrid items={items} loading={loading}/>
-
-      <div className="flex justify-center mt-8">
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
-      </div>
+      {items.length != 0 ? 
+      (<>
+        <WatchListHeader/>
+        <WatchListGrid items={items} loading={loading}/>
+        <div className="flex justify-center mt-8">
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
+        </div>
+      </>) :
+      (<div className="flex items-center justify-center">
+        <p className="text-center text-2xl font-bold">No auctions in watch list</p>
+      </div>)
+      }
+      
     </div>
   );
 }
