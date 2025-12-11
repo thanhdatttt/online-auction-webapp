@@ -1,5 +1,5 @@
 import React from "react";
-import ProductCard from "../ProductCard";
+import AuctionCard from "../AuctionCard.jsx";
 
 const SimilarItems = () => {
   return (
@@ -9,7 +9,7 @@ const SimilarItems = () => {
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map((key) => (
-          <ProductCard key={key}></ProductCard>
+          <AuctionCard key={key}></AuctionCard>
         ))}
       </div>
     </div>

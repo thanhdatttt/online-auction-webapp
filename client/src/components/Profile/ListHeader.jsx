@@ -1,6 +1,6 @@
 import { FiSearch } from "react-icons/fi";
 
-const WatchListHeader = () => {
+const ListHeader = () => {
   return (
     <div className="flex items-center justify-between my-4 gap-4">
       <div className="flex-1 relative w-80">
@@ -21,4 +21,4 @@ const WatchListHeader = () => {
   );
 }
 
-export default WatchListHeader;
+export default ListHeader;

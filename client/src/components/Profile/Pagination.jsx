@@ -8,10 +8,11 @@ const PageButton = memo(({ page, active, onClick }) => {
   return (
     <button
       onClick={() => onClick(page)}
-      className={`
-        w-12 h-12 rounded-md border flex items-center justify-center cursor-pointer
-        ${active ? "bg-black text-white" : "bg-white hover:bg-gray-400"}
-      `}
+      className={`w-10 h-10 rounded-lg font-bold transition-all focus:outline-none ${
+        active
+          ? 'bg-primary text-dark shadow-lg scale-105 cursor-default' // Active
+          : 'bg-dark text-gray-100 hover:bg-primary cursor-pointer' // Inactive
+      }`}
     >
       {page}
     </button>

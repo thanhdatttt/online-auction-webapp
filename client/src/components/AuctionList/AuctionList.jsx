@@ -1,10 +1,10 @@
-import Sidebar from "./Sidebar"
-import Sortbar from "./Sortbar"
-import AuctionCard from "./AuctionCard"
-import Pagination from "./Pagination";
-import { useEffect } from 'react'
-import { useAuctionStore } from "../../stores/useAuction.store";
-import { useCategoryStore } from "../../stores/useCategory.store";
+import Sidebar from "./Sidebar.jsx";
+import Sortbar from "./Sortbar.jsx";
+import AuctionCard from "../AuctionCard.jsx";
+import Pagination from "./Pagination.jsx";
+import { useEffect } from 'react';
+import { useAuctionStore } from "../../stores/useAuction.store.js";
+import { useCategoryStore } from "../../stores/useCategory.store.js";
 import { useSearchParams } from "react-router";
 
 const AuctionList = () => {
