@@ -32,7 +32,6 @@ export const useWatchListStore = create((set, get) => ({
   addToFavorite: async(auctionId) => {
     try {
       set({loading: true});
-      console.log(typeof(auctionId));
       const res = await watchListService.addToFavorite(auctionId);
 
       set({

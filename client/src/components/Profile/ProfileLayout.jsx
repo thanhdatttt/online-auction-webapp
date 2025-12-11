@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../../stores/useAuth.store.js";
 import ProfileSection from "./Account/AccountLayout.jsx";
 import WatchListSection from "./WatchList/WatchListLayout.jsx";
+import ActiveBidLayout from "./ActiveBids/ActiveBidLayout.jsx";
 import SideBar from "./SideBar.jsx";
 import Header from "../Header.jsx";
 import Divider from "./Divider.jsx";
@@ -19,7 +20,7 @@ const ProfileLayout = () => {
   const sections = {
     "account": <ProfileSection />,
     "watchlist": <WatchListSection />,
-    "activebids": <WatchListSection />,
+    "activebids": <ActiveBidLayout />,
     "auctionwon": <ProfileSection />,
     "feedbacks": <WatchListSection />,
     "payment": <ProfileSection />,

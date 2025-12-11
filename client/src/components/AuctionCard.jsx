@@ -1,13 +1,43 @@
-import useTimeStore from '../../stores/useTime.store';
-import { getFormattedTimeDiff, getRelativeTime } from '../../services/time.service';
-import { Heart } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import useTimeStore from '../stores/useTime.store.js';
+import { getFormattedTimeDiff, getRelativeTime } from '../services/time.service.js';
+import { Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useWatchListStore } from '../stores/useWatchList.store.js';
+import { useState } from 'react';
 
 const AuctionCard = ({ auction }) => {
+  // time
   const now = useTimeStore((state) => state.now);
-
   const endTime = getFormattedTimeDiff(auction.endTime, now);
   const startTime = getRelativeTime(auction.startTime, now);
+
+  // favorite
+  const [isFavorite, setIsFavorite] = useState(false);
+  const {addToFavorite, removeFromFavorite, checkFavorite} = useWatchListStore();
+
+  // check favorite
+  const check = async () => {
+    try {
+      const isFav = await checkFavorite(auction._id);
+      setIsFavorite(isFav);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  check();
+
+  // add favorite / remove favorite
+  const toogleFavorite = async(e) => {
+    e.stopPropagation(); 
+
+    if (isFavorite) {
+      await removeFromFavorite(auction._id);     
+      setIsFavorite(false);
+    } else {
+      await addToFavorite(auction._id);
+      setIsFavorite(true);
+    }
+  }
 
   return (
     <div className="bg-dark rounded-lg overflow-hidden shadow-[0_4px_4px_#2a2a35] relative group hover:-translate-y-1">
@@ -18,8 +48,12 @@ const AuctionCard = ({ auction }) => {
       )}
       <div className="relative">
         <img src={auction.product.images[0].url} alt={auction.title} className="w-full h-48 object-cover" />
-        <button className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition z-20 cursor-pointer">
-          <Heart size={20} />
+        <button
+        onClick={toogleFavorite}
+        className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition z-40 cursor-pointer">
+          <Heart size={20}  className={isFavorite
+          ? "fill-red-500 text-red-500"
+          : "text-white hover:text-red-300"} />
         </button>
       </div>
       <div className="p-4">
@@ -32,7 +66,7 @@ const AuctionCard = ({ auction }) => {
               CURRENT BID
             </div>
             <div className="text-base font-semibold font-lato text-yellow-500 mb-3">
-              {auction.currentPrice}
+              {auction.currentPrice} VND
             </div>
             <div className="text-[13px] font-lato font-semibold text-white mb-4">
             Posted <br /><span className="text-base text-lighter"> {startTime}</span>
