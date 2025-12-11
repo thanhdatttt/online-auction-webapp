@@ -1,13 +1,12 @@
 import { create } from "zustand";
 import { auctionService } from "../services/auction.service";
 import { toast } from "sonner";
-import { intervalToDuration, isPast } from 'date-fns';
+import { intervalToDuration, isPast } from "date-fns";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
 
 export const useAuctionStore = create((set, get) => ({
-
   loading: false,
   auctions: [],
 
@@ -20,7 +19,7 @@ export const useAuctionStore = create((set, get) => ({
     page: 1,
     limit: 9,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   },
 
   // Actions
@@ -30,7 +29,7 @@ export const useAuctionStore = create((set, get) => ({
 
   setSortBy: (sortOption) => {
     set({ sortBy: sortOption });
-    // get().getAuctions(); 
+    // get().getAuctions();
   },
 
   setCategory: (categoryId) => {
@@ -40,7 +39,7 @@ export const useAuctionStore = create((set, get) => ({
   setPage: (page) => {
     set((state) => ({
       pagination: { ...state.pagination, page },
-    }))
+    }));
   },
 
   getAuctions: async (pageNumber) => {
@@ -49,16 +48,22 @@ export const useAuctionStore = create((set, get) => ({
 
       const { limit } = get().pagination;
       const { searchQuery, sortBy, categoryId } = get();
-      const response = await auctionService.getAuctions({ page: pageNumber, limit, sort: sortBy, search: searchQuery, categoryId: categoryId });
+      const response = await auctionService.getAuctions({
+        page: pageNumber,
+        limit,
+        sort: sortBy,
+        search: searchQuery,
+        categoryId: categoryId,
+      });
       console.log(response);
-      set({ 
-        auctions: response.auctions, 
+      set({
+        auctions: response.auctions,
         pagination: {
           page: pageNumber,
           limit: limit,
           total: response.pagination.totalItems,
-          totalPages: Math.ceil(response.pagination.totalItems / limit)
-        }
+          totalPages: Math.ceil(response.pagination.totalItems / limit),
+        },
       });
       toast.success("Load auctions successfully");
     } catch (err) {
@@ -149,9 +154,6 @@ export const useAuctionStore = create((set, get) => ({
     if (auction.buyNowPrice && bidMaxAmount >= auction.buyNowPrice)
       return `The amount you entered meets or exceeds the buyout price. To secure this item immediately, please click "Buyout".`;
 
-    console.log(typeof userId);
-    console.log(typeof newWinnerId);
-
     if (
       userId === newWinnerId &&
       newHighestPrice &&
@@ -163,6 +165,14 @@ export const useAuctionStore = create((set, get) => ({
 
     if (bidMaxAmount % auction.gapPrice !== 0)
       return `Place bid failed. Bid amount must be a multiple of the gap price.`;
+
+    const basePrice = auction.currentPrice
+      ? auction.currentPrice
+      : auction.startPrice;
+
+    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 30) {
+      return `Place bid failed. Your bid max amount greater than the current bid and 30 times gap price.`;
+    }
 
     return null;
   },
