@@ -16,12 +16,15 @@ import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import { useAuthStore } from "./stores/useAuth.store.js";
 import { useEffect } from "react";
 function App() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const fetchMe = useAuthStore((s) => s.fetchMe);
-
   useEffect(() => {
-    if (accessToken) fetchMe();
-  }, [accessToken]);
+    const { accessToken, refresh, fetchMe } = useAuthStore.getState();
+
+    if (!accessToken) {
+      refresh();
+    } else {
+      fetchMe();
+    }
+  }, []);
 
   return (
     <>
