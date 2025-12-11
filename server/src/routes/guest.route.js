@@ -5,7 +5,19 @@ import {
   getHistoryBid,
 } from "../controllers/auction.controller.js";
 
+import {
+  getAuctions
+} from "../controllers/auction.controller.js"
+
+import {
+  getCategories
+} from "../controllers/category.controller.js"
+
 const router = express.Router();
+
+router.get("/auctions", getAuctions);
+
+router.get("/categories", getCategories);
 
 router.get("/auctions/:auctionId", getAuctionDetail);
 

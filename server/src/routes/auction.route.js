@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 
-router.post("", createAuction);
+router.post("/", createAuction);
 
 router.post("/:auctionId/bid", placeBid);
 router.post("/:auctionId/buyout", buyNow);

@@ -42,11 +42,11 @@ export const authService = {
     }
   },
 
-  create_user: async (data, registerToken) => {
+  create_user: async (data, token) => {
     try {
       const res = await api.post("/auth/create-user", data, {
         headers: {
-          Authorization: `Bearer ${registerToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       return res.data;
@@ -103,9 +103,13 @@ export const authService = {
     }
   },
 
-  reset_password: async (data) => {
+  reset_password: async (data, token) => {
     try {
-      const res = await api.post("/auth/reset-password", data);
+      const res = await api.post("/auth/reset-password", data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return res.data;
     } catch (err) {
       console.log(err);

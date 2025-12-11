@@ -13,17 +13,23 @@ import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
-import { useAuthStore } from "./stores/useAuth.store.js";
-import { useEffect } from "react";
-function App() {
-  useEffect(() => {
-    const { accessToken, refresh, fetchMe } = useAuthStore.getState();
+import AuctionPage from "./pages/AuctionPage.jsx";
 
-    if (!accessToken) {
-      refresh();
-    } else {
-      fetchMe();
-    }
+import { useAuthStore } from "./stores/useAuth.store.js";
+import useTimeStore from "./stores/useTime.store.js";
+import { useEffect } from "react";
+
+function App() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const fetchMe = useAuthStore((s) => s.fetchMe);
+  const startClock = useTimeStore((state) => state.startClock);
+
+  useEffect(() => {
+    if (accessToken) fetchMe();
+  }, [accessToken]);
+
+  useEffect(() => {
+    startClock();
   }, []);
 
   return (
@@ -46,6 +52,8 @@ function App() {
             path="/auctions/:id"
             element={<AuctionDetailPage></AuctionDetailPage>}
           />
+          <Route path="/auctions" element={<AuctionPage />} />
+
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
           <Route element={<ProtectedRoute />}>

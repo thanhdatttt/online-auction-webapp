@@ -1,0 +1,71 @@
+import useTimeStore from '../../stores/useTime.store';
+import { getFormattedTimeDiff, getRelativeTime } from '../../services/time.service';
+import { Heart } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+const AuctionCard = ({ auction }) => {
+  const now = useTimeStore((state) => state.now);
+
+  const endTime = getFormattedTimeDiff(auction.endTime, now);
+  const startTime = getRelativeTime(auction.startTime, now);
+
+  return (
+    <div className="bg-dark rounded-lg overflow-hidden shadow-[0_4px_4px_#2a2a35] relative group hover:-translate-y-1">
+      {auction.isNew && (
+        <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+          NEW
+        </span>
+      )}
+      <div className="relative">
+        <img src={auction.product.images[0].url} alt={auction.title} className="w-full h-48 object-cover" />
+        <button className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition z-20 cursor-pointer">
+          <Heart size={20} />
+        </button>
+      </div>
+      <div className="p-4">
+        <Link to={`/auctions/${auction._id}`} className="hover:underline">
+          <h3 className="text-white text-lg font-extrabold font-lato truncate mb-3">{auction.product.name}</h3>
+        </Link>
+        <div className="flex justify-between">
+          <div className="w-2/3">
+            <div className="font-semibold font-lato text-[11px] text-[#d1ae8d] mb-1">
+              CURRENT BID
+            </div>
+            <div className="text-base font-semibold font-lato text-yellow-500 mb-3">
+              {auction.currentPrice}
+            </div>
+            <div className="text-[13px] font-lato font-semibold text-white mb-4">
+            Posted <br /><span className="text-base text-lighter"> {startTime}</span>
+            </div>
+          </div>
+          <div className="w-1/3">
+            <div className="font-semibold font-lato text-[11px] text-[#d1ae8d] mb-1">
+              HIGHEST BIDDER
+            </div>
+            <div className="text-base font-semibold font-lato text-yellow-500 mb-3">
+              {auction.winnerId && <span>{auction.winnerId.username}</span>}
+              {!auction.winnerId && <span>Be the first!</span>}
+            </div>
+            <div className="flex items-center">
+              <Link to={`/auctions/${auction._id}`} className="bg-yellow-500 w-full text-center hover:bg-yellow-600 text-black font-bold py-1.5 rounded-lg focus:outline-none transition-colors mb-4 mt-2">
+                Bid
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[13px] text-white border-t border-gray-700 pt-3">
+          <div className="flex items-center">
+            {/* <Gavel size={14} className="mr-1" /> */}
+            {auction.bids}
+          </div>
+          {endTime == -1 && (<div>ENDED</div>)}
+          {!endTime && (<div>ENDING</div>)}
+          {endTime != -1 && endTime && (<div >END IN <span className="text-red-400 text-base">{endTime}</span></div>)}
+          
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AuctionCard

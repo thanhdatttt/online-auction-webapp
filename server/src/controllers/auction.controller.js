@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import Auction from "../models/Auction.js";
+import Category from "../models/Category.js";
 import Comment from "../models/Comment.js";
 import AuctionConfig from "../models/AuctionConfig.js";
 import mongoose from "mongoose";
@@ -51,7 +52,6 @@ export const createAuction = async (req, res) => {
 
     res.status(201).json({
       message: "Auction created successfully",
-      product: product,
       auction: auction,
     });
   } catch (error) {
@@ -698,4 +698,100 @@ export const buyNow = async (req, res) => {
     console.log(err.message);
     res.status(500).json({ message: "System error", error: err.message });
   }
+};
+
+
+export const getAuctions = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      sort = 'newest', 
+      search, 
+      categoryId 
+    } = req.query;
+
+    const filter = { status: 'ongoing' };
+    let sortOptions = {};
+
+    if (search) {
+      filter.$text = { $search: search };
+    }
+
+    if (categoryId){
+      const categoriesToInclude = await getCategoryAndDescendants(categoryId);
+      filter['product.categoryId'] = { $in: categoriesToInclude };
+    }
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    switch (sort) {
+      case 'price_asc': 
+        sortOptions = { currentPrice: 1 }; 
+        break;
+      case 'price_desc': 
+        sortOptions = { currentPrice: -1 }; 
+        break;
+      case 'ending_soon': 
+        sortOptions = { endTime: 1 }; 
+        break;
+      case 'newest':
+        sortOptions = { createdAt: -1 }; 
+        break;
+      // case 'relevance':
+      //   if (search) {
+      //      sortOptions = { score: { $meta: "textScore" } };
+      //   } else {
+      //      sortOptions = { createdAt: -1 };
+      //   }
+      //   break;
+      default:
+        sortOptions = { createdAt: -1 };
+    }
+
+    // if (search && sort !== 'relevance') {
+    //    sortOptions.score = { $meta: "textScore" };
+    // }
+
+    const [auctions, total] = await Promise.all([
+      Auction.find(filter)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum)
+        .populate('winnerId', 'username avatar_url rating'),
+      
+      Auction.countDocuments(filter)
+    ]);
+
+    res.status(200).json({
+      message: "Auction retrieved successfully",
+      auctions: auctions,
+      pagination: {
+        totalItems: total,
+        totalPages: Math.ceil(total / limitNum),
+        currentPage: pageNum,
+        itemsPerPage: limitNum
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get auctions list", error: error.message });
+  }
+};
+
+const getCategoryAndDescendants = async (rootId) => {
+  let ids = [rootId];
+
+  // Find immediate children
+  const children = await Category.find({ parentId: rootId });
+
+  // If children exist, recursively find their children
+  for (const child of children) {
+    const descendantIds = await getCategoryAndDescendants(child._id);
+    ids = [...ids, ...descendantIds];
+  }
+
+  return ids;
 };
