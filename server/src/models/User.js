@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema(
         },
         providers: {
             google: {
-                id: { type: String, unique: true, sparse: true },
+                id: { type: String, unique: true, sparse: true, default: null },
             },
             facebook: {
-                id: { type: String, unique: true, sparse: true },
+                id: { type: String, unique: true, sparse: true, default: null },
             },
         },
         role: {

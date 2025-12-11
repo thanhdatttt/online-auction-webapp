@@ -3,6 +3,8 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 import BaseUserTable from "./BaseUserTable";
 import api from "../../../utils/axios";
 import DeleteUserModal from "../DeleteUserModal";
+import ViewUserModal from "../ViewUserModal";
+import EditUserModal from "../EditUserModal";
 
 export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
@@ -13,7 +15,9 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
     const [filterRole, setFilterRole] = useState("all");
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [userToDelete, setUserToDelete] = useState(null);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
     
 
     const [sortState, setSortState] = useState({
@@ -22,10 +26,28 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         createdAt: "none"
     });
 
-    const handleDeleteClick = (user) => {
-        setUserToDelete(user);
-        setShowDeleteModal(true);
+    const handleOptionClick = (user, opt) => {
+        setSelectedUser(user);
+
+        switch (opt) {
+            case "delete":
+                setShowDeleteModal(true);
+                break;
+            case "view":
+                setShowViewModal(true);
+                break;
+            case "edit":
+                setShowEditModal(true);
+                break;
+        
+            default:
+                break;
+        }
     };
+
+    const handleUserUpdated = () => {
+
+    }
 
     const toggleSort = (field) => {
         setSortState((prev) => {
@@ -140,13 +162,13 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
             </div>
             <div className="font-medium text-dark font-lato flex items-center justify-center">{new Date(item.createdAt).toLocaleDateString()}</div>
             <div className="flex items-center justify-end gap-1">
-                <button className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
+                <button onClick={() => handleOptionClick(item, "view")} className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
                     <Eye size={18} />
                 </button>
-                <button className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
+                <button onClick={() => handleOptionClick(item, "edit")} className="cursor-pointer p-2 text-dark/80 hover:text-primary rounded transition-colors">
                     <Pencil size={18} />
                 </button>
-                <button onClick={() => handleDeleteClick(item)} className="cursor-pointer p-2 text-dark/80 hover:text-secondary rounded transition-colors">
+                <button onClick={() => handleOptionClick(item, "delete")} className="cursor-pointer p-2 text-dark/80 hover:text-secondary rounded transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>
@@ -176,11 +198,25 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
                 }}
                 onDeleted={() => {
                     setShowDeleteModal(false);
-                    setUserToDelete(null);
+                    setSelectedUser(null);
                     loadData();
                 }}
-                user={userToDelete}
+                user={selectedUser}
             />
+
+            <ViewUserModal 
+                open={showViewModal}
+                onClose={() => setShowViewModal(false)}
+                miniuser={selectedUser}
+            />
+
+            <EditUserModal 
+                open={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                miniuser={selectedUser}
+                onUserUpdated={handleUserUpdated}
+            />
+
         </>
     );
 }

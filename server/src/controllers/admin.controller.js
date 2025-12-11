@@ -138,6 +138,64 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getUserbyId = async (req, res) => {
+  try {
+      const { userId } = req.params;
+
+      if (!userId) {
+          return res.status(400).json({ message: "Missing userId" });
+      }
+
+      const user = await User.findById(userId).select("-passwordHash -refreshToken -updatedAt -__v"); 
+      // exclude password for safety
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json({ user });
+  } catch (err) {
+      console.error("Error fetching user:", err);
+      return res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const banUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const adminId = req.user._id.toString();
+
+    const target = await User.findById(userId);
+    if (!target) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (target._id.toString() === adminId) {
+      return res.status(403).json({
+        message: "Admins cannot ban themselves."
+      });
+    }
+
+    if (target.role === "admin") {
+      return res.status(403).json({
+        message: "You cannot ban another admin account."
+      });
+    }
+
+    target.status = "banned";
+    await target.save();
+
+    return res.status(200).json({
+      message: "User has been banned successfully",
+      user: target
+    });
+
+  } catch (err) {
+    console.error("Error banning user:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const promoteAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
