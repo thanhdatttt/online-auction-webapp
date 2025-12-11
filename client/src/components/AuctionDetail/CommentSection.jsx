@@ -144,95 +144,100 @@ const CommentSection = ({ seller, endTime }) => {
       {isLoading && <p>is loading...</p>}
       {error && <Error message={error}></Error>}
       {!isLoading && !error && (
-        <div className="bg-decor p-6 rounded-md space-y-6 h-150 overflow-y-auto custom-scroll">
-          {/* Item 1 */}
-          {comments.map((c) => (
-            <div
-              key={c._id}
-              className="border-b border-gray-400 pb-4 last:border-0 last:pb-0"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                  <FaRegCircleUser className="w-16 h-16"></FaRegCircleUser>
-                </div>
-                <div className="flex-1">
-                  <p
-                    className={
-                      user?._id === c.userId._id
-                        ? "font-bold text-sm text-amber-700"
-                        : "font-bold text-sm text-gray-900"
-                    }
-                  >
-                    {!isGuest
-                      ? c.userId._id === user._id
-                        ? "You"
-                        : c.userId.firstName + " " + c.userId.lastName
-                      : c.userId.firstName + " " + c.userId.lastName}
-                    :{" "}
-                    <span className="font-normal text-gray-700">
-                      {c.question}
-                    </span>
-                  </p>
-                  {!isSeller && (
-                    <div className="mt-2 pl-3 border-gray-400 h-8">
-                      {c.answer ? (
-                        <>
-                          <span className="font-bold text-sm text-gray-800">
-                            Answer:
-                          </span>{" "}
-                          <span className="text-sm text-gray-600">
-                            {c.answer}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-gray-600">
-                          There is no answer yet.
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {isSeller && (
-                    <div className="mt-2 pl-3 border-gray-400 h-8">
-                      {c.answer ? (
-                        <>
-                          <span className="font-bold text-sm text-gray-800">
-                            Answer:
-                          </span>{" "}
-                          <span className="text-sm text-gray-600">
-                            {c.answer}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex justify-start gap-2">
+        <div className="bg-decor p-6 rounded-md space-y-6 max-h-150 overflow-y-auto custom-scroll">
+          {comments.length === 0 ? (
+            <div className="flex items-center justify-center text-gray-400 text-sm italic">
+              There is no questions.
+            </div>
+          ) : (
+            comments.map((c) => (
+              <div
+                key={c._id}
+                className="border-b border-gray-400 pb-4 last:border-0 last:pb-0"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                    <FaRegCircleUser className="w-16 h-16"></FaRegCircleUser>
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className={
+                        user?._id === c.userId._id
+                          ? "font-bold text-sm text-amber-700"
+                          : "font-bold text-sm text-gray-900"
+                      }
+                    >
+                      {!isGuest
+                        ? c.userId._id === user._id
+                          ? "You"
+                          : c.userId.firstName + " " + c.userId.lastName
+                        : c.userId.firstName + " " + c.userId.lastName}
+                      :{" "}
+                      <span className="font-normal text-gray-700">
+                        {c.question}
+                      </span>
+                    </p>
+                    {!isSeller && (
+                      <div className="mt-2 pl-3 border-gray-400 h-8">
+                        {c.answer ? (
+                          <>
                             <span className="font-bold text-sm text-gray-800">
                               Answer:
+                            </span>{" "}
+                            <span className="text-sm text-gray-600">
+                              {c.answer}
                             </span>
-                            <form
-                              onSubmit={(e) => processAnswer(e, c._id)}
-                              className="w-[90%]"
-                            >
-                              <input
-                                type="text"
-                                disabled={!isOnGoing}
-                                placeholder={
-                                  isOnGoing
-                                    ? "Enter a answer."
-                                    : "This auction is already closed."
-                                }
-                                onChange={(e) => setAnswer(e.target.value)}
-                                className="mr-2 outline-none rounded-md text-sm flex items-center"
-                              ></input>
-                            </form>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-600">
+                            There is no answer yet.
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {isSeller && (
+                      <div className="mt-2 pl-3 border-gray-400 h-8">
+                        {c.answer ? (
+                          <>
+                            <span className="font-bold text-sm text-gray-800">
+                              Answer:
+                            </span>{" "}
+                            <span className="text-sm text-gray-600">
+                              {c.answer}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex justify-start gap-2">
+                              <span className="font-bold text-sm text-gray-800">
+                                Answer:
+                              </span>
+                              <form
+                                onSubmit={(e) => processAnswer(e, c._id)}
+                                className="w-[90%]"
+                              >
+                                <input
+                                  type="text"
+                                  disabled={!isOnGoing}
+                                  placeholder={
+                                    isOnGoing
+                                      ? "Enter a answer."
+                                      : "This auction is already closed."
+                                  }
+                                  onChange={(e) => setAnswer(e.target.value)}
+                                  className="mr-2 outline-none rounded-md text-sm flex items-center"
+                                ></input>
+                              </form>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

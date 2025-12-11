@@ -20,13 +20,19 @@ import useTimeStore from "./stores/useTime.store.js";
 import { useEffect } from "react";
 
 function App() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const fetchMe = useAuthStore((s) => s.fetchMe);
-  const startClock = useTimeStore((state) => state.startClock);
+  // reload info user from refresh token
 
   useEffect(() => {
-    if (accessToken) fetchMe();
-  }, [accessToken]);
+    const { accessToken, refresh, fetchMe } = useAuthStore.getState();
+
+    if (!accessToken) {
+      refresh();
+    } else {
+      fetchMe();
+    }
+  }, []);
+
+  const startClock = useTimeStore((state) => state.startClock);
 
   useEffect(() => {
     startClock();
