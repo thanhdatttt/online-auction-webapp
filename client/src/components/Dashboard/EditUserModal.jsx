@@ -153,25 +153,35 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
 
     return (
         <div className="fixed inset-0 bg-dark/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-light rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-2xl font-bold font-lato text-dark">Edit User</h3>
+            <div className="bg-light rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="px-8 py-6 border-b border-decor">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-dark">
+                                Edit User: {watch("username")}
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Update user profile, role, and security settings.
+                            </p>
+                        </div>
                         <button 
                             onClick={() => {
                                 setServerError("");
                                 setSuccessMessage("");
                                 onClose();
                             }}
-                            className="text-dark/60 cursor-pointer hover:text-dark transition-colors"
+                            className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
+                </div>
 
+
+                <div className="p-8">
                     {serverError && (
                         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-secondary text-sm">
                             {serverError}
@@ -183,178 +193,182 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                         </div>
                     )}
 
-                    {/* Avatar and Basic Info */}
-                    <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
-                        <div className="w-24 h-24 rounded-full bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold shrink-0 overflow-hidden">
-                            <img src={avatar ? avatar : "./default_person.webp"} alt={watch("username")} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1">
-                            <h4 className="text-xl font-bold text-dark mb-2">@{watch("username")}</h4>
-                            <div className="flex items-center gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getRoleBadgeColor(watch("role"))}`}>
-                                    {watch("role").toUpperCase()}
-                                </span>
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(watch("status"))}`}>
-                                    {watch("status").toUpperCase()}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Edit Form - Two Column Layout */}
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-3 gap-8">
                         {/* Left Column - Main Information */}
-                        <div className="col-span-2 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-dark mb-1">
-                                        Username <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("username")}
-                                        className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="username"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-dark mb-1">
-                                        Email <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        {...register("email")}
-                                        className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="user@example.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-dark mb-1">
-                                        First Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("firstName")}
-                                        className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="John"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-dark mb-1">
-                                        Last Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        {...register("lastName")}
-                                        className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="Doe"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Role & Birthday */}
-                        <div className="col-span-1 space-y-4">
+                        <div className="col-span-2 space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-dark mb-1">
-                                    Role <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    {...register("role")}
-                                    disabled={watch("role") === "admin"}
-                                    className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                >
-                                    <option value="bidder">Bidder</option>
-                                    <option value="seller">Seller</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">User Information</h3>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark mb-1">
+                                                Username <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                {...register("username")}
+                                                className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="username"
+                                            />
+                                        </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-dark mb-1">Birthday</label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start text-left h-10 px-3 py-2 border cursor-pointer border-decor rounded-lg bg-light text-dark hover:bg-light"
-                                        >
-                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            {watch("birthday")
-                                                ? format(new Date(watch("birthday")), "MMM dd, yyyy")
-                                                : "Select date"}
-                                        </Button>
-                                    </PopoverTrigger>
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark mb-1">Birthday</label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full justify-start text-left h-10 px-3 py-2 border cursor-pointer border-decor rounded-lg bg-light text-dark hover:bg-primary"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                        {watch("birthday")
+                                                            ? format(new Date(watch("birthday")), "MMM dd, yyyy")
+                                                            : "Select date"}
+                                                    </Button>
+                                                </PopoverTrigger>
 
-                                    <PopoverContent className="bg-light text-dark border border-decor rounded-md shadow-lg p-0 w-auto">
-                                        <Calendar
-                                            mode="single"
-                                            selected={watch("birthday") ? new Date(watch("birthday")) : undefined}
-                                            captionLayout="dropdown"
-                                            onSelect={(date) => {
-                                                if (!date) return;
-                                                const year = date.getFullYear();
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
+                                                <PopoverContent className="bg-light text-dark border border-decor rounded-md shadow-lg p-0 w-auto">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={watch("birthday") ? new Date(watch("birthday")) : undefined}
+                                                        captionLayout="dropdown"
+                                                        onSelect={(date) => {
+                                                            if (!date) return;
+                                                            const year = date.getFullYear();
+                                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(date.getDate()).padStart(2, '0');
 
-                                                setValue("birthday", `${year}-${month}-${day}`);
-                                            }}
-                                            fromYear={1900}
-                                            toYear={new Date().getFullYear()}
-                                            autoFocus
+                                                            setValue("birthday", `${year}-${month}-${day}`);
+                                                        }}
+                                                        fromYear={1900}
+                                                        toYear={new Date().getFullYear()}
+                                                        autoFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark mb-1">
+                                                First Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                {...register("firstName")}
+                                                className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="John"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark mb-1">
+                                                Last Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                {...register("lastName")}
+                                                className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="Doe"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-dark mb-1">
+                                            Email <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="email"
+                                            {...register("email")}
+                                            className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            placeholder="user@example.com"
                                         />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                        </div>
+                                    </div>
 
-                        {/* Full Width Address Field */}
-                        <div className="col-span-3">
-                            <label className="block text-sm font-medium text-dark mb-1">Address</label>
-                            <input
-                                type="text"
-                                {...register("address")}
-                                className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                placeholder="123 Main St, City, Country"
-                            />
-                        </div>
+                                    <div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark mb-1">
+                                                Role <span className="text-red-500">*</span>
+                                            </label>
+                                            <select
+                                                {...register("role")}
+                                                disabled={watch("role") === "admin"}
+                                                className={`w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${watch("role") === "admin" ? "cursor-not-allowed" : "cursor-pointer"}`}
+                                            >
+                                                <option value="bidder">Bidder</option>
+                                                <option value="seller">Seller</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
 
-                        {/* Password Reset Section */}
-                        <div className="col-span-3 grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                            <div>
-                                <label className="block text-sm font-medium text-dark mb-2">Password</label>
-                                <input
-                                    type="password"
-                                    disabled={providers}
-                                    placeholder="••••••••"
-                                    className="w-full px-3 py-2 border border-decor rounded-lg text-gray-500 bg-gray-50 mb-3"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleResetPassword}
-                                    disabled={isResettingPassword || providers}
-                                    className="w-full px-4 py-2 cursor-pointer bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isResettingPassword ? 'Resetting...' : 'Reset Password'}
-                                </button>
-                                <p className="text-xs text-dark/60 mt-2">Send a password reset email to the user</p>
+                                        
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-dark mb-1">Address</label>
+                                        <input
+                                            type="text"
+                                            {...register("address")}
+                                            className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            placeholder="123 Main St, City, Country"
+                                        />
+                                    </div>
+
+                                    
+                                </div>
                             </div>
 
-                            {/* Ban/Reactivate Section */}
-                            <div>
-                                <label className="block text-sm font-medium text-dark mb-2">Account Actions</label>
-                                <div className="h-10 mb-3"></div>
+                        </div>
+
+                        <div className="col-span-1 space-y-6">
+                            <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                                <h3 className="text-base font-semibold text-gray-900 mb-2">Account Security</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-dark mb-2">Password</label>
+                                    <input
+                                        type="password"
+                                        disabled={providers}
+                                        placeholder="••••••••"
+                                        className="w-full px-3 py-2 border border-decor rounded-lg text-gray-500 bg-gray-50 mb-1.5"
+                                    />
+                                    <p className="text-xs text-dark/60 mt-0">Set a new password for the user</p>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetPassword}
+                                        disabled={isResettingPassword || providers}
+                                        className="w-full px-4 py-2 mt-2 cursor-pointer bg-dark/90 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isResettingPassword ? 'Resetting...' : 'Reset Password'}
+                                    </button>
+                                </div>
+
+                                
+
+                            </div>
+
+                            <div className="bg-amber-50 rounded-lg p-5 border border-amber-200">
+                                <h3 className="text-base font-semibold text-gray-900 mb-4">Account Status</h3>
+                                <div className="flex items-center justify-center gap-2 mb-3">
+                                    {/* <div className="flex items-center gap-2"> */}
+                                        <div className={`w-3 h-3 rounded-full ${watch("status") === 'active' ? 'bg-[#34A853]' : 'bg-secondary'}`}></div>
+                                        <span className="text-lg font-medium text-gray-900">
+                                            {watch("status") === 'active' ? 'Active' : 'Banned'}
+                                        </span>
+                                    {/* </div> */}
+                                    {/* Ban/Reactivate Section */}
+                                    
+                                </div>
                                 <button
                                     type="button"
                                     onClick={handleToggleStatus}
                                     disabled={isTogglingStatus || watch("role") === "admin"}
-                                    className={`w-full px-4 cursor-pointer py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    className={`px-3 cursor-pointer w-full py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                                         watch("status") === 'active'
                                             ? 'bg-secondary text-light hover:bg-red-600'
                                             : 'bg-[#34A853] text-light hover:bg-green-600'
@@ -374,11 +388,34 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                                     }
                                 </p>
                             </div>
+
                         </div>
+
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setServerError("");
+                                setSuccessMessage("");
+                                onClose();
+                            }}
+                            className="px-6 py-2.5 border cursor-pointer border-decor text-dark rounded-lg font-medium bg-light hover:bg-decor transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit(onSubmit)}
+                            disabled={isSubmitting}
+                            className="px-6 py-2.5 bg-primary cursor-pointer text-light rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                        >
+                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        </button>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                    {/* <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
                         <button
                             onClick={() => {
                                 setServerError("");
@@ -396,7 +433,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                         >
                             {isSubmitting ? 'Saving...' : 'Save Changes'}
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
