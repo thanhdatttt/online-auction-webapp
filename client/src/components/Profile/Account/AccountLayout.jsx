@@ -3,6 +3,7 @@ import { useState } from "react";
 import Divider from "../Divider.jsx";
 import ProfileRow from "./AccountRow.jsx";
 import Avatar from "./Avatar.jsx";
+import RequestRoleButton from "./RequestRoleButton.jsx";
 import ChangeEmailModal from "../ChangePopUp/ChangeEmailModal.jsx";
 import ChangeNameModal from "../ChangePopUp/ChangeNameModal.jsx";
 import ChangeAddressModal from "../ChangePopUp/ChangeAddressModal.jsx";
@@ -50,11 +51,19 @@ const ProfileSection = () => {
       </div>
       <Divider/>
 
-      <ProfileRow
-        label="Role"
-        value={user.role}
-        description={user.role === "bidder" ? "Upgrade to seller" : "You are now seller"}
-      />
+      <div className="flex flex-col justify-between pb-4">
+        <ProfileRow
+          label="Role"
+          value={user.role}
+          description={user.role === "bidder" ? "Upgrade to seller" : "You are now seller"}
+        />
+
+        <div>
+          {user.role === "bidder" && (
+            <RequestRoleButton/>
+          )}
+        </div>
+      </div>
       <Divider/>
 
       <ProfileRow

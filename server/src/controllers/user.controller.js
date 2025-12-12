@@ -179,7 +179,7 @@ export const changePassword = async (req, res) => {
 // request to promote to seller
 export const requestRole = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const user = await User.findById(userId);
 
@@ -203,7 +203,7 @@ export const requestRole = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Successfully created a request",
+      message: "Request successfully",
       request: newRequest,
     });
   } catch (error) {

@@ -3,7 +3,6 @@ import { getFormattedTimeDiff, getRelativeTime } from '../services/time.service.
 import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useWatchListStore } from '../stores/useWatchList.store.js';
-import { useState } from 'react';
 
 const AuctionCard = ({ auction }) => {
   // time
@@ -12,19 +11,8 @@ const AuctionCard = ({ auction }) => {
   const startTime = getRelativeTime(auction.startTime, now);
 
   // favorite
-  const [isFavorite, setIsFavorite] = useState(false);
   const {addToFavorite, removeFromFavorite, checkFavorite} = useWatchListStore();
-
-  // check favorite
-  const check = async () => {
-    try {
-      const isFav = await checkFavorite(auction._id);
-      setIsFavorite(isFav);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  check();
+  const isFavorite = checkFavorite(auction._id);
 
   // add favorite / remove favorite
   const toogleFavorite = async(e) => {
@@ -32,10 +20,8 @@ const AuctionCard = ({ auction }) => {
 
     if (isFavorite) {
       await removeFromFavorite(auction._id);     
-      setIsFavorite(false);
     } else {
       await addToFavorite(auction._id);
-      setIsFavorite(true);
     }
   }
 

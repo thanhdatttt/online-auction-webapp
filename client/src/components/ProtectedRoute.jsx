@@ -1,14 +1,17 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuth.store.js";
 import { useEffect, useState } from "react";
+import { useWatchListStore } from "../stores/useWatchList.store.js";
 import Loading from "./Loading.jsx";
 
 // component to check whether user has authenticated
 const ProtectedRoute = () => {
   const { accessToken, refresh, loading, fetchMe, user } = useAuthStore();
+  const loadFavoriteIds = useWatchListStore((s) => s.fetchFavoriteIds);
+
   // is web starting state
   const [starting, setStarting] = useState(true);
-
+  
   // initialze when refresh page or revisited page
   const init = async () => {
     // if no token
@@ -20,6 +23,7 @@ const ProtectedRoute = () => {
     if (accessToken && !user) {
       await fetchMe();
     }
+    loadFavoriteIds();
 
     setStarting(false);
   };

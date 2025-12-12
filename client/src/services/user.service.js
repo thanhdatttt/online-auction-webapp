@@ -50,5 +50,15 @@ export const userService =  {
       console.log(err);
       throw err;
     }
+  },
+
+  requestUpdateRole: async () => {
+    try {
+      const res = await api.post("/users/me/requestRole");
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
   }
 };

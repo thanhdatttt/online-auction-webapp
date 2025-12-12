@@ -4,10 +4,27 @@ import { toast } from "sonner";
 
 export const useWatchListStore = create((set, get) => ({
   items: [],
+  favoriteIds: new Set(),
   loading: false,
   page: 1,
   limit: 9,
   total: 0,
+
+  fetchFavoriteIds: async () => {
+    try {
+      set({loading: true});
+
+      const res = await watchListService.fetchFavoriteIds();  
+      set({
+        favoriteIds: new Set(res.favoriteIds),
+      });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  },
 
   fetchFavorites: async(page=1, limit=9) => {
     try {
@@ -34,11 +51,16 @@ export const useWatchListStore = create((set, get) => ({
       set({loading: true});
       const res = await watchListService.addToFavorite(auctionId);
 
-      set({
-        items: res.auctions,
-        total: res.auctions.length,
+      set((state) => {
+        const updated = new Set(state.favoriteIds);
+        updated.add(auctionId);
+        return {
+          items: res.auctions,
+          total: res.auctions.length,
+          favoriteIds: updated,
+        }
       });
-      toast.success("Added to watch list")
+      toast.success("Added to watch list");
     } catch(err) {
       console.log(err);
       toast.error("Add to watch list failed");
@@ -53,9 +75,14 @@ export const useWatchListStore = create((set, get) => ({
       set({loading: true});
       const res = await watchListService.removeFromFavorite(auctionId);
 
-      set({
-        items: res.auctions,
-        total: res.auctions.length,
+      set((state) => {
+        const updated = new Set(state.favoriteIds);
+        updated.delete(auctionId);
+        return {
+          items: res.auctions,
+          total: res.auctions.length,
+          favoriteIds: updated,
+        }
       });
       toast.success("Removed from watch list");
     } catch(err) {
@@ -68,21 +95,16 @@ export const useWatchListStore = create((set, get) => ({
   },
 
   checkFavorite: async(auctionId) => {
-    try {
-      const res = await watchListService.checkFavorite(auctionId);
-
-      return res.isFavorite;
-    } catch (err) {
-      console.log(err);
-      return false;
-    }
+    return get().favoriteIds.has(auctionId);
   },
 
   // clear store when logout
   clearState: () => {
     set({
       items: [],
+      favoriteIds: new Set(),
       page: 1,
+      limit: 9,
       total: 0,
     });
   },

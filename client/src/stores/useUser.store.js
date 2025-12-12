@@ -90,5 +90,21 @@ export const useUserStore = create((set, get) => ({
     } finally {
       set({loading: false});
     }
+  },
+
+  requestUpdateRole: async () => {
+    try {
+      set({loading: true});
+
+      const res = await userService.requestUpdateRole();
+
+      toast.success("Request role update successfully");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Request failed");
+      throw err;
+    } finally {
+      set({loading: false});
+    }
   }
 }));
