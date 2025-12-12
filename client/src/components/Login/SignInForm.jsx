@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa6";
 import { Controller } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import Error from "../Error.jsx";
 
 // create schema for validate
 const signInSchema = z.object({
@@ -59,6 +60,7 @@ const SignInForm = () => {
     // backend
     try {
       await login(data);
+<<<<<<< HEAD
 
       const { user } = useAuthStore.getState();
 
@@ -66,6 +68,10 @@ const SignInForm = () => {
         navigate("/dashboard");
       else
         navigate("/home");
+=======
+      navigate("/home");
+      console.log(data);
+>>>>>>> main
     } catch (err) {
       const field = err.response?.data?.field;
       if (field) {
@@ -76,7 +82,7 @@ const SignInForm = () => {
       } else {
         setError("root", {
           type: "backend",
-          message: err.response?.data?.error,
+          message: err.response?.data?.error || err.message,
         });
         console.log(err.response);
       }
@@ -104,16 +110,8 @@ const SignInForm = () => {
               placeholder="Username"
               {...register("username")}
             />
-            {errors.username && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.username.message}
-              </div>
-            )}
-            {errors.root && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.root.message}
-              </div>
-            )}
+            {errors.username && <Error message={errors.username.message} />}
+            {errors.root && <Error message={errors.root.message} />}
           </div>
           <div>
             <label htmlFor="password" className="block mb-1 font-lora text-3xl">
@@ -128,14 +126,10 @@ const SignInForm = () => {
               placeholder="Password"
               {...register("password")}
             />
-            {errors.password && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.password.message}
-              </div>
-            )}
+            {errors.password && <Error message={errors.password.message} />}
           </div>
           <div className="text-right mt-1">
-            <a className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
+            <a onClick={() => navigate("/forgotPassword")} className="text-lg text-gray-300 hover:underline hover:text-blue-400 font-lora font-semibold cursor-pointer">
               Forgot password?
             </a>
           </div>
@@ -153,11 +147,7 @@ const SignInForm = () => {
                 )}
               />
               {/* Display errors */}
-              {errors.captcha && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
-                  {errors.captcha.message}
-                </div>
-              )}
+              {errors.captcha && <Error message={errors.captcha.message} />}
             </div>
           </div>
 

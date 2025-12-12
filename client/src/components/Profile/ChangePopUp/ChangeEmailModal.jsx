@@ -4,6 +4,7 @@ import { useAuthStore } from "../../../stores/useAuth.store.js";
 import { useUserStore } from "../../../stores/useUser.store.js";
 import { useEffect } from "react";
 import z from "zod";
+import Error from "../../Error.jsx";
 import ChangeModalLayout from "./ChangeModalLayout.jsx";
 import Divider from "../Divider.jsx";
 
@@ -62,14 +63,14 @@ const ChangeEmailModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} title={"Change Email Address"} onSubmit={handleSubmit(onSubmit)}>
       {/* current email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Current Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Email</label>
         <p className="text-2xl">{user.email}</p>
       </div>
       <Divider/>
 
       {/* New email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">New Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Email</label>
         <input 
           type="email" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -79,22 +80,18 @@ const ChangeEmailModal = ({open, onClose}) => {
 
         {/* form error */}
         {errors.newEmail && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.newEmail.message}
-        </div>
+        <Error message={errors.newEmail.message}/>
         }
         {/* email error at server */}
         {errors.root && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.root.message}
-        </div>
+        <Error message={errors.root.message}/>
         }
       </div>
       <Divider/>
 
       {/* confirm email */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Confirm Email</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Confirm Email</label>
         <input 
           type="email" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -102,9 +99,7 @@ const ChangeEmailModal = ({open, onClose}) => {
           {...register("confirmEmail")}
         />
         {errors.confirmEmail && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.confirmEmail.message}
-        </div>
+        <Error message={errors.confirmEmail.message}/>
         }
       </div>
       <Divider/>

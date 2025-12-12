@@ -8,6 +8,8 @@ import { FaFacebook } from "react-icons/fa6";
 import { useAuthStore } from "../../stores/useAuth.store.js";
 import { Controller } from "react-hook-form";
 import { regex } from "../../utils/regex.js";
+import { toast } from "sonner";
+import Error from "../Error.jsx";
 import ReCAPTCHA from "react-google-recaptcha";
 import OtpInput from "react-otp-input";
 
@@ -202,9 +204,7 @@ const SignUpForm = () => {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.email.message}
-                  </div>
+                <Error message={errors.email.message}/>
                 )}
                 <div className="w-full flex flex-col justify-center items-center mt-10">
                   <div className="rounded-md overflow-hidden inline-block">
@@ -220,9 +220,7 @@ const SignUpForm = () => {
                     />
                     {/* Display errors */}
                     {errors.captcha && (
-                      <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md w-full">
-                        {errors.captcha.message}
-                      </div>
+                    <Error message={errors.captcha.message}/>
                     )}
                   </div>
                 </div>
@@ -299,9 +297,7 @@ const SignUpForm = () => {
               )}
             />
             {errors.otp && (
-              <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                {errors.otp.message}
-              </div>
+            <Error message={errors.otp.message}/>
             )}
             <div className="flex flex-col justify-center items-center">
               <button
@@ -338,9 +334,7 @@ const SignUpForm = () => {
                 {...register("username")}
               />
               {errors.username && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                  {errors.username.message}
-                </div>
+              <Error message={errors.username.message}/>
               )}
             </div>
             <div className="flex gap-3">
@@ -358,9 +352,7 @@ const SignUpForm = () => {
                   {...register("firstName")}
                 />
                 {errors.firstName && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.firstName.message}
-                  </div>
+                <Error message={errors.firstName.message}/>
                 )}
               </div>
               <div className="flex-1/2">
@@ -377,9 +369,7 @@ const SignUpForm = () => {
                   {...register("lastName")}
                 />
                 {errors.lastName && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.lastName.message}
-                  </div>
+                <Error message={errors.lastName.message}/>
                 )}
               </div>
             </div>
@@ -397,9 +387,7 @@ const SignUpForm = () => {
                 {...register("address")}
               />
               {errors.address && (
-                <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                  {errors.address.message}
-                </div>
+              <Error message={errors.address.message}/>
               )}
             </div>
             <div className="flex gap-3">
@@ -417,9 +405,7 @@ const SignUpForm = () => {
                   {...register("password")}
                 />
                 {errors.password && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.password.message}
-                  </div>
+                <Error message={errors.password.message}/>
                 )}
               </div>
               <div className="flex-1/2">
@@ -439,9 +425,7 @@ const SignUpForm = () => {
                   {...register("confirmPassword")}
                 />
                 {errors.confirmPassword && (
-                  <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-                    {errors.confirmPassword.message}
-                  </div>
+                <Error message={errors.confirmPassword.message}/>
                 )}
               </div>
             </div>

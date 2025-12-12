@@ -1,5 +1,8 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { authService } from "../services/auth.service.js";
+import { toast } from "sonner";
+import { useWatchListStore } from "./useWatchList.store.js";
 
 export const useAuthStore = create((set, get) => ({
   accessToken: null,
@@ -25,10 +28,14 @@ export const useAuthStore = create((set, get) => ({
       const data = await authService.login({ username, password, captcha });
       set({ accessToken: data.accessToken });
 
+      console.log(data.accessToken);
+
       // fetch user
       await get().fetchMe();
+      toast.success("Login successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Login failed, please try again");
       throw err;
     } finally {
       // finish loading user login
@@ -38,10 +45,16 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
+      // clear auth states and watchlist states
       get().clearState();
+      useWatchListStore.getState().clearState();
+
       const data = await authService.logout();
+
+      toast.success("Logout successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Logout failed, please try again");
       throw err;
     }
   },
@@ -111,8 +124,10 @@ export const useAuthStore = create((set, get) => ({
         registerToken: null,
         registeredEmail: null,
       });
+      toast.success("Registered successfully");
     } catch (err) {
       console.log(err);
+      toast.error("Register failed, try again!");
       throw err;
     } finally {
       set({ loading: false });
@@ -161,6 +176,33 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       get().clearState();
       console.log(err);
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  forgot_password: async ({ email }) => {
+    try {
+      set({ loading: true });
+      const data = await authService.forgot_password({ email });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  reset_password: async ({ newPassword }) => {
+    try {
+      set({ loading: true });
+
+      const res = await authService.reset_password({ newPassword });
+      toast.success("Reset password successfully");
+    } catch (err) {
+      console.log(err);
+      toast.error("Reset password failed");
       throw err;
     } finally {
       set({ loading: false });

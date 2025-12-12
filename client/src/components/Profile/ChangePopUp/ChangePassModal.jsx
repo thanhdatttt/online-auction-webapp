@@ -1,12 +1,12 @@
-import { useAuthStore } from "../../../stores/useAuth.store.js";
 import { useUserStore } from "../../../stores/useUser.store.js";
 import { regex } from "../../../utils/regex.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import z from "zod";
+import Error from "../../Error.jsx";
 import ChangeModalLayout from "./ChangeModalLayout.jsx";
 import Divider from "../Divider.jsx";
-import z from "zod";
 
 // password schema
 const passSchema = z.object({
@@ -30,9 +30,6 @@ const passSchema = z.object({
 });
 
 const ChangePassModal = ({open, onClose}) => {
-  //  get user info
-  const user = useAuthStore((state) => state.user);
-
   // get api
   const {changePassword} = useUserStore();
 
@@ -69,7 +66,7 @@ const ChangePassModal = ({open, onClose}) => {
     <ChangeModalLayout open={open} onClose={handleClose} onSubmit={handleSubmit(onSubmit)} title={"Change Password"}>
       {/* current password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Current Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Password</label>
         <input 
           type="text" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -79,22 +76,18 @@ const ChangePassModal = ({open, onClose}) => {
 
         {/* form error */}
         {errors.oldPassword && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.oldPassword.message}
-        </div>
+        <Error message={errors.oldPassword.message}/>
         }
         {/* pass error at server */}
         {errors.root && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.root.message}
-        </div>
+        <Error message={errors.root.message}/>
         }
       </div>
       <Divider/>
 
       {/* new password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">New Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Password</label>
         <input 
           type="text" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -103,16 +96,14 @@ const ChangePassModal = ({open, onClose}) => {
         />
         {/* form error */}
         {errors.newPassword && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.newPassword.message}
-        </div>
+        <Error message={errors.newPassword.message}/>
         }
       </div>
       <Divider/>
 
       {/* confirm password */}
       <div>
-        <label className="text-2xl uppercase tracking-wide text-gray-300 font-semibold">Confirm New Password</label>
+        <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Confirm New Password</label>
         <input 
           type="text"
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
@@ -121,9 +112,7 @@ const ChangePassModal = ({open, onClose}) => {
         />
         {/* form error */}
         {errors.confirmPassword && 
-        <div className="bg-red-200 text-red-700 text-lg text-center mt-2 p-2 rounded-md">
-          {errors.confirmPassword.message}
-        </div>
+        <Error message={errors.confirmPassword.message}/>
         }
       </div>
       <Divider/>

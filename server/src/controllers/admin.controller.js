@@ -225,10 +225,11 @@ export const promoteAdmin = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
+// demote seller user to bidder
 export const demoteSeller = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -263,7 +264,7 @@ export const demoteSeller = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -377,6 +378,7 @@ export const getRoleRequest = async (req, res) => {
   }
 };
 
+// approve promote request
 export const approveRoleRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
@@ -395,10 +397,11 @@ export const approveRoleRequest = async (req, res) => {
 
     res.json({ message: "Seller role approved for 7 days." });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
+// deny promote request
 export const denyRoleRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
@@ -420,6 +423,7 @@ export const denyRoleRequest = async (req, res) => {
   }
 };
 
+// update auction config 
 export const updateAuctionConfig = async (req, res) => {
   try {
     const { extendThreshold, extendDuration } = req.body;

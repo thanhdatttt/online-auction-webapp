@@ -42,11 +42,11 @@ export const authService = {
     }
   },
 
-  create_user: async (data, registerToken) => {
+  create_user: async (data, token) => {
     try {
       const res = await api.post("/auth/create-user", data, {
         headers: {
-          Authorization: `Bearer ${registerToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       return res.data;
@@ -86,11 +86,34 @@ export const authService = {
     try {
       // remember to add credential for sending cookies
       const res = await api.post("/auth/refresh");
-      console.log(res.data.accessToken);
       return res.data.accessToken;
     } catch(err) {
       console.log(err);
       throw err;
     }
   },
+
+  forgot_password: async (data) => {
+    try {
+      const res = await api.post("/auth/forgot-password", data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  reset_password: async (data, token) => {
+    try {
+      const res = await api.post("/auth/reset-password", data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
 };

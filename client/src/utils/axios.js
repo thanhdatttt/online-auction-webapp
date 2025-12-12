@@ -56,6 +56,7 @@ api.interceptors.response.use(
         // continue that request
         return api(originRequest);
       } catch (err) {
+        console.log(err);
         useAuthStore.getState().clearState();
         return Promise.reject(error);
       }

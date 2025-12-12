@@ -1,30 +1,36 @@
 import {FiSearch, FiMenu, FiX} from "react-icons/fi";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { useAuthStore } from "../stores/useAuth.store.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, createSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const Header = () => {
   // navigate
   const navigate = useNavigate();
+
+  // search
+  const [searchValue, setSearchValue] = useState('');
   
   // auth actions
   const {logout} = useAuthStore();
   const user = useAuthStore((state) => state.user);
 
-  // menu states and refs handle click outside
+  // menu states and refs 
   const [dropMenu, setDropMenu] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const menuRef = useRef();       // desktop
   const mobileMenuRef = useRef(); // mobile menu
 
+  // handle click outside 
   useEffect(() => {
     const handler = (e) => {
-      if (
-        (menuRef.current && !menuRef.current.contains(e.target)) &&
-        (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target))
-      ) {
+      // pc menu
+      if ( menuRef.current && !menuRef.current.contains(e.target)) {
         setDropMenu(false);
+      }
+
+      // mobile menu
+      if ( mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
         setMobileMenu(false);
       }
     };
@@ -43,10 +49,34 @@ const Header = () => {
       }
   }
 
+  // go to watch list if logged in
+  const handleWatchList = () => {
+    if (!user) {
+      navigate("/signin");
+    } else {
+      navigate("/profile?section=watchlist");
+    }
+  }
+
+  const handleSearch = () => {
+    navigate({
+      pathname: '/auctions',
+      search: createSearchParams({
+        search: searchValue.trim()
+      }).toString()
+    });
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }
+
   return (
-    <header className="w-full bg-dark px-4 md:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
+    <header className="w-full bg-dark px-4 lg:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
       {/* logo */}
-      <div className="text-lighter text-3xl md:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
+      <div className="text-lighter text-3xl lg:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
         Auctiz
       </div>
 
@@ -55,16 +85,18 @@ const Header = () => {
         <input 
           type="text" 
           placeholder="Search items"
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full bg-light text-gray-700 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-primary"
         />
-        <FiSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 text-xl cursor-pointer"/>
+        <FiSearch onClick={handleSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 text-xl cursor-pointer"/>
       </div>
 
       {/* menu */}
-      <div className="hidden md:flex font-lora items-center gap-12 text-lighter text-2xl">
+      <div className="hidden lg:flex font-lora items-center gap-12 text-lighter text-2xl">
         {/* buttons */}
-        <button className="hover:text-primary transition cursor-pointer">Categories</button>
-        <button className="hover:text-primary transition cursor-pointer">Watch List</button>
+        <button onClick={() => navigate("/auctions")} className="hover:text-primary transition cursor-pointer">Categories</button>
+        <button onClick={handleWatchList} className="hover:text-primary transition cursor-pointer">Watch List</button>
         <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
                 className="bg-primary px-8 py-2 rounded-md font-semibold hover:bg-accent hover:text-black transition cursor-pointer">
           {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
@@ -80,10 +112,10 @@ const Header = () => {
           {/* dropdown menu */}
           {dropMenu && user && (
             <div ref={menuRef} className="absolute right-0 mt-4 w-50 bg-dark shadow-lg rounded-md text-lighter font-lora font-semibold z-50 flex flex-col items-center">
-              <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                 Profile
               </button>
-              <button onClick={handleLogout} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              <button onClick={handleLogout} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                   Logout
               </button>
             </div>
@@ -92,21 +124,21 @@ const Header = () => {
       </div>
 
       {/* open/close mobile menu button */}
-      <button className="md:hidden text-white text-3xl" onClick={() => setMobileMenu(!mobileMenu)}>
+      <button className="lg:hidden text-white text-3xl" onClick={() => setMobileMenu(!mobileMenu)}>
         {mobileMenu ? <FiX/> : <FiMenu/>}
       </button>
 
       {/* mobile menu slide down */}
       {mobileMenu && (
-        <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col md:hidden shadow-lg z-50">
+        <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col lg:hidden shadow-lg z-50">
           <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
                   className="w-full py-4 text-2xl bg-primary hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
           </button>
-          <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+          <button onClick={() => navigate("/auctions")} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Categories
           </button>
-          <button className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+          <button onClick={handleWatchList} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             Watch List
           </button>
           
