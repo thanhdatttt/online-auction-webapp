@@ -21,8 +21,6 @@ const UserSchema = z.object({
 });
 
 export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }) {
-    const [serverError, setServerError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
     const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [isTogglingStatus, setIsTogglingStatus] = useState(false);
     const [providers, setProviders] = useState(false);
@@ -45,42 +43,40 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
     const watchedStatus = watch("status");
     const avatar = watch("avatar");
 
+    const loadData = async () => {
+        try {
+            const res = await api.get(`/admin/users/${miniuser._id}`);
+
+            const u = res.data.user;
+
+            reset({
+                username: u.username || "",
+                firstName: u.firstName || "",
+                lastName: u.lastName || "",
+                email: u.email || "",
+                address: u.address || "",
+                birthday: u.birthday
+                    ? new Date(u.birthday).toISOString().split("T")[0]
+                    : "",
+                role: u.role || "bidder",
+                status: u.status || "active",
+                avatar: u.avatar_url || "",
+            });
+
+            setProviders((u.providers?.google?.id ?? null) !== null || (u.providers?.facebook?.id ?? null) !== null);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+
     useEffect(() => {
         if (!open || !miniuser._id) return;
-        const loadData = async () => {
-            try {
-                const res = await api.get(`/admin/users/${miniuser._id}`);
-
-                const u = res.data.user;
-
-                reset({
-                    username: u.username || "",
-                    firstName: u.firstName || "",
-                    lastName: u.lastName || "",
-                    email: u.email || "",
-                    address: u.address || "",
-                    birthday: u.birthday
-                        ? new Date(u.birthday).toISOString().split("T")[0]
-                        : "",
-                    role: u.role || "bidder",
-                    status: u.status || "active",
-                    avatar: u.avatar_url || "",
-                });
-
-                setProviders((u.providers?.google?.id ?? null) !== null || (u.providers?.facebook?.id ?? null) !== null);
-            } catch (error) {
-                console.error(error);
-                setServerError("Failed to load user");
-            }
-        };
 
         loadData();
     }, [open, miniuser, reset]);
 
     const onSubmit = async (data) => {
-        setServerError("");
-        setSuccessMessage("");
-
         try {
             await api.put(`/admin/users/${miniuser._id}`, data);
             setSuccessMessage("User updated successfully!");
@@ -95,8 +91,6 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
     };
 
     const handleResetPassword = async () => {
-        setServerError("");
-        setSuccessMessage("");
         setIsResettingPassword(true);
 
         try {
@@ -110,43 +104,26 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
     };
 
     const handleToggleStatus = async () => {
-        setServerError("");
-        setSuccessMessage("");
         setIsTogglingStatus(true);
         const newStatus = watchedStatus === "active" ? "banned" : "active";
 
         try {
-            await api.put(`/admin/users/${miniuser._id}/status`, { status: newStatus });
-            setValue("status", newStatus);
+            const res = await api.patch(`/admin/users/${miniuser._id}/status`, { status: newStatus });
 
-            setSuccessMessage(`User ${newStatus === 'banned' ? 'banned' : 'reactivated'} successfully!`);
-            if (onUserUpdated) {
-                onUserUpdated();
+            if (res.status === 200) {
+                await loadData();
+
+                setValue("status", newStatus);
+    
+                if (onUserUpdated) {
+                    onUserUpdated();
+                }
             }
         } catch (err) {
-            setServerError(err.response?.data?.message || 'Failed to update user status');
+            console.log(err)
         } finally {
             setIsTogglingStatus(false);
         }
-    };
-
-    const getRoleBadgeColor = (role) => {
-        switch (role?.toLowerCase()) {
-            case 'admin':
-                return 'bg-purple-100 text-purple-700 border-purple-200';
-            case 'seller':
-                return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'bidder':
-                return 'bg-green-100 text-[#34A853] border-green-200';
-            default:
-                return 'bg-gray-100 text-gray-700 border-gray-200';
-        }
-    };
-
-    const getStatusBadgeColor = (status) => {
-        return status?.toLowerCase() === 'active'
-            ? 'bg-green-100 text-[#34A853] border-green-200'
-            : 'bg-red-100 text-secondary border-red-200';
     };
 
     if (!open) return null;
@@ -166,11 +143,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                             </p>
                         </div>
                         <button 
-                            onClick={() => {
-                                setServerError("");
-                                setSuccessMessage("");
-                                onClose();
-                            }}
+                            onClick={onClose}
                             className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,17 +155,6 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
 
 
                 <div className="p-8">
-                    {serverError && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-secondary text-sm">
-                            {serverError}
-                        </div>
-                    )}
-                    {successMessage && (
-                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-[#34A853] text-sm">
-                            {successMessage}
-                        </div>
-                    )}
-
                     {/* Edit Form - Two Column Layout */}
                     <div className="grid grid-cols-3 gap-8">
                         {/* Left Column - Main Information */}
@@ -396,11 +358,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                     <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
                         <button
                             type="button"
-                            onClick={() => {
-                                setServerError("");
-                                setSuccessMessage("");
-                                onClose();
-                            }}
+                            onClick={onClose}
                             className="px-6 py-2.5 border cursor-pointer border-decor text-dark rounded-lg font-medium bg-light hover:bg-decor transition-colors"
                         >
                             Cancel
@@ -413,27 +371,6 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                             {isSubmitting ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
-
-                    {/* Footer */}
-                    {/* <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
-                        <button
-                            onClick={() => {
-                                setServerError("");
-                                setSuccessMessage("");
-                                onClose();
-                            }}
-                            className="flex-1 px-4 py-2.5 border cursor-pointer border-decor text-dark rounded-lg font-medium bg-light hover:bg-decor transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSubmit(onSubmit)}
-                            disabled={isSubmitting}
-                            className="flex-1 px-4 py-2.5 bg-orange-500 cursor-pointer text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isSubmitting ? 'Saving...' : 'Save Changes'}
-                        </button>
-                    </div> */}
                 </div>
             </div>
         </div>

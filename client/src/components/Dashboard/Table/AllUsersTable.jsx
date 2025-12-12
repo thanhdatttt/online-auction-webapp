@@ -45,10 +45,6 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
         }
     };
 
-    const handleUserUpdated = () => {
-
-    }
-
     const toggleSort = (field) => {
         setSortState((prev) => {
             const order = prev[field] === "asc" ? "desc" : prev[field] === "desc" ? "none" : "asc";
@@ -157,7 +153,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 item.status === 'active' ? 'bg-green-200 text-[#34A853]' : 'bg-red-200 text-secondary'
                 }`}>
-                    {item.status === 'active' ? 'Active' : 'Blocked'}
+                    {item.status === 'active' ? 'Active' : 'Banned'}
                 </span>
             </div>
             <div className="font-medium text-dark font-lato flex items-center justify-center">{new Date(item.createdAt).toLocaleDateString()}</div>
@@ -214,7 +210,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
                 open={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 miniuser={selectedUser}
-                onUserUpdated={handleUserUpdated}
+                onUserUpdated={loadData}
             />
 
         </>
