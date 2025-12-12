@@ -12,17 +12,14 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
-<<<<<<< HEAD
 import DashboardPage from "./pages/DashboardPage.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
-=======
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
 
 import { useAuthStore } from "./stores/useAuth.store.js";
 import useTimeStore from "./stores/useTime.store.js";
 import { useEffect } from "react";
->>>>>>> main
 
 function App() {
   // reload info user from refresh token
@@ -65,31 +62,17 @@ function App() {
           />
           <Route path="/auctions" element={<AuctionPage />} />
 
-<<<<<<< HEAD
-        <Route path="/home" element={<HomePage />} />
-        <Route
-          path="/auction/:id"
-          element={<AuctionDetailPage></AuctionDetailPage>}
-        />
-        {/* protected route */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<ProfilePage />} />
-        </Route>
-        <Route element={<AdminRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />}></Route>
-        </Route>
-      </Routes>
-    </Router>
-=======
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
-        </Routes>
-      </Router>
+          <Route element={<AdminRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />}></Route>
+          </Route>
+      </Routes>
+    </Router>
     </>
->>>>>>> main
   );
 }
 

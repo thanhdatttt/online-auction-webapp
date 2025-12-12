@@ -76,7 +76,7 @@ export default function UpgradeRequestsTable({ currentPage, itemsPerPage, onTota
     const renderRow = (item, refetch) => {
         const handleApprove = async () => {
             try {
-                const res = await api.post(`/admin/requestRole/approve/${item._id}`);
+                const res = await api.post(`/admin/requestRole/${item._id}/approve`);
                 // console.log(res);
                 if (res.status === 200)
                     refetch(); // reload table
@@ -87,7 +87,7 @@ export default function UpgradeRequestsTable({ currentPage, itemsPerPage, onTota
 
         const handleDeny = async () => {
             try {
-                const res = await api.post(`/admin/requestRole/deny/${item._id}`);
+                const res = await api.post(`/admin/requestRole/${item._id}/deny`);
                 
                 if (res.status === 200)
                     refetch(); // reload table

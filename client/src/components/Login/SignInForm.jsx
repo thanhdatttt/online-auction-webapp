@@ -60,7 +60,6 @@ const SignInForm = () => {
     // backend
     try {
       await login(data);
-<<<<<<< HEAD
 
       const { user } = useAuthStore.getState();
 
@@ -68,10 +67,6 @@ const SignInForm = () => {
         navigate("/dashboard");
       else
         navigate("/home");
-=======
-      navigate("/home");
-      console.log(data);
->>>>>>> main
     } catch (err) {
       const field = err.response?.data?.field;
       if (field) {

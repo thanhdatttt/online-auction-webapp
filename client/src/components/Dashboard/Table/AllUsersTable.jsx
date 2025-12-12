@@ -112,7 +112,7 @@ export default function AllUsersTable({ currentPage, itemsPerPage, onTotalChange
             >
                 <option value="all">Status: All</option>
                 <option value="active">Status: Active</option>
-                <option value="blocked">Status: Blocked</option>
+                <option value="banned">Status: Banned</option>
             </select>
 
             <select
