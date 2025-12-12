@@ -195,6 +195,60 @@ export const updateUserStatus = async (req, res) => {
     }
 };
 
+export const updateUserInfo = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const {
+            firstName,
+            lastName,
+            email,
+            address,
+            birthday,
+            role
+        } = req.body;
+
+        const user = await User.findById(userId).select("-passwordHash -refreshToken -providers");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (user.role === "admin" && role && role !== "admin") {
+            return res.status(400).json({
+                message: "Cannot change the role of an admin user."
+            });
+        }
+
+        // Apply updates
+        if (firstName !== undefined) user.firstName = firstName;
+        if (lastName !== undefined) user.lastName = lastName;
+        if (email !== undefined) user.email = email;
+        if (address !== undefined) user.address = address;
+        if (role !== undefined) user.role = role;
+
+        // Birth date from shadcn-calendar is a JS Date string → cast safely
+        if (birthday !== undefined) {
+            const parsedDate = birthday ? new Date(birthday + "T00:00:00") : null;
+            if (parsedDate && isNaN(parsedDate.getTime())) {
+                return res.status(400).json({ message: "Invalid birth date format." });
+            }
+            parsedDate.setHours(12, 0, 0, 0); 
+            user.birth = parsedDate;
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "User updated successfully.",
+            user
+        });
+
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+};
+
 export const promoteAdmin = async (req, res) => {
   try {
     const { userId } = req.params;

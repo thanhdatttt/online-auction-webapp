@@ -7,16 +7,17 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const UserSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  firstName: z.string().min(1, "First name required"),
-  lastName: z.string().min(1, "Last name required"),
-  email: z.email("Invalid email"),
+  username: z.string().transform(v => v === "" ? undefined : v).optional(),
+  firstName: z.string().transform(v => v === "" ? undefined : v).optional(),
+  lastName: z.string().transform(v => v === "" ? undefined : v).optional(),
+  email: z.email("Invalid email").optional(),
   address: z.string().optional(),
   birthday: z.string().optional(),
-  role: z.enum(["bidder", "seller", "admin"]),
-  status: z.enum(["active", "banned"]),
+  role: z.enum(["bidder", "seller", "admin"]).optional(),
+  status: z.enum(["active", "banned"]).optional(),
   avatar: z.string().optional(),
 });
 
@@ -55,8 +56,8 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                 lastName: u.lastName || "",
                 email: u.email || "",
                 address: u.address || "",
-                birthday: u.birthday
-                    ? new Date(u.birthday).toISOString().split("T")[0]
+                birthday: u.birth
+                    ? new Date(u.birth).toISOString().split("T")[0]
                     : "",
                 role: u.role || "bidder",
                 status: u.status || "active",
@@ -78,15 +79,18 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
 
     const onSubmit = async (data) => {
         try {
-            await api.put(`/admin/users/${miniuser._id}`, data);
-            setSuccessMessage("User updated successfully!");
-
-            setTimeout(() => {
-                onClose();
-                onUserUpdated?.();
-            }, 1200);
+            const res = await api.patch(`/admin/users/${miniuser._id}`, data);
+            
+            if (res.status === 200) {
+                toast.success("Update User Information Successfully!")
+    
+                setTimeout(() => {
+                    onClose();
+                    onUserUpdated?.();
+                }, 1200);
+            }
         } catch (err) {
-            setServerError(err.response?.data?.message || "Failed to update user");
+            toast.error("Update User Information Unsuccessfully!")
         }
     };
 
@@ -111,6 +115,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
             const res = await api.patch(`/admin/users/${miniuser._id}/status`, { status: newStatus });
 
             if (res.status === 200) {
+                toast.success(`${watchedStatus === "active" ? "Ban" : "Reactivate"} User Successfully!`)
                 await loadData();
 
                 setValue("status", newStatus);
@@ -121,6 +126,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
             }
         } catch (err) {
             console.log(err)
+            toast.error(`${watchedStatus === "active" ? "Ban" : "Reactivate"} User Unsuccessfully!`)
         } finally {
             setIsTogglingStatus(false);
         }
@@ -165,12 +171,13 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-dark mb-1">
-                                                Username <span className="text-red-500">*</span>
+                                                Username
                                             </label>
                                             <input
                                                 type="text"
                                                 {...register("username")}
-                                                className="w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                disabled
+                                                className="cursor-not-allowed w-full px-3 py-2 border border-decor text-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                 placeholder="username"
                                             />
                                         </div>
@@ -199,14 +206,15 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                                                         captionLayout="dropdown"
                                                         onSelect={(date) => {
                                                             if (!date) return;
+                                                            console.log(date);
                                                             const year = date.getFullYear();
                                                             const month = String(date.getMonth() + 1).padStart(2, '0');
                                                             const day = String(date.getDate()).padStart(2, '0');
 
                                                             setValue("birthday", `${year}-${month}-${day}`);
                                                         }}
-                                                        fromYear={1900}
-                                                        toYear={new Date().getFullYear()}
+                                                        startMonth={new Date(1900, 0)}
+                                                        disabled={(date) => date > new Date()}
                                                         autoFocus
                                                     />
                                                 </PopoverContent>
@@ -218,7 +226,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-dark mb-1">
-                                                First Name <span className="text-red-500">*</span>
+                                                First Name
                                             </label>
                                             <input
                                                 type="text"
@@ -230,7 +238,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
 
                                         <div>
                                             <label className="block text-sm font-medium text-dark mb-1">
-                                                Last Name <span className="text-red-500">*</span>
+                                                Last Name
                                             </label>
                                             <input
                                                 type="text"
@@ -243,7 +251,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
 
                                     <div>
                                         <label className="block text-sm font-medium text-dark mb-1">
-                                            Email <span className="text-red-500">*</span>
+                                            Email
                                         </label>
                                         <input
                                             type="email"
@@ -256,7 +264,7 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                                     <div>
                                         <div>
                                             <label className="block text-sm font-medium text-dark mb-1">
-                                                Role <span className="text-red-500">*</span>
+                                                Role
                                             </label>
                                             <select
                                                 {...register("role")}
@@ -317,13 +325,10 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                             <div className="bg-amber-50 rounded-lg p-5 border border-amber-200">
                                 <h3 className="text-base font-semibold text-gray-900 mb-4">Account Status</h3>
                                 <div className="flex items-center justify-center gap-2 mb-3">
-                                    {/* <div className="flex items-center gap-2"> */}
-                                        <div className={`w-3 h-3 rounded-full ${watch("status") === 'active' ? 'bg-[#34A853]' : 'bg-secondary'}`}></div>
-                                        <span className="text-lg font-medium text-gray-900">
-                                            {watch("status") === 'active' ? 'Active' : 'Banned'}
-                                        </span>
-                                    {/* </div> */}
-                                    {/* Ban/Reactivate Section */}
+                                    <div className={`w-3 h-3 rounded-full ${watch("status") === 'active' ? 'bg-[#34A853]' : 'bg-secondary'}`}></div>
+                                    <span className="text-lg font-medium text-gray-900">
+                                        {watch("status") === 'active' ? 'Active' : 'Banned'}
+                                    </span>
                                     
                                 </div>
                                 <button
