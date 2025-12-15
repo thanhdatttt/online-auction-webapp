@@ -12,9 +12,13 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.16",
+    "@tiptap/extension-underline": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
     "axios": "^1.13.2",
     "Buffer": "^0.0.0",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.19",
     "flowbite": "^4.0.0",
     "flowbite-react": "^0.12.10",
     "lucide-react": "^0.555.0",

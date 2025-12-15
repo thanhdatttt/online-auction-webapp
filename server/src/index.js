@@ -14,6 +14,7 @@ import auctionRoute from "./routes/auction.route.js";
 import categoriesRoute from "./routes/category.route.js"
 import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
+import uploadRoute from "./routes/upload.route.js";
 
 // create server
 const app = express();
@@ -43,6 +44,7 @@ app.use(cookieParser());
 // routes
 app.use("/api/auth", authRoute);
 app.use("/api/guest", guestRoute);
+app.use("/api/upload", uploadRoute);
 
 // bidder routes  
 app.use(auth);
