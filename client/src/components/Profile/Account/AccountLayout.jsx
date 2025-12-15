@@ -125,7 +125,7 @@ const ProfileSection = () => {
         <ChangeBirthModal open={openModal} onClose={() => setOpenModal(false)} />
       )}
       {currentField === "avatar" && (
-        <ChangeAvatarModal open={openModal} onClose={() => setOpenModal(false)} onUpload={onUpload}/>
+        <ChangeAvatarModal open={openModal} onClose={() => setOpenModal(false)} />
       )}
     </div>
   );

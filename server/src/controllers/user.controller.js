@@ -144,7 +144,13 @@ export const changeAvatar = async (req, res) => {
       return res.status(404).json({message: "User not found"});
     }
 
-    
+    user.avatar_url = newAvatar_url;
+    await user.save();
+
+    res.json({
+      message: 'avatar uploaded successfully',
+      newAvatar_url,
+    })
   } catch (err) {
     res.status(500).json({message: err.message});
   }
