@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { auctionService } from "../services/auction.service";
+import { uploadService } from "../services/upload.service";
 import { toast } from "sonner";
-import { intervalToDuration, isPast } from 'date-fns';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
@@ -295,4 +295,35 @@ export const useAuctionStore = create((set, get) => ({
       if (errBackend) toast.error(errBackend, { id: toastId });
     }
   },
+  createAuction: async (formData, imageFiles) => {
+    set({ loading: true });
+
+    try {
+      const signatureData = await uploadService.getSignature();
+      const uploadPromises = imageFiles.map(img => 
+        uploadService.uploadImage(img, signatureData)
+      );
+      const imageUrls = await Promise.all(uploadPromises);
+      formData.name = formData.productName;
+
+      const payload = {
+        ...formData,
+        imageUrls,
+      };
+
+      const response = await auctionService.createAuction(payload);
+      console.log(response);
+      
+      set({ loading: false });
+      toast.success("Create auction successfully");
+
+    } catch (err) {
+      console.log(err);
+      toast.error("Create auction failed, please try again");
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+  
 }));

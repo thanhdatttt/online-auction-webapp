@@ -18,6 +18,7 @@ import AuctionPage from "./pages/AuctionPage.jsx";
 import { useAuthStore } from "./stores/useAuth.store.js";
 import useTimeStore from "./stores/useTime.store.js";
 import { useEffect } from "react";
+import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 
 function App() {
   // reload info user from refresh token
@@ -59,6 +60,7 @@ function App() {
             element={<AuctionDetailPage></AuctionDetailPage>}
           />
           <Route path="/auctions" element={<AuctionPage />} />
+          <Route path="/auctions/create" element={<CreateAuctionPage />} />
 
           <Route path="/home" element={<HomePage />} />
           {/* protected route */}

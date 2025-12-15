@@ -68,5 +68,14 @@ export const auctionService = {
       console.log(err);
       throw err;
     }
+  },
+  createAuction: async (data) => {
+    try{
+      const res = await api.post("/auctions", data);
+      return res.data;
+    } catch (err){
+      console.log(err);
+      throw err;
+    }
   }
 };
