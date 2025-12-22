@@ -12,10 +12,10 @@ export const watchListService = {
     }
   },
 
-  fetchFavorites: async (page=1, limit=9) => {
+  fetchFavorites: async (page=1, limit=9, searchQuery="", sortBy="newest") => {
     try {
       const res = await api.get("/favorites", {
-        params: {page, limit},
+        params: {page, limit, searchQuery, sortBy},
       });
       return res.data;
     } catch (err) {

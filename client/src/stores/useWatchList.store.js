@@ -10,6 +10,18 @@ export const useWatchListStore = create((set, get) => ({
   limit: 9,
   total: 0,
 
+  // search and sort filter
+  searchQuery: "",
+  sortBy: "newest",
+
+  setSearchQuery: (query) => {
+    set({ searchQuery: query });
+  },
+
+  setSortBy: (sortOption) => {
+    set({ sortBy: sortOption });
+  },
+
   fetchFavoriteIds: async () => {
     try {
       set({loading: true});
@@ -29,7 +41,9 @@ export const useWatchListStore = create((set, get) => ({
   fetchFavorites: async(page=1, limit=9) => {
     try {
       set({loading: true});
-      const res = await watchListService.fetchFavorites(page, limit);
+
+      const {searchQuery, sortBy} = get();
+      const res = await watchListService.fetchFavorites(page, limit, searchQuery, sortBy);
 
       set({
         items: res.auctions,
@@ -92,10 +106,6 @@ export const useWatchListStore = create((set, get) => ({
     } finally {
       set({loading: false});
     }
-  },
-
-  checkFavorite: async(auctionId) => {
-    return get().favoriteIds.has(auctionId);
   },
 
   // clear store when logout

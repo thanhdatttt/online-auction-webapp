@@ -85,11 +85,7 @@ export const getFavorites = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
-
-    let page = parseInt(req.query.page) || 1;   // default page 1
-    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
-    const skip = (page - 1) * limit;
-
+    
     const favorite = await Favorite.findOne({ userId });
     if (!favorite || favorite == null || favorite.auctions.length === 0) {
       return res.status(200).json({
@@ -100,18 +96,40 @@ export const getFavorites = async (req, res) => {
         auctions: [],
       });
     }
-    
-    const total = favorite.auctions.length;
+
+    let page = parseInt(req.query.page) || 1;   // default page 1
+    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
+    let searchQuery = req.query.searchQuery || "";
+    let sortBy = req.query.sortBy || "newest";
+    const skip = (page - 1) * limit;
+
+    // sort
+    const sortOptions = {
+      newest: { createdAt: -1 },
+      price_asc: { currentPrice: 1 },
+      price_desc: { currentPrice: -1 },
+      ending_soon: { endTime: 1 },
+    };
+    const sort = sortOptions[sortBy];
+
+    // search
+    const match = searchQuery
+    ? {
+        name: { $regex: searchQuery, $options: "i" },
+      }
+    : {};
 
     const paginated = await Favorite.findOne({ userId })
     .populate({
       path: "auctions",
+      match,
       options: {
         skip,
         limit,
-        sort: { createdAt: -1 } 
+        sort: sort,
       }
     });
+    const total = paginated.auctions.length;
 
     return res.status(200).json({
       message: "Get favorites successfully",

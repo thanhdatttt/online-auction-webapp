@@ -240,13 +240,13 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       className={
                         !h.isActive
                           ? "flex justify-between bg-gray-400 line-through p-2 border-b border-gray-100"
-                          : userId === h.bidderId._id
+                          : userId === h.bidderId?._id
                           ? "flex justify-between bg-accent p-2 border-b border-gray-100"
                           : "flex justify-between bg-decor p-2 border-b border-gray-100"
                       }
                     >
                       <span className="text-gray-600">
-                        {userId === h.bidderId._id
+                        {userId === h.bidderId?._id
                           ? "You"
                           : maskFirstHalf(
                               h.bidderId.firstName + " " + h.bidderId.lastName

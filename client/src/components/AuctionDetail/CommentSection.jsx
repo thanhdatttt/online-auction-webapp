@@ -32,6 +32,7 @@ const CommentSection = ({ seller, endTime }) => {
 
   const isOnGoing = new Date() < new Date(endTime);
 
+
   useEffect(() => {
     let isMounted = true;
 
@@ -58,6 +59,8 @@ const CommentSection = ({ seller, endTime }) => {
       isMounted = false;
     };
   }, [id]);
+
+  console.log(comments);
 
   const processQuestion = async () => {
     try {
@@ -162,13 +165,13 @@ const CommentSection = ({ seller, endTime }) => {
                   <div className="flex-1">
                     <p
                       className={
-                        user?._id === c.userId._id
+                        user?._id === c.userId?._id
                           ? "font-bold text-sm text-amber-700"
                           : "font-bold text-sm text-gray-900"
                       }
                     >
                       {!isGuest
-                        ? c.userId._id === user._id
+                        ? c.userId?._id === user._id
                           ? "You"
                           : c.userId.firstName + " " + c.userId.lastName
                         : c.userId.firstName + " " + c.userId.lastName}

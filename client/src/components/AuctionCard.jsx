@@ -11,8 +11,10 @@ const AuctionCard = ({ auction }) => {
   const startTime = getRelativeTime(auction.startTime, now);
 
   // favorite
-  const {addToFavorite, removeFromFavorite, checkFavorite} = useWatchListStore();
-  const isFavorite = checkFavorite(auction._id);
+  const favoriteIds = useWatchListStore(state => state.favoriteIds);
+  const {addToFavorite, removeFromFavorite } = useWatchListStore();
+  const isFavorite = favoriteIds.has(auction._id);
+
 
   // add favorite / remove favorite
   const toogleFavorite = async(e) => {
