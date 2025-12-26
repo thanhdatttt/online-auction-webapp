@@ -11,11 +11,12 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
-import categoriesRoute from "./routes/category.route.js"
+import categoriesRoute from "./routes/category.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
 import uploadRoute from "./routes/upload.route.js";
-
+import ratingRoute from "./routes/rating.route.js";
+import { authOptional } from "./middlewares/auth.js";
 // create server
 const app = express();
 const server = http.createServer(app);
@@ -43,16 +44,17 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRoute);
+app.use(authOptional); // if guest -> pass, else valid token -> set user
 app.use("/api/guest", guestRoute);
 app.use("/api/upload", uploadRoute);
 
-// bidder routes  
+// bidder routes
 app.use(auth);
 app.use("/api/auctions", auctionRoute);
 app.use("/api/categories", categoriesRoute);
 app.use("/api/users", userRoute);
 app.use("/api/favorites", favoriteRoute);
-
+app.use("/api/ratings", ratingRoute);
 // admin routes
 app.use(authorize("admin"));
 app.use("/api/admin", adminRoute);

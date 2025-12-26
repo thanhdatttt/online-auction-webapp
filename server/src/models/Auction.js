@@ -87,9 +87,4 @@ const auctionSchema = new mongoose.Schema({
   },
 });
 
-auctionSchema.index(
-  { 'product.name': 'text', 'product.description': 'text' },
-  { weights: { 'product.name': 10, 'product.description': 5 } }
-);
-
 export default mongoose.model("Auction", auctionSchema);

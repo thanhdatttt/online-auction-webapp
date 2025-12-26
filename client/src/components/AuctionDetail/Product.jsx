@@ -25,7 +25,7 @@ const Product = ({ p, postedOn }) => {
           </p>
         </div>
         <button className="border border-black rounded-full p-2 hover:bg-gray-100">
-          <Heart className="w-5 h-5" />
+          <Heart className="w-5 h-5 cursor-pointer" />
         </button>
       </div>
 
