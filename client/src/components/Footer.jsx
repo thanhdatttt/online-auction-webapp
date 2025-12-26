@@ -53,7 +53,7 @@ const Footer = () => {
           <ul className="space-y-4 text-xl text-amber-50">
             <li>Address: Ho Chi Minh City, Viet Nam</li>
             <li>Phone: +84 123 456 789</li>
-            <li>Email: teamauctiz@gmail.com</li>
+            <li>Email: auctizteam@gmail.com</li>
           </ul>
         </div>
         <div>

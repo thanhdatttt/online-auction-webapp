@@ -167,7 +167,6 @@ const CommentSection = ({ seller, endTime }) => {
                     <p
                       className={
                         user?._id === c.userId?._id
-                        user?._id === c.userId?._id
                           ? "font-bold text-sm text-amber-700"
                           : "font-bold text-sm text-gray-900"
                       }
@@ -219,7 +218,7 @@ const CommentSection = ({ seller, endTime }) => {
                               </span>
                               <form
                                 onSubmit={(e) => processAnswer(e, c._id)}
-                                className="w-[100%]"
+                                className="w-full"
                               >
                                 <input
                                   type="text"

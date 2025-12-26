@@ -69,8 +69,6 @@ export const auctionService = {
       throw err;
     }
   },
-  submitRating: async () => {},
-  },
   createAuction: async (data) => {
     try{
       const res = await api.post("/auctions", data);
@@ -80,4 +78,6 @@ export const auctionService = {
       throw err;
     }
   },
+
+  submitRating: async () => {},
 };

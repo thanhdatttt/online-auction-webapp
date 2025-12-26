@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { auctionService } from "../services/auction.service";
-import { uploadService } from "../services/upload.service";
+import { auctionService } from "../services/auction.service.js";
+import { uploadService } from "../services/upload.service.js";
 import { toast } from "sonner";
 import { intervalToDuration, isPast } from "date-fns";
 import dayjs from "dayjs";
@@ -357,7 +357,7 @@ export const useAuctionStore = create((set, get) => ({
     } finally {
       set({loadingHome: false});
     }
-  }
+  },
   
   submitRating: async () => {},
   handleRating: async () => {},
