@@ -118,6 +118,7 @@ const CommentSection = ({ seller, endTime }) => {
           <input
             onChange={(e) => setQuestion(e.target.value)}
             type="text"
+            value={question}
             disabled={!isOnGoing}
             placeholder={
               isOnGoing
@@ -162,16 +163,16 @@ const CommentSection = ({ seller, endTime }) => {
                   <div className="flex-1">
                     <p
                       className={
-                        user?._id === c.userId._id
+                        user?._id === c.userId?._id
                           ? "font-bold text-sm text-amber-700"
                           : "font-bold text-sm text-gray-900"
                       }
                     >
                       {!isGuest
-                        ? c.userId._id === user._id
+                        ? c.userId?._id === user?._id
                           ? "You"
-                          : c.userId.firstName + " " + c.userId.lastName
-                        : c.userId.firstName + " " + c.userId.lastName}
+                          : c.userId?.firstName + " " + c.userId?.lastName
+                        : c.userId?.firstName + " " + c.userId?.lastName}
                       :{" "}
                       <span className="font-normal text-gray-700">
                         {c.question}
@@ -214,11 +215,12 @@ const CommentSection = ({ seller, endTime }) => {
                               </span>
                               <form
                                 onSubmit={(e) => processAnswer(e, c._id)}
-                                className="w-[90%]"
+                                className="w-[100%]"
                               >
                                 <input
                                   type="text"
                                   disabled={!isOnGoing}
+                                  value={answer}
                                   placeholder={
                                     isOnGoing
                                       ? "Enter a answer."

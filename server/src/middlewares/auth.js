@@ -37,6 +37,48 @@ export const auth = (req, res, next) => {
   }
 };
 
+export const authOptional = async (req, res, next) => {
+  try {
+    const header = req.headers.authorization;
+
+    if (!header) {
+      req.user = null;
+      return next();
+    }
+
+    const parts = header.split(" ");
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
+      return res.status(403).json({ message: "Invalid authorization format" });
+    }
+
+    const token = parts[1];
+
+    jwt.verify(token, config.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(403).json({
+          message: "Expired or invalid token",
+        });
+      }
+
+      const user = await User.findById(decoded.id).select(
+        "-passwordHash -refreshToken"
+      );
+
+      if (!user) {
+        return res.status(403).json({ message: "User not found" });
+      }
+
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "System error when JWT authenticating" });
+  }
+};
+
 export const authOTP = (req, res, next) => {
   try {
     // get header

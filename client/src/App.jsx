@@ -25,11 +25,15 @@ function App() {
   useEffect(() => {
     const { accessToken, refresh, fetchMe } = useAuthStore.getState();
 
-    if (!accessToken) {
-      refresh();
-    } else {
-      fetchMe();
-    }
+    const recover = async () => {
+      if (!accessToken) {
+        await refresh();
+      } else {
+        await fetchMe();
+      }
+    };
+
+    recover();
   }, []);
 
   const startClock = useTimeStore((state) => state.startClock);

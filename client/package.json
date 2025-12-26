@@ -17,6 +17,7 @@
     "date-fns": "^4.1.0",
     "flowbite": "^4.0.0",
     "flowbite-react": "^0.12.10",
+    "heroicons": "^2.2.0",
     "lucide-react": "^0.555.0",
     "node-cron": "^4.2.1",
     "react": "^19.1.1",

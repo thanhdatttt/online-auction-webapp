@@ -5,6 +5,7 @@ import Category from "../models/Category.js";
 import Comment from "../models/Comment.js";
 import AuctionConfig from "../models/AuctionConfig.js";
 import mongoose from "mongoose";
+import Rating from "../models/Rating.js";
 import {
   sendAnswerEmail,
   sendPlaceBidEmail,
@@ -15,6 +16,7 @@ import {
 } from "../utils/auction.utils.js";
 import { config } from "../configs/config.js";
 import RejectedBidder from "../models/RejectedBidder.js";
+import { resetPassword } from "./auth.controller.js";
 
 export const createAuction = async (req, res) => {
   try {
@@ -63,6 +65,10 @@ export const createAuction = async (req, res) => {
 
 export const getAuctionDetail = async (req, res) => {
   try {
+    const user = req.user;
+
+    let showAlert;
+
     const { auctionId } = req.params;
 
     const auction = await Auction.findById(auctionId);
@@ -72,6 +78,38 @@ export const getAuctionDetail = async (req, res) => {
     const seller = await User.findById(auction.sellerId);
 
     if (!seller) return res.status(404).json({ message: "Seller not found" });
+
+    if (
+      auction.status === "ended" ||
+      auction.minPositiveRatingPercent === null
+    ) {
+      showAlert = false;
+    } else {
+      if (user) {
+        if (user._id.equals(auction.sellerId)) showAlert = false;
+        else {
+          const ratingCount = await Rating.countDocuments({
+            ratedUserId: user._id,
+          });
+
+          if (ratingCount === 0) {
+            showAlert = true;
+          } else {
+            const positiveRatingCount = await Rating.countDocuments({
+              ratedUserId: user._id,
+              rateType: "uprate",
+            });
+
+            const positiveRatingPercent =
+              (positiveRatingCount / ratingCount) * 100;
+
+            if (positiveRatingPercent < auction.minPositiveRatingPercent)
+              showAlert = true;
+            else showAlert = false;
+          }
+        }
+      } else showAlert = false;
+    }
 
     const winner = auction.winnerId
       ? await User.findById(auction.winnerId)
@@ -83,6 +121,7 @@ export const getAuctionDetail = async (req, res) => {
       auction: auction,
       seller: seller,
       dataWinner: { winner: winner, highestPrice: highestPrice },
+      showAlert: showAlert,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -700,27 +739,26 @@ export const buyNow = async (req, res) => {
   }
 };
 
-
 export const getAuctions = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort = 'newest', 
-      search, 
-      categoryId 
+    const {
+      page = 1,
+      limit = 10,
+      sort = "newest",
+      search,
+      categoryId,
     } = req.query;
 
-    const filter = { status: 'ongoing' };
+    const filter = { status: "ongoing" };
     let sortOptions = {};
 
     if (search) {
       filter.$text = { $search: search };
     }
 
-    if (categoryId){
+    if (categoryId) {
       const categoriesToInclude = await getCategoryAndDescendants(categoryId);
-      filter['product.categoryId'] = { $in: categoriesToInclude };
+      filter["product.categoryId"] = { $in: categoriesToInclude };
     }
 
     const pageNum = parseInt(page);
@@ -728,17 +766,17 @@ export const getAuctions = async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     switch (sort) {
-      case 'price_asc': 
-        sortOptions = { currentPrice: 1 }; 
+      case "price_asc":
+        sortOptions = { currentPrice: 1 };
         break;
-      case 'price_desc': 
-        sortOptions = { currentPrice: -1 }; 
+      case "price_desc":
+        sortOptions = { currentPrice: -1 };
         break;
-      case 'ending_soon': 
-        sortOptions = { endTime: 1 }; 
+      case "ending_soon":
+        sortOptions = { endTime: 1 };
         break;
-      case 'newest':
-        sortOptions = { createdAt: -1 }; 
+      case "newest":
+        sortOptions = { createdAt: -1 };
         break;
       // case 'relevance':
       //   if (search) {
@@ -760,9 +798,9 @@ export const getAuctions = async (req, res) => {
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
-        .populate('winnerId', 'username avatar_url rating'),
-      
-      Auction.countDocuments(filter)
+        .populate("winnerId", "username avatar_url rating"),
+
+      Auction.countDocuments(filter),
     ]);
 
     res.status(200).json({
@@ -772,12 +810,13 @@ export const getAuctions = async (req, res) => {
         totalItems: total,
         totalPages: Math.ceil(total / limitNum),
         currentPage: pageNum,
-        itemsPerPage: limitNum
-      }
+        itemsPerPage: limitNum,
+      },
     });
-
   } catch (error) {
-    res.status(500).json({ message: "Failed to get auctions list", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to get auctions list", error: error.message });
   }
 };
 

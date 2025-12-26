@@ -13,6 +13,7 @@ const RightSideBar = ({
   currentPrice,
   dataWinner,
   endTime,
+  isAllowed,
 }) => {
   const newCurrentPrice = currentPrice
     ? currentPrice
@@ -239,7 +240,7 @@ const RightSideBar = ({
                 onClick={() =>
                   setBidMaxAmount(newCurrentPrice + 2 * auction.gapPrice)
                 }
-                className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
+                className="flex-1 border cursor-pointer border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
               >
                 {formatPrice(newCurrentPrice + 2 * auction.gapPrice)}
               </button>
@@ -252,7 +253,7 @@ const RightSideBar = ({
                 onClick={() =>
                   setBidMaxAmount(newCurrentPrice + 3 * auction.gapPrice)
                 }
-                className="flex-1 border border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
+                className="flex-1 border cursor-pointer border-gray-300 rounded-full py-1 text-[10px] sm:text-xs text-gray-600 hover:border-black transition-colors"
               >
                 {formatPrice(newCurrentPrice + 3 * auction.gapPrice)}
               </button>
@@ -282,7 +283,7 @@ const RightSideBar = ({
             </div>
 
             <button
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/signin")}
               disabled={!isOnGoing}
               className={
                 isOnGoing
@@ -294,69 +295,6 @@ const RightSideBar = ({
             </button>
           </>
         )}
-
-        {/* {isBidder && (
-          <>
-            <div className="h-15">
-              <input
-                onChange={(e) => setBidMaxAmount(e.target.value)}
-                type="text"
-                disabled={!isOnGoing}
-                onKeyDown={(e) => {
-                  if (
-                    !/[0-9]/.test(e.key) &&
-                    ![
-                      "Delete",
-                      "ArrowLeft",
-                      "ArrowRight",
-                      "Tab",
-                      "Backspace",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
-                value={isOnGoing ? bidMaxAmount : ""}
-                placeholder={
-                  isOnGoing
-                    ? !auction.buyNowPrice ||
-                      newCurrentPrice + auction.gapPrice < auction.buyNowPrice
-                      ? `${formatPrice(
-                          newCurrentPrice + auction.gapPrice
-                        )} or higher.`
-                      : "You can buyout this product."
-                    : "This auction is already closed."
-                }
-                className={
-                  isOnGoing
-                    ? "bg-grayinput rounded-sm p-3 mb-3 hover:bg-grayinput/80 focus:ring-dark focus:ring focus:bg-grayinput/80 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
-                    : "bg-grayinput rounded-sm p-3 mb-3 outline-none w-full text-sm pl-3 text-gray-600 placeholder-[#000000]/30"
-                }
-              />
-            </div>
-
-            <button
-              onClick={() =>
-                handlePlaceBid(
-                  bidMaxAmount,
-                  user._id,
-                  newWinner ? newWinner._id : null,
-                  newHighestPrice,
-                  newCurrentPrice,
-                  auction
-                )
-              }
-              disabled={!isOnGoing}
-              className={
-                isOnGoing
-                  ? "w-full bg-primary hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
-                  : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
-              }
-            >
-              Place Bid
-            </button>
-          </>
-        )} */}
 
         {isBidder && (
           <>
@@ -388,26 +326,38 @@ const RightSideBar = ({
               />
             </div>
 
-            <button
-              onClick={() =>
-                handlePlaceBid(
-                  bidMaxAmount,
-                  user._id,
-                  newWinner ? newWinner._id : null,
-                  newHighestPrice,
-                  newCurrentPrice,
-                  auction
-                )
-              }
-              disabled={!isOnGoing}
-              className={
-                isOnGoing
-                  ? "w-full bg-primary hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
-                  : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
-              }
-            >
-              Place Bid
-            </button>
+            {isAllowed && (
+              <button
+                onClick={() =>
+                  handlePlaceBid(
+                    bidMaxAmount,
+                    user._id,
+                    newWinner ? newWinner._id : null,
+                    newHighestPrice,
+                    newCurrentPrice,
+                    auction
+                  )
+                }
+                disabled={!isOnGoing}
+                className={
+                  isOnGoing
+                    ? "w-full bg-primary cursor-pointer hover:bg-accent/80 hover:text-black text-white font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                    : "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                }
+              >
+                Place Bid
+              </button>
+            )}
+            {!isAllowed && (
+              <button
+                disabled={false}
+                className={
+                  "w-full bg-gray-400 text-gray-700 font-medium py-3 rounded-sm shadow-sm transition-colors uppercase tracking-wide"
+                }
+              >
+                Not enough rating to place a bid
+              </button>
+            )}
           </>
         )}
 

@@ -94,6 +94,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
   const confirm = () => {
     const res = handleRejectBidder(id, bidderId);
     setShowModal(false);
+    setBidderId(null);
   };
 
   console.log(history);
@@ -221,7 +222,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                     >
                       <span className="text-gray-600">
                         {maskFirstHalf(
-                          h.bidderId.firstName + " " + h.bidderId.lastName
+                          h.bidderId?.firstName + " " + h.bidderId?.lastName
                         )}
                       </span>
                       <div className="text-right">
@@ -240,19 +241,19 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       className={
                         !h.isActive
                           ? "flex justify-between bg-gray-400 line-through p-2 border-b border-gray-100"
-                          : userId === h.bidderId._id
+                          : userId === h.bidderId?._id
                           ? "flex justify-between bg-accent p-2 border-b border-gray-100"
                           : "flex justify-between bg-decor p-2 border-b border-gray-100"
                       }
                     >
                       <span className="text-gray-600">
-                        {userId === h.bidderId._id
+                        {userId === h.bidderId?._id
                           ? "You"
                           : maskFirstHalf(
-                              h.bidderId.firstName + " " + h.bidderId.lastName
+                              h.bidderId?.firstName + " " + h.bidderId?.lastName
                             )}
                       </span>
-                      {userId === h.bidderId._id && (
+                      {userId === h.bidderId?._id && (
                         <div className="text-center">
                           <span className="block text-gray-500 text-[10px]">
                             Max
@@ -284,12 +285,12 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       }
                       onClick={() => {
                         if (!h.isActive) return;
-                        handleShowModal(isOnGoing, h.bidderId._id);
+                        handleShowModal(isOnGoing, h.bidderId?._id);
                       }}
                     >
                       <span className="text-gray-600">
                         {maskFirstHalf(
-                          h.bidderId.firstName + " " + h.bidderId.lastName
+                          h.bidderId?.firstName + " " + h.bidderId?.lastName
                         )}
                       </span>
                       <div className="text-right">
