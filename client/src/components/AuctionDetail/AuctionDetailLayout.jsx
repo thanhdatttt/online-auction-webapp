@@ -42,37 +42,21 @@ const AuctionDetailLayout = () => {
     const loadAuction = async () => {
       try {
         setIsLoading(true);
-
         setError(null);
-
-        console.log(accessToken);
 
         const res = await api.get(`guest/auctions/${id}`);
 
-        if (isMounted) {
-          setAuction(res.data.auction);
-          setSeller(res.data.seller);
-          setDataWinner(res.data.dataWinner);
-          setEndTime(res.data.auction.endTime);
-          setShowAlert(res.data.showAlert);
-          setIsAllowed(!res.data.showAlert);
-        }
-        if (!socket.connected) socket.connect();
+        if (!isMounted) return;
 
-        socket.emit("joinAuction", id);
-
-        socket.on("priceUpdate", (newCurrentPrice) => {
-          if (isMounted) setCurrentPrice(newCurrentPrice);
-        });
-        socket.on("winnerUpdate", (newDataWinner) => {
-          if (isMounted) setDataWinner(newDataWinner);
-        });
-        socket.on("endTimeUpdate", (newEndTime) => {
-          if (isMounted) setEndTime(newEndTime);
-        });
+        setAuction(res.data.auction);
+        setSeller(res.data.seller);
+        setDataWinner(res.data.dataWinner);
+        setEndTime(res.data.auction.endTime);
+        setShowAlert(res.data.showAlert);
+        setIsAllowed(!res.data.showAlert);
+        setCurrentPrice(res.data.auction.currentPrice);
       } catch (err) {
         if (isMounted) setError(err.message);
-        console.log(err.message);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -82,12 +66,46 @@ const AuctionDetailLayout = () => {
 
     return () => {
       isMounted = false;
-      socket.off("priceUpdate");
-      socket.off("winnerUpdate");
-      socket.off("endTimeUpdate");
-      socket.disconnect();
     };
   }, [id, accessToken]);
+
+  useEffect(() => {
+    if (!socket.connected) socket.connect();
+
+    socket.emit("joinAuction", id);
+
+    const onPriceUpdate = (newPrice) => {
+      setCurrentPrice(newPrice);
+    };
+
+    const onWinnerUpdate = (newWinner) => {
+      setDataWinner(newWinner);
+    };
+
+    const onEndTimeUpdate = (newEndTime) => {
+      setEndTime(newEndTime);
+    };
+
+    socket.on("priceUpdate", onPriceUpdate);
+    socket.on("winnerUpdate", onWinnerUpdate);
+    socket.on("endTimeUpdate", onEndTimeUpdate);
+
+    socket.on("connect", () => {
+      // 🔥 SYNC LẠI KHI RECONNECT
+      api.get(`guest/auctions/${id}`).then((res) => {
+        setCurrentPrice(res.data.auction.currentPrice);
+        setDataWinner(res.data.dataWinner);
+        setEndTime(res.data.auction.endTime);
+      });
+    });
+
+    return () => {
+      socket.emit("leaveAuction", id);
+      socket.off("priceUpdate", onPriceUpdate);
+      socket.off("winnerUpdate", onWinnerUpdate);
+      socket.off("endTimeUpdate", onEndTimeUpdate);
+    };
+  }, [id]);
 
   const handleCloseShowAlert = () => {
     setShowAlert(false);

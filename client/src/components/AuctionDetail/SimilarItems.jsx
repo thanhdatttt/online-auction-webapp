@@ -50,7 +50,7 @@ const SimilarItems = () => {
             <h3 className="text-xl font-bold mb-4 text-gray-800 border-b border-gray-300 pb-2">
               Similar Items
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
               {similarItems.map((item, index) => (
                 <AuctionCard key={index} auction={item}></AuctionCard>
               ))}

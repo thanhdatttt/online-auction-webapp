@@ -163,8 +163,8 @@ export const useAuctionStore = create((set, get) => ({
         newHighestPrice
       )}`;
 
-    if (bidMaxAmount % auction.gapPrice !== 0)
-      return `Place bid failed. Bid amount must be a multiple of the gap price.`;
+    if ((bidMaxAmount - auction.startPrice) % auction.gapPrice !== 0)
+      return `Your bid must increase in steps of ${auction.gapPrice}. Please adjust your bid amount.`;
 
     const basePrice = auction.currentPrice
       ? auction.currentPrice
@@ -305,8 +305,6 @@ export const useAuctionStore = create((set, get) => ({
       if (errBackend) toast.error(errBackend, { id: toastId });
     }
   },
-  submitRating: async () => {
-    
-  },
+  submitRating: async () => {},
   handleRating: async () => {},
 }));

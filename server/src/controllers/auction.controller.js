@@ -233,11 +233,9 @@ export const placeBid = async (req, res) => {
         .status(400)
         .json({ message: `Invalid bid. Min amount is ${minBidMaxAmount}` });
 
-    if (bidMaxAmount % auction.gapPrice !== 0) {
+    if ((bidMaxAmount - auction.startPrice) % auction.gapPrice !== 0) {
       return res.status(400).json({
-        message: `Min valid bid should be ${
-          auction.currentPrice + auction.gapPrice
-        } or higher can divide by ${auction.gapPrice}`,
+        message: `Bid amount must increase in steps of ${auction.gapPrice}.`,
       });
     }
 
@@ -865,19 +863,19 @@ export const getSimilarItems = async (req, res) => {
           ongoing: [
             { $match: { status: "ongoing" } },
             { $sort: { endTime: 1 } },
-            { $limit: 4 },
+            { $limit: 6 },
           ],
           ended: [
             { $match: { status: "ended" } },
             { $sort: { endTime: -1 } },
-            { $limit: 4 },
+            { $limit: 6 },
           ],
         },
       },
       {
         $project: {
           items: {
-            $slice: [{ $concatArrays: ["$ongoing", "$ended"] }, 4],
+            $slice: [{ $concatArrays: ["$ongoing", "$ended"] }, 6],
           },
         },
       },
