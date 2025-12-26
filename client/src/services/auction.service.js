@@ -77,5 +77,5 @@ export const auctionService = {
       console.log(err);
       throw err;
     }
-  }
+  },
 };

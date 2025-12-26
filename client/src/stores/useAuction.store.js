@@ -11,6 +11,12 @@ export const useAuctionStore = create((set, get) => ({
   loading: false,
   auctions: [],
 
+  // home page auctions
+  heroAuction: null,
+  homeEndingSoon: [],
+  homeHighestPrice: [],
+  loadingHome: false,
+
   // Filters
   searchQuery: "",
   sortBy: "newest", // Default
@@ -50,7 +56,6 @@ export const useAuctionStore = create((set, get) => ({
       const { limit } = get().pagination;
       const { searchQuery, sortBy, categoryId } = get();
       const response = await auctionService.getAuctions({ page: pageNumber, limit, sort: sortBy, search: searchQuery, categoryId: categoryId });
-      console.log(response);
       set({ 
         auctions: response.auctions, 
         pagination: {
@@ -325,5 +330,28 @@ export const useAuctionStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+  getHomeAuctions: async () => {
+    try {
+      set({loadingHome: true});
+
+      const [hero, endingSoon, highestPrice] = await Promise.all([
+        auctionService.getAuctions({page: 1, limit: 1, sort: "newest"}),
+        auctionService.getAuctions({page: 1, limit: 5, sort: "ending_soon"}),
+        auctionService.getAuctions({page: 1, limit: 5, sort: "price_desc"}),
+      ]);
+
+      set({
+        heroAuction: hero.auctions[0] || null,
+        homeEndingSoon: endingSoon.auctions,
+        homeHighestPrice: highestPrice.auctions,
+      });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loadingHome: false});
+    }
+  }
   
 }));
