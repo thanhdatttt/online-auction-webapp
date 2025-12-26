@@ -834,3 +834,59 @@ const getCategoryAndDescendants = async (rootId) => {
 
   return ids;
 };
+
+export const getSimilarItems = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+      return res.status(400).json({ message: "Invalid auction id" });
+    }
+
+    const currentAuction = await Auction.findById(auctionId);
+    if (!currentAuction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    const categoryId = currentAuction.product.categoryId;
+    if (!categoryId) {
+      return res.json({ data: [] });
+    }
+
+    const similarAuctions = await Auction.aggregate([
+      {
+        $match: {
+          _id: { $ne: new mongoose.Types.ObjectId(auctionId) },
+          "product.categoryId": categoryId,
+        },
+      },
+      {
+        $facet: {
+          ongoing: [
+            { $match: { status: "ongoing" } },
+            { $sort: { endTime: 1 } },
+            { $limit: 4 },
+          ],
+          ended: [
+            { $match: { status: "ended" } },
+            { $sort: { endTime: -1 } },
+            { $limit: 4 },
+          ],
+        },
+      },
+      {
+        $project: {
+          items: {
+            $slice: [{ $concatArrays: ["$ongoing", "$ended"] }, 4],
+          },
+        },
+      },
+      { $unwind: "$items" },
+      { $replaceRoot: { newRoot: "$items" } },
+    ]);
+
+    return res.status(200).json({ data: similarAuctions });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
