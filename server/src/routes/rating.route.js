@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createRating } from "../controllers/rating.controllers.js";
+import { createRating } from "../controllers/rating.controller.js";
 const router = Router();
 
 router.post("", createRating);
