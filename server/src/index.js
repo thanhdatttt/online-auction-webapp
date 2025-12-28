@@ -37,6 +37,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {});
 });
 
+global.io = io;
 // set up server
 app.use(cors({ origin: config.CLIENT_URL, credentials: true }));
 app.use(express.json());

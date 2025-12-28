@@ -1,12 +1,13 @@
-import { ThumbsUp, ChevronDown, Crown } from "lucide-react";
+import { ThumbsUp, Crown } from "lucide-react";
 import { FaRegCircleUser } from "react-icons/fa6";
 import "dayjs/locale/vi";
 import { useAuctionStore } from "../../stores/useAuction.store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NumericFormat } from "react-number-format";
 import { useAuthStore } from "../../stores/useAuth.store";
 import { useNavigate } from "react-router";
 import History from "./History";
+
 const RightSideBar = ({
   auction,
   seller,
@@ -22,29 +23,44 @@ const RightSideBar = ({
     : auction.startPrice;
 
   const [showModal, setShowModal] = useState(false);
-
   const newEndTime = endTime;
-
   const newWinner = dataWinner.winner;
-
   const newHighestPrice = dataWinner.highestPrice;
 
-  console.log(dataWinner);
+  // --- 1. LOGIC ĐẾM NGƯỢC REALTIME ---
+  const calculateTimeLeft = () => {
+    if (!newEndTime) return null;
+    const difference = new Date(newEndTime) - new Date();
 
-  const isOnGoing = new Date() < new Date(newEndTime);
+    if (difference <= 0) return null; // Đã hết giờ
+
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60),
+    };
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [newEndTime]);
+
+  // Biến này sẽ tự động cập nhật false khi hết giờ
+  const isOnGoing = timeLeft !== null;
+
+  // --- END LOGIC ĐẾM NGƯỢC ---
 
   const user = useAuthStore((state) => state.user);
-
-  console.log(user);
-
-  console.log(newWinner);
-
   const isGuest = user === null;
-
   const isSeller = !isGuest ? user?._id === seller?._id : false;
-
   const isBidder = !isGuest ? user?._id !== seller?._id : false;
-
   const isWinner = isBidder ? user?._id === newWinner?._id : false;
 
   const navigate = useNavigate();
@@ -57,7 +73,7 @@ const RightSideBar = ({
     maskFirstHalf,
   } = useAuctionStore();
 
-  const [bidMaxAmount, setBidMaxAmount] = useState(null);
+  const [bidMaxAmount, setBidMaxAmount] = useState(""); // Khởi tạo chuỗi rỗng để dễ reset
 
   const handleShowModal = (value) => {
     setShowModal(value);
@@ -68,8 +84,21 @@ const RightSideBar = ({
     setShowModal(false);
   };
 
+  // Hàm hiển thị thời gian đếm ngược
+  const formatCountdown = (t) => {
+    if (!t) return "";
+    const { days, hours, minutes, seconds } = t;
+    const h = String(hours).padStart(2, "0");
+    const m = String(minutes).padStart(2, "0");
+    const s = String(seconds).padStart(2, "0");
+
+    if (days > 0) return `${days}d ${h}h ${m}m ${s}s`;
+    return `${h}h ${m}m ${s}s`;
+  };
+
   return (
     <div className="bg-light border border-dark shadow-sm rounded-sm overflow-hidden sticky top-20">
+      {/* MODAL SECTION */}
       {showModal && (
         <div>
           <div
@@ -150,17 +179,22 @@ const RightSideBar = ({
         </div>
       )}
 
-      {/* BEIGE HEADER */}
-
+      {/* --- 2. HEADER HIỂN THỊ THỜI GIAN --- */}
       <div className="border-b border-decor">
         <div className="h-12 bg-decor py-2">
           <p className="text-[20px] text-[#D1AE8D] tracking-wider uppercase pl-10">
-            Ending In
+            {isOnGoing ? "Ending In" : "Ended At"}
           </p>
         </div>
         <div className="flex items-center justify-center h-15">
-          <h2 className="text-[30px] text-[#D1AE8D] text- mt-1">
-            {formatTime(newEndTime)}
+          <h2
+            className={`mt-1 ${
+              isOnGoing
+                ? "text-[30px] text-[#D1AE8D]"
+                : "text-[22px] text-red-500 font-bold"
+            }`}
+          >
+            {isOnGoing ? formatCountdown(timeLeft) : formatTime(newEndTime)}
           </h2>
         </div>
       </div>
@@ -261,7 +295,6 @@ const RightSideBar = ({
         </div>
 
         {/* INPUT BID */}
-
         {isGuest && (
           <>
             <div className="h-15">
@@ -328,16 +361,18 @@ const RightSideBar = ({
 
             {isAllowed && (
               <button
-                onClick={() =>
-                  handlePlaceBid(
+                // --- 3. RESET INPUT SAU KHI PLACE BID ---
+                onClick={async () => {
+                  await handlePlaceBid(
                     bidMaxAmount,
                     user._id,
                     newWinner ? newWinner._id : null,
                     newHighestPrice,
                     newCurrentPrice,
                     auction
-                  )
-                }
+                  );
+                  setBidMaxAmount(""); // Reset về rỗng
+                }}
                 disabled={!isOnGoing}
                 className={
                   isOnGoing
@@ -394,7 +429,6 @@ const RightSideBar = ({
           </div>
         </div>
 
-        {/* BIDDING HISTORY */}
         <History
           isSeller={isSeller}
           isBidder={isBidder}

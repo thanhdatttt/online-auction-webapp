@@ -8,7 +8,7 @@ import Divider from "./Divider.jsx";
 import { useLocation } from "react-router-dom";
 import { AuctionWonLayout } from "./AuctionWon/AuctionWonLayout.jsx";
 import AuctionCreatedLayout from "./AuctionCreated/AuctionCreatedLayout.jsx";
-
+import Header from "../Header.jsx";
 const ProfileLayout = () => {
   // user info
   const user = useAuthStore((state) => state.user);
