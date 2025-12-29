@@ -21,6 +21,7 @@ import AuctionPage from "./pages/AuctionPage.jsx";
 import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import TransactionPage from "./pages/TransactionPage.jsx";
 
 
 function App() {
@@ -67,17 +68,15 @@ function App() {
 
           {/* guest route */}
           <Route path="/home" element={<HomePage />} />
-          <Route path="/instructions" element={<InstructionPage/>}/>
-          <Route
-            path="/auctions/:id"
-            element={<AuctionDetailPage></AuctionDetailPage>}
-          />
+          <Route path="/instructions" element={<InstructionPage/>} />
+          <Route path="/auctions/:id" element={<AuctionDetailPage></AuctionDetailPage>} />
           <Route path="/auctions" element={<AuctionPage />} />
 
           {/* protected route */}
           <Route element={<ProtectedRoute />}>
             <Route path="/auctions/create" element={<CreateAuctionPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/transactions" element={<TransactionPage/>}/>
           </Route>
         </Routes>
       </Router>

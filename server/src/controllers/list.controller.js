@@ -153,7 +153,7 @@ export const getActiveBids = async (req, res) => {
     // search
     const match = searchQuery
     ? {
-        name: { $regex: searchQuery, $options: "i" },
+        "product.name": { $regex: searchQuery, $options: "i" },
       }
     : {};
 
@@ -179,10 +179,11 @@ export const getActiveBids = async (req, res) => {
     };
     // filter and pagination
     const [activeBids, total] = await Promise.all([
-      Auction.find({ _id: { $in: auctionIds } })
-        .sort({ endTime: -1 })
+      Auction.find(filter)
+        .sort(sort)
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .populate("winnerId", "username avatar_url rating"),
       Auction.countDocuments({ _id: { $in: auctionIds } }),
     ]);
 

@@ -119,6 +119,9 @@ const Header = () => {
               <button onClick={() => navigate("/profile")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                 Profile
               </button>
+              <button onClick={() => navigate("/transactions")} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
+                Transactions
+              </button>
               <button onClick={handleLogout} className="w-full px-2 py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors cursor-pointer">
                   Logout
               </button>
@@ -150,6 +153,9 @@ const Header = () => {
           ( <div>
             <button onClick={() => navigate("/profile")} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
               Profile
+            </button>
+            <button onClick={() => navigate("/transactions")} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
+              Transactions
             </button>
             <button onClick={handleLogout} className="w-full py-4 text-2xl hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
               Logout

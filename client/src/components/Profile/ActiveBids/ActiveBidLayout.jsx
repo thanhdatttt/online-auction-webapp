@@ -1,10 +1,11 @@
 import { useActiveBidStore } from "../../../stores/useActiveBid.store.js";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import Pagination from "../Pagination.jsx";
 import ListGrid from "../ListGrid.jsx";
 import ActiveBidHeader from "./ActiveBidHeader.jsx";
 import Divider from "../Divider.jsx";
-import { useSearchParams } from "react-router";
+import Loading from "../../Loading.jsx";
 
 const ActiveBidLayout = () => {
   // states
@@ -35,16 +36,17 @@ const ActiveBidLayout = () => {
       <Divider/>
 
       <ActiveBidHeader />
-      {activeBids.length > 0 ?
-      (<>
-        <ListGrid items={activeBids} loading={loading}/>
-        <div className="flex justify-center mt-8">
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
-        </div>
-      </>) :
-      (<div className="flex items-center justify-center">
-        <p className="text-center text-2xl font-bold">No auctions was bidded</p>
-      </div>)
+      {loading ? <Loading/> :
+        activeBids.length > 0 ?
+        (<>
+          <ListGrid items={activeBids} />
+          <div className="flex justify-center mt-8">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
+          </div>
+        </>) :
+        (<div className="flex items-center justify-center">
+          <p className="text-center text-2xl font-bold">No auctions was bidded</p>
+        </div>)
       }
     </div>
   );

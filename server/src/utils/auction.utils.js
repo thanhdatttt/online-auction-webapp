@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import cron from "node-cron";
 import Auction from "../models/Auction.js";
+import Order from "../models/Order.js";
 
 // singleton...
 export const initAuctionConfig = async () => {
@@ -426,14 +427,8 @@ cron.schedule("* * * * *", async () => {
 
     const link = `${config.CLIENT_URL}/auctions/${auction.id}`;
 
-    const winner = await User.findById(auction.winnerId);
-
-    if (winner) {
-      sendWinnerEmail(winner, auction.product.name, auction.currentPrice, link);
-    }
-
     const seller = await User.findById(auction.sellerId);
-
+    
     sendSellerEmail(
       seller,
       auction.product.name,
@@ -441,5 +436,20 @@ cron.schedule("* * * * *", async () => {
       auction.currentPrice,
       link
     );
+
+    const winner = await User.findById(auction.winnerId);
+
+    if (winner) {
+      sendWinnerEmail(winner, auction.product.name, auction.currentPrice, link);
+
+      // create order if there is a winner
+      await Order.create({
+        auctionId: auction._id,
+        sellerId: auction.sellerId,
+        buyerId: auction.winnerId,
+        finalPrice: auction.currentPrice,
+      });
+    }
+
   }
 });

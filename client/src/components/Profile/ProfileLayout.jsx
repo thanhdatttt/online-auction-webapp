@@ -8,6 +8,7 @@ import Divider from "./Divider.jsx";
 import { useLocation } from "react-router-dom";
 import { AuctionWonLayout } from "./AuctionWon/AuctionWonLayout.jsx";
 import AuctionCreatedLayout from "./AuctionCreated/AuctionCreatedLayout.jsx";
+import ProfileHeader from "./ProfileHeader.jsx";
 
 const ProfileLayout = () => {
   // user info
@@ -25,7 +26,6 @@ const ProfileLayout = () => {
     auctionwon: <AuctionWonLayout />,
     auctioncreated: <AuctionCreatedLayout />,
     feedbacks: <WatchListSection />,
-    payment: <ProfileSection />,
   };
 
   // sections state
@@ -42,14 +42,9 @@ const ProfileLayout = () => {
 
   return (
     <div className="min-h-svh bg-light mt-20">
-      <Header></Header>
+      <ProfileHeader username={user.username}/>
 
-      <h1 className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent text-4xl md:text-6xl font-extrabold font-lora py-6 pl-6 md:pl-12">
-        Welcome, {user.username}
-      </h1>
-      <Divider />
-
-      <div className="min-h-svh flex flex-col lg:flex-row px-6 md:px-12 py-6 text-black font-lora">
+      <div className="min-h-svh flex flex-col mt-4 lg:flex-row px-6 md:px-12 py-6 text-black font-lora">
         {/* side bar */}
         <SideBar activeSection={activeSection}></SideBar>
 

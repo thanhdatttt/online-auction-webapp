@@ -19,7 +19,7 @@ const InstructionLayout = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Sophisticated & Premium Header */}
-      <section className="relative pt-44 pb-32 bg-slate-950 overflow-hidden">
+      <section className="relative pt-40 pb-24 bg-slate-950 overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-30">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] bg-amber-600/20 rounded-full blur-[120px] animate-pulse"></div>
@@ -32,11 +32,11 @@ const InstructionLayout = () => {
         <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
           <button 
             onClick={() => navigate("/home")}
-            className="group mb-12 inline-flex items-center space-x-2 text-primary hover:text-accent transition-all duration-300"
+            className="group mb-12 inline-flex items-center space-x-2 text-primary hover:text-accent transition-all duration-300 cursor-pointer"
           >
             <ArrowLeft size={14} className="mr-1 transform group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-bold uppercase tracking-[0.3em]">
-              Back to Marketplace
+              Back to Home
             </span>
           </button>
 
@@ -64,9 +64,6 @@ const InstructionLayout = () => {
             </p>
           </div>
         </div>
-        
-        {/* Subtle Bottom Fade */}
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-linear-to-t from-white to-transparent"></div>
       </section>
 
       {/* Main Content */}
@@ -163,10 +160,10 @@ const InstructionLayout = () => {
       {/* Simplified CTA */}
       <section className="py-24 bg-amber-400 text-center">
         <div className="max-w-2xl mx-auto px-6">
-          <h3 className="text-3xl font-serif font-bold text-slate-900 mb-8 tracking-tight">Begin your journey in the world of fine auctions.</h3>
+          <h3 className="text-5xl font-lora font-bold text-slate-900 mb-8 tracking-tight">Begin your journey in the world of fine auctions.</h3>
           <button 
             onClick={() => navigate("/auctions")}
-            className="group relative inline-flex items-center justify-center px-12 py-5 font-bold text-white transition-all duration-200 bg-slate-900 font-pj rounded-2xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-primary hover:text-black"
+            className="group relative inline-flex items-center justify-center px-12 py-5 font-bold text-white transition-all duration-200 bg-slate-900 font-pj rounded-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-primary hover:text-black"
           >
             <span>Start Exploring Now</span>
             <ArrowRight size={20} className="ml-3 transform group-hover:translate-x-1 transition-transform" />

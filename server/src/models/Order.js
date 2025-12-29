@@ -40,42 +40,37 @@ const orderSchema = new mongoose.Schema({
         index: true,
     },
 
-    // payment bill
-    paymentInvoice: {
-        url: {
-            type: String,
-        },
-        note: {
-            type: String,
-        },
-        paidAt: {
-            type: Date,
-        }
-    },
     shipAddress: {
         type: String,
     },
+    paidAt: {
+        type: Date,
+    },
 
-    // shipping bill
-    shipInvoice: {
-        url: {
-            type: String,
-        },
-        trackingCode: {
-            type: String,
-        },
-        shippedAt: {
-            type: Date,
-        },
+    trackingCode: {
+        type: String,
+    },
+    shippedAt: {
+        type: Date,
     },
 
     // confirm
-    sellerConfirmAt: {
+    sellerConfirmedAt: {
         type: Date,
     },
-    buyerConfirmAt: {
+    buyerConfirmedAt: {
         type: Date,
-    }
+    },
+
+    // cancel 
+    cancelInfo: {
+        reason: {
+            type: String,
+        },
+        canceledAt: {
+            type: Date,
+        }
+    },
 },{
     timestamps: true,
 });

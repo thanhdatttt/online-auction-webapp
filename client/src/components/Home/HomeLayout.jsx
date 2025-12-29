@@ -8,6 +8,7 @@ import HighPrice from "./HighPrice.jsx";
 import EndingSoon from "./EndingSoon.jsx";
 import Proposition from "./Proposition.jsx";
 import About from "./About.jsx";
+import Footer from "../Footer.jsx";
 
 const HomeLayout = () => {
   const {
@@ -35,6 +36,7 @@ const HomeLayout = () => {
       {homeHighestPrice && <HighPrice auctions={homeHighestPrice}/>}
       {homeEndingSoon && <EndingSoon auctions={homeEndingSoon}/>}
       <Proposition/>
+      <Footer />
     </>
   );
 }
