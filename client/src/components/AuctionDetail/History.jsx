@@ -39,38 +39,17 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadNewHistory = async () => {
+    const loadHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
         const res = await api.get(`/guest/auctions/${id}/history`);
 
-        if (isMounted) {
-          setHistory(res.data.history);
-          setRejectedBidderIds(res.data.rejectedBidderIds);
-        }
+        if (!isMounted) return;
 
-        if (!socket.connected) socket.connect();
-
-        socket.on("historyUpdate", (newHistory) => {
-          if (isMounted) {
-            console.log(newHistory);
-            setHistory((prev) => [...newHistory, ...prev]);
-          }
-        });
-        socket.on("rejectUpdate", (newBidderId) => {
-          if (isMounted) {
-            setHistory((prev) =>
-              prev.map((i) => {
-                return newBidderId === i.bidderId._id
-                  ? { ...i, isActive: false }
-                  : i;
-              })
-            );
-            setRejectedBidderIds((prev) => [...prev, newBidderId]);
-          }
-        });
+        setHistory(res.data.history);
+        setRejectedBidderIds(res.data.rejectedBidderIds);
       } catch (err) {
         if (isMounted) setError(err.message);
       } finally {
@@ -78,11 +57,44 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
       }
     };
 
-    loadNewHistory();
+    loadHistory();
 
     return () => {
       isMounted = false;
-      socket.off("historyUpdate");
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!socket.connected) socket.connect();
+
+    socket.emit("joinAuction", id);
+
+    const onHistoryUpdate = (newBids) => {
+      setHistory((prev) => {
+        const existingIds = new Set(prev.map((i) => i._id));
+        const filtered = newBids.filter((i) => !existingIds.has(i._id));
+        return [...filtered, ...prev];
+      });
+    };
+
+    const onRejectUpdate = (bidderId) => {
+      setHistory((prev) =>
+        prev.map((i) =>
+          i.bidderId._id === bidderId ? { ...i, isActive: false } : i
+        )
+      );
+      setRejectedBidderIds((prev) =>
+        prev.includes(bidderId) ? prev : [...prev, bidderId]
+      );
+    };
+
+    socket.on("historyUpdate", onHistoryUpdate);
+    socket.on("rejectUpdate", onRejectUpdate);
+
+    return () => {
+      socket.emit("leaveAuction", id);
+      socket.off("historyUpdate", onHistoryUpdate);
+      socket.off("rejectUpdate", onRejectUpdate);
     };
   }, [id]);
 
@@ -94,6 +106,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
   const confirm = () => {
     const res = handleRejectBidder(id, bidderId);
     setShowModal(false);
+    setBidderId(null);
   };
 
   console.log(history);
@@ -221,7 +234,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                     >
                       <span className="text-gray-600">
                         {maskFirstHalf(
-                          h.bidderId.firstName + " " + h.bidderId.lastName
+                          h.bidderId?.firstName + " " + h.bidderId?.lastName
                         )}
                       </span>
                       <div className="text-right">
@@ -240,19 +253,19 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       className={
                         !h.isActive
                           ? "flex justify-between bg-gray-400 line-through p-2 border-b border-gray-100"
-                          : userId === h.bidderId._id
+                          : userId === h.bidderId?._id
                           ? "flex justify-between bg-accent p-2 border-b border-gray-100"
                           : "flex justify-between bg-decor p-2 border-b border-gray-100"
                       }
                     >
                       <span className="text-gray-600">
-                        {userId === h.bidderId._id
+                        {userId === h.bidderId?._id
                           ? "You"
                           : maskFirstHalf(
-                              h.bidderId.firstName + " " + h.bidderId.lastName
+                              h.bidderId?.firstName + " " + h.bidderId?.lastName
                             )}
                       </span>
-                      {userId === h.bidderId._id && (
+                      {userId === h.bidderId?._id && (
                         <div className="text-center">
                           <span className="block text-gray-500 text-[10px]">
                             Max
@@ -284,12 +297,12 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                       }
                       onClick={() => {
                         if (!h.isActive) return;
-                        handleShowModal(isOnGoing, h.bidderId._id);
+                        handleShowModal(isOnGoing, h.bidderId?._id);
                       }}
                     >
                       <span className="text-gray-600">
                         {maskFirstHalf(
-                          h.bidderId.firstName + " " + h.bidderId.lastName
+                          h.bidderId?.firstName + " " + h.bidderId?.lastName
                         )}
                       </span>
                       <div className="text-right">

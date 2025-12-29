@@ -15,7 +15,6 @@ export const useCategoryStore = create((set, get) => ({
       set({ 
         categories: response.categories, 
       });
-      toast.success("Load categories successfully");
     } catch (err) {
       console.log(err);
       toast.error("Load categories failed, please try again");

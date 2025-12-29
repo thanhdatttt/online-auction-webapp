@@ -2,10 +2,20 @@ import api from "../utils/axios.js";
 
 // watch list api
 export const watchListService = {
-  fetchFavorites: async(page=1, limit=9) => {
+  fetchFavoriteIds: async() => {
+    try {
+      const res = await api.get("/favorites/favoriteIds");
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  fetchFavorites: async (page=1, limit=9, searchQuery="", sortBy="newest") => {
     try {
       const res = await api.get("/favorites", {
-        params: {page, limit},
+        params: {page, limit, searchQuery, sortBy},
       });
       return res.data;
     } catch (err) {
@@ -14,7 +24,7 @@ export const watchListService = {
     }
   },
 
-  addToFavorite: async(data) => {
+  addToFavorite: async (data) => {
     try {
       const res = await api.post(`/favorites/${data}`);
       return res.data;
@@ -24,7 +34,7 @@ export const watchListService = {
     }
   },
 
-  removeFromFavorite: async(data) => {
+  removeFromFavorite: async (data) => {
     try {
       const res = await api.put(`/favorites/${data}`);
       return res.data;
@@ -33,14 +43,4 @@ export const watchListService = {
       throw err;
     }
   },
-
-  checkFavorite: async(data) => {
-    try {
-      const res = await api.get(`/favorites/${data}`);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      throw err;
-    }
-  }
 };

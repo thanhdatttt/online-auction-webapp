@@ -5,6 +5,10 @@ import {
   Routes,
 } from "react-router-dom";
 import { Toaster } from "sonner";
+import { useAuthStore } from "./stores/useAuth.store.js";
+import useTimeStore from "./stores/useTime.store.js";
+import { useEffect } from "react";
+
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -16,10 +20,10 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
+import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
+import InstructionPage from "./pages/InstructionPage.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
-import { useAuthStore } from "./stores/useAuth.store.js";
-import useTimeStore from "./stores/useTime.store.js";
-import { useEffect } from "react";
 
 function App() {
   // reload info user from refresh token
@@ -27,11 +31,15 @@ function App() {
   useEffect(() => {
     const { accessToken, refresh, fetchMe } = useAuthStore.getState();
 
-    if (!accessToken) {
-      refresh();
-    } else {
-      fetchMe();
-    }
+    const recover = async () => {
+      if (!accessToken) {
+        await refresh();
+      } else {
+        await fetchMe();
+      }
+    };
+
+    recover();
   }, []);
 
   const startClock = useTimeStore((state) => state.startClock);
@@ -46,25 +54,31 @@ function App() {
       <Toaster position="top-right" richColors closeButton />
       {/* routes */}
       <Router>
+        <ScrollToTop/>
         <Routes>
           {/* defaut route */}
           <Route index element={<Navigate to={"/home"} />} />
 
           {/* routes */}
           {/* public route */}
+          {/* authentication */}
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/forgotPassword" element={<ForgotPassPage />} />
           <Route path="/auth/success" element={<AuthSuccessPage />} />
+
+          {/* guest route */}
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/instructions" element={<InstructionPage/>}/>
           <Route
             path="/auctions/:id"
             element={<AuctionDetailPage></AuctionDetailPage>}
           />
           <Route path="/auctions" element={<AuctionPage />} />
 
-          <Route path="/home" element={<HomePage />} />
           {/* protected route */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/auctions/create" element={<CreateAuctionPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route element={<AdminRoute />}>

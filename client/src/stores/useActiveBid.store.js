@@ -9,10 +9,25 @@ export const useActiveBidStore = create((set, get) => ({
   total: 0,
   loading: false,
 
+  // search and sort filter
+  searchQuery: "",
+  sortBy: "newest",
+
+  setSearchQuery: (query) => {
+    set({ searchQuery: query });
+  },
+
+  setSortBy: (sortOption) => {
+    set({ sortBy: sortOption });
+  },
+
   fetchActiveBids: async(page=1, limit=9) => {
     try {
       set({loading: true});
-      const res = await listService.getActiveBids(page, limit);
+
+      const {searchQuery, sortBy} = get();
+
+      const res = await listService.getActiveBids(page, limit, searchQuery, sortBy);
 
       set({
         activeBids: res.auctions,

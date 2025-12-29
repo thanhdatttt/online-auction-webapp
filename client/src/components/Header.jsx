@@ -3,6 +3,7 @@ import { FaRegCircleUser } from "react-icons/fa6";
 import { useAuthStore } from "../stores/useAuth.store.js";
 import { useNavigate, createSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import Icon from "./Icon.jsx";
 
 const Header = () => {
   // navigate
@@ -76,8 +77,11 @@ const Header = () => {
   return (
     <header className="w-full bg-dark px-4 lg:px-8 py-4 flex items-center justify-between fixed top-0 left-0 z-50 shadow-md">
       {/* logo */}
-      <div className="text-lighter text-3xl lg:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
-        Auctiz
+      <div className="flex items-center justify-center">
+        <Icon />
+        <div className="text-lighter text-3xl lg:text-5xl font-lora font-semibold cursor-pointer" onClick={() => navigate("/home")}>
+          Auctiz
+        </div>
       </div>
 
       {/* search bar */}

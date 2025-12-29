@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useAuthStore } from "./useAuth.store.js"; 
+import { uploadService } from "../services/upload.service.js";
 import { userService } from "../services/user.service.js";
 import { toast } from "sonner";
 
@@ -34,6 +35,25 @@ export const useUserStore = create((set, get) => ({
       const {user, setUser} = useAuthStore.getState();
       setUser({...user, address: res.address});
       toast.success("Change address successfully");
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  },
+
+  changeAvatar: async (file) => {
+    try {
+      set({loading: true});
+
+      const signData = await uploadService.getAvatarSignature();
+      const newAvatar_url = await uploadService.uploadImage(file, signData);
+      const res = await userService.changeAvatar({newAvatar_url});
+
+      const {user, setUser} = useAuthStore.getState();
+      setUser({...user, avatar_url: res.newAvatar_url});
+      toast.success("Change avatar successfully");
     } catch (err) {
       console.log(err);
       throw err;
@@ -86,6 +106,22 @@ export const useUserStore = create((set, get) => ({
       toast.success("Change password successfully");
     } catch (err) {
       console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  },
+
+  requestUpdateRole: async () => {
+    try {
+      set({loading: true});
+
+      const res = await userService.requestUpdateRole();
+
+      toast.success("Request role update successfully");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Request failed");
       throw err;
     } finally {
       set({loading: false});

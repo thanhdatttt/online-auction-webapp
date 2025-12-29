@@ -1,15 +1,21 @@
 import { create } from "zustand";
-import { auctionService } from "../services/auction.service";
+import { auctionService } from "../services/auction.service.js";
+import { uploadService } from "../services/upload.service.js";
 import { toast } from "sonner";
-import { intervalToDuration, isPast } from 'date-fns';
+import { intervalToDuration, isPast } from "date-fns";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
 
 export const useAuctionStore = create((set, get) => ({
-
   loading: false,
   auctions: [],
+
+  // home page auctions
+  heroAuction: null,
+  homeEndingSoon: [],
+  homeHighestPrice: [],
+  loadingHome: false,
 
   // Filters
   searchQuery: "",
@@ -20,7 +26,7 @@ export const useAuctionStore = create((set, get) => ({
     page: 1,
     limit: 9,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   },
 
   // Actions
@@ -30,7 +36,7 @@ export const useAuctionStore = create((set, get) => ({
 
   setSortBy: (sortOption) => {
     set({ sortBy: sortOption });
-    // get().getAuctions(); 
+    // get().getAuctions();
   },
 
   setCategory: (categoryId) => {
@@ -40,7 +46,7 @@ export const useAuctionStore = create((set, get) => ({
   setPage: (page) => {
     set((state) => ({
       pagination: { ...state.pagination, page },
-    }))
+    }));
   },
 
   getAuctions: async (pageNumber) => {
@@ -50,15 +56,14 @@ export const useAuctionStore = create((set, get) => ({
       const { limit } = get().pagination;
       const { searchQuery, sortBy, categoryId } = get();
       const response = await auctionService.getAuctions({ page: pageNumber, limit, sort: sortBy, search: searchQuery, categoryId: categoryId });
-      console.log(response);
       set({ 
         auctions: response.auctions, 
         pagination: {
           page: pageNumber,
           limit: limit,
           total: response.pagination.totalItems,
-          totalPages: Math.ceil(response.pagination.totalItems / limit)
-        }
+          totalPages: Math.ceil(response.pagination.totalItems / limit),
+        },
       });
       toast.success("Load auctions successfully");
     } catch (err) {
@@ -149,9 +154,6 @@ export const useAuctionStore = create((set, get) => ({
     if (auction.buyNowPrice && bidMaxAmount >= auction.buyNowPrice)
       return `The amount you entered meets or exceeds the buyout price. To secure this item immediately, please click "Buyout".`;
 
-    console.log(typeof userId);
-    console.log(typeof newWinnerId);
-
     if (
       userId === newWinnerId &&
       newHighestPrice &&
@@ -161,8 +163,16 @@ export const useAuctionStore = create((set, get) => ({
         newHighestPrice
       )}`;
 
-    if (bidMaxAmount % auction.gapPrice !== 0)
-      return `Place bid failed. Bid amount must be a multiple of the gap price.`;
+    if ((bidMaxAmount - auction.startPrice) % auction.gapPrice !== 0)
+      return `Your bid must increase in steps of ${auction.gapPrice}. Please adjust your bid amount.`;
+
+    const basePrice = auction.currentPrice
+      ? auction.currentPrice
+      : auction.startPrice;
+
+    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 50) {
+      return `Place bid failed. Your bid max amount greater than the current bid and 50 times gap price.`;
+    }
 
     return null;
   },
@@ -295,4 +305,60 @@ export const useAuctionStore = create((set, get) => ({
       if (errBackend) toast.error(errBackend, { id: toastId });
     }
   },
+  createAuction: async (formData, imageFiles) => {
+    set({ loading: true });
+
+    try {
+      const signatureData = await uploadService.getSignature();
+      const uploadPromises = imageFiles.map(img => 
+        uploadService.uploadImage(img, signatureData)
+      );
+      const imageUrls = await Promise.all(uploadPromises);
+      formData.name = formData.productName;
+
+      const payload = {
+        ...formData,
+        imageUrls,
+      };
+
+      const response = await auctionService.createAuction(payload);
+      console.log(response);
+      
+      set({ loading: false });
+      toast.success("Create auction successfully");
+
+    } catch (err) {
+      console.log(err);
+      toast.error("Create auction failed, please try again");
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  getHomeAuctions: async () => {
+    try {
+      set({loadingHome: true});
+
+      const [hero, endingSoon, highestPrice] = await Promise.all([
+        auctionService.getAuctions({page: 1, limit: 1, sort: "newest"}),
+        auctionService.getAuctions({page: 1, limit: 5, sort: "ending_soon"}),
+        auctionService.getAuctions({page: 1, limit: 5, sort: "price_desc"}),
+      ]);
+
+      set({
+        heroAuction: hero.auctions[0] || null,
+        homeEndingSoon: endingSoon.auctions,
+        homeHighestPrice: highestPrice.auctions,
+      });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loadingHome: false});
+    }
+  },
+  
+  submitRating: async () => {},
+  handleRating: async () => {},
 }));

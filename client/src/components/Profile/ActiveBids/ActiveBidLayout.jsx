@@ -2,22 +2,29 @@ import { useActiveBidStore } from "../../../stores/useActiveBid.store.js";
 import { useState, useEffect } from "react";
 import Pagination from "../Pagination.jsx";
 import ListGrid from "../ListGrid.jsx";
-import ListHeader from "../ListHeader.jsx";
+import ActiveBidHeader from "./ActiveBidHeader.jsx";
 import Divider from "../Divider.jsx";
+import { useSearchParams } from "react-router";
 
 const ActiveBidLayout = () => {
   // states
   const [currentPage, setCurrentPage] = useState(1);
-  const {activeBids, fetchActiveBids, loading, limit, total} = useActiveBidStore();
+  const {activeBids, fetchActiveBids, setSearchQuery, setSortBy, loading, limit, total} = useActiveBidStore();
+  const [searchParams] = useSearchParams();
+
+  const sortBy = searchParams.get("sortBy");
+  const searchQuery = searchParams.get("searchQuery");
 
   // loading active bids
   useEffect(() => {
     const loadActiveBids = async() => {
+      setSearchQuery(searchQuery);
+      setSortBy(sortBy);
       await fetchActiveBids(currentPage, limit);
     }
 
     loadActiveBids();
-  }, [currentPage]);
+  }, [currentPage, sortBy, searchQuery]);
 
   // total pages
   const totalPages = Math.ceil(total / limit);
@@ -27,9 +34,9 @@ const ActiveBidLayout = () => {
       <h1 className="text-5xl mb-6">Active Bids</h1>
       <Divider/>
 
+      <ActiveBidHeader />
       {activeBids.length > 0 ?
       (<>
-        <ListHeader />
         <ListGrid items={activeBids} loading={loading}/>
         <div className="flex justify-center mt-8">
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
