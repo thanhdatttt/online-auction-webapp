@@ -18,8 +18,9 @@ export const getMyPurchases = async (req, res) => {
 
         const [orders, total] = await Promise.all([
             Order.find(filter)
-                .populate("auctionId", "title")
+                .populate("auctionId")
                 .populate("sellerId", "username")
+                .populate("buyerId", "username")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -57,7 +58,8 @@ export const getMySales = async (req, res) => {
 
         const [orders, total] = await Promise.all([
             Order.find(filter)
-                .populate("auctionId", "title")
+                .populate("auctionId")
+                .populate("sellerId", "username")
                 .populate("buyerId", "username")
                 .sort({ createdAt: -1 })
                 .skip(skip)
@@ -149,17 +151,14 @@ export const confirmReceived = async (req, res) => {
     }
 }
 
+// cancel the order
 export const cancelOrder = async (req, res) => {
     try {
         const order = req.order;
         checkOrderStatus(order, [ORDER_STATUS.WAITING_PAYMENT, ORDER_STATUS.WAITING_CONFIRM, ORDER_STATUS.SHIPPING], "Order is not canceled");
 
-        const {reason} = req.body;
         order.status = ORDER_STATUS.CANCELED;
-        order.cancelInfo = {
-            reason: reason || null,
-            canceledAt: new Date(),
-        }
+        order.canceledAt = new Date();
         await order.save();
 
         return res.status(200).json({

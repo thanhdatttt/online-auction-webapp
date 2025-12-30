@@ -32,7 +32,7 @@ const InstructionLayout = () => {
         <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
           <button 
             onClick={() => navigate("/home")}
-            className="group mb-12 inline-flex items-center space-x-2 text-primary hover:text-accent transition-all duration-300 cursor-pointer"
+            className="group mb-8 inline-flex items-center space-x-2 text-primary hover:text-accent transition-all duration-300 cursor-pointer"
           >
             <ArrowLeft size={14} className="mr-1 transform group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-bold uppercase tracking-[0.3em]">

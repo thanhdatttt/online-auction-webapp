@@ -4,8 +4,8 @@ import {isBuyer, isSeller} from "../middlewares/orderRole.js";
 
 const router = express.Router();
 
-router.get("/purchases", isBuyer, getMyPurchases);
-router.get("/sales", isSeller, getMySales);
+router.get("/purchases", getMyPurchases);
+router.get("/sales", getMySales);
 
 router.put("/:id/pay", isBuyer, payOrder);
 router.put("/:id/ship", isSeller, shipOrder);

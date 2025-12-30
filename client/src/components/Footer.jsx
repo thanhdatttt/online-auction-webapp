@@ -61,7 +61,6 @@ const Footer = () => {
           <ul className="space-y-4 text-xl text-amber-50">
             <li><Link to={"/home"} className="hover:text-primary transition-colors cursor-pointer">Our legacy</Link></li>
             <li><Link to={"/instructions"} className="hover:text-primary transition-colors cursor-pointer">How it Works</Link></li>
-            <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">Selling Fees</a></li>
             <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">Support Center</a></li>
           </ul>
         </div>
@@ -73,7 +72,6 @@ const Footer = () => {
         <div className="flex space-x-6">
           <a href="#" className="hover:text-primary">Privacy Policy</a>
           <a href="#" className="hover:text-primary">Terms of Service</a>
-          <a href="#" className="hover:text-primary">Cookie Policy</a>
         </div>
       </div>
     </footer>

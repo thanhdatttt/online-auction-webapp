@@ -1,7 +1,8 @@
 import { config } from "./configs/config.js";
 import { connectDB } from "./libs/db.js";
-import { adminOnly, auth, authorize } from "./middlewares/auth.js";
+import { auth, authorize } from "./middlewares/auth.js";
 import { initAuctionConfig } from "./utils/auction.utils.js";
+import { authOptional } from "./middlewares/auth.js";
 import { Server } from "socket.io";
 import express from "express";
 import cors from "cors";
@@ -15,8 +16,8 @@ import categoriesRoute from "./routes/category.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
 import uploadRoute from "./routes/upload.route.js";
+import orderRoute from "./routes/order.route.js";
 import ratingRoute from "./routes/rating.route.js";
-import { authOptional } from "./middlewares/auth.js";
 // create server
 const app = express();
 const server = http.createServer(app);
@@ -54,6 +55,7 @@ app.use("/api/auctions", auctionRoute);
 app.use("/api/categories", categoriesRoute);
 app.use("/api/users", userRoute);
 app.use("/api/favorites", favoriteRoute);
+app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
 // admin routes
 app.use(authorize("admin"));

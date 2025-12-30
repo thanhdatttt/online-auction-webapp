@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useAuctionStore } from "../../stores/useAuction.store.js";
 import { useCategoryStore } from "../../stores/useCategory.store.js";
 import { useSearchParams } from "react-router";
+import AuctionListHeader from "./AuctionListHeader.jsx";
 
 const AuctionList = () => {
 const auctions = useAuctionStore((state) => state.auctions);
@@ -36,7 +37,9 @@ const loading = useAuctionStore((state) => state.loading);
   }, [categoryId, sortBy, page, searchQuery]);
 
   return (
-    <main className="container mx-auto px-4 py-8 pt-24 flex flex-col lg:flex-row gap-8">
+    <>
+      <AuctionListHeader/>
+      <main className="container mx-auto px-4 py-8 pt-10 flex flex-col lg:flex-row gap-8">
         <aside className="lg:w-1/5 bg-dark p-5 rounded-lg h-fit">
           {categories.map((category, index) => (
             <Sidebar key={index} category={category} />
@@ -59,6 +62,7 @@ const loading = useAuctionStore((state) => state.loading);
           </div>
         </section>
       </main>
+    </>
   )
 }
 

@@ -1,33 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useOrderStore } from "../../stores/useOrder.store.js";
+import Loading from "../Loading.jsx";
 import TransactionHeader from "./TransactionHeader.jsx";
-import TransactionItem from "./TransactionItem.jsx";
-import TransactionModal from "./TransactionModal.jsx";
+import RoleTab from "./RoleTab.jsx";
+import OrderList from "./OrderList.jsx";
 
 const TransactionLayout = () => {
-  const [activeTab, setActiveTab] = useState("bidder");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const { purchaseOrders, saleOrders, fetchMyPurchases, fetchMySales, loading } = useOrderStore();
 
-  // action
-  const handleAction = (item, role) => {
-    setSelectedItem(item);
-  }
-  const closeModal = () => {
-    setSelectedItem(null);
-  };
+  // tab state
+  const [activeTab, setActiveTab] = useState("bidder");
+  useEffect(() => {
+    fetchMyPurchases();
+    fetchMySales();
+  }, []);
+
+  const orders = activeTab === "bidder" ? purchaseOrders : saleOrders;
 
   return (
     <>
       <TransactionHeader/>
-      <div className="space-y-6">
-        {transactions.map(item => (
-          <TransactionItem
-            key={item._id}
-            item={item}
-            role={activeTab}   
-            onAction={handleAction}
-          />
-        ))}
-      </div>
+      <RoleTab activeTab={activeTab} onTabChange={setActiveTab}/>
+      {loading ? <Loading /> : 
+        <OrderList orders={orders} activeTab={activeTab}/>
+      }
     </>
   );
 }

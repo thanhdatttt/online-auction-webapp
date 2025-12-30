@@ -63,13 +63,8 @@ const orderSchema = new mongoose.Schema({
     },
 
     // cancel 
-    cancelInfo: {
-        reason: {
-            type: String,
-        },
-        canceledAt: {
-            type: Date,
-        }
+    canceledAt: {
+        type: Date,
     },
 },{
     timestamps: true,
