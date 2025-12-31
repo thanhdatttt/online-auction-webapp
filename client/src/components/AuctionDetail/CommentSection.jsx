@@ -165,11 +165,9 @@ const CommentSection = ({ seller, endTime }) => {
                       <img
                         src={c.userId.avatar_url}
                         alt="Seller avatar"
-                        // Thay đổi: dùng w-full h-full để theo size cha, thêm aspect-square để chống méo
                         className="w-full h-full rounded-full object-cover border border-black aspect-square"
                       />
                     ) : (
-                      // Icon giữ nguyên
                       <FaRegCircleUser className="w-10 h-10" />
                     )}
                   </div>
@@ -223,7 +221,6 @@ const CommentSection = ({ seller, endTime }) => {
                     {isSeller && (
                       <div className="mt-3 pl-4 border-l-2 border-gray-300 py-1">
                         {c.answer ? (
-                          // SỬA Ở ĐÂY: Tương tự như trên, hiển thị cùng hàng
                           <div className="text-sm leading-relaxed break-words">
                             <span className="font-bold text-gray-800 mr-1">
                               Answer:
@@ -231,7 +228,6 @@ const CommentSection = ({ seller, endTime }) => {
                             <span className="text-gray-600">{c.answer}</span>
                           </div>
                         ) : (
-                          // Form nhập liệu (khi chưa trả lời)
                           <div className="flex items-center gap-2 w-full">
                             <span className="font-bold text-sm text-gray-800 whitespace-nowrap">
                               Answer:
