@@ -61,7 +61,7 @@ export const auctionService = {
   getAuctions: async ({ page = 1, limit = 9, sort, search, categoryId }) => {
     try {
       const res = await api.get("/guest/auctions", {
-        params: {page, limit, sort, search, categoryId}
+        params: { page, limit, sort, search, categoryId },
       });
       return res.data;
     } catch (err) {
@@ -80,5 +80,7 @@ export const auctionService = {
       console.log(err);
       throw err;
     }
-  }
+  },
+
+  submitRating: async () => {},
 };

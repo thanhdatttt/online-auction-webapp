@@ -1,30 +1,22 @@
 import useTimeStore from '../stores/useTime.store.js';
 import { getFormattedTimeDiff, getRelativeTime } from '../services/time.service.js';
 import { Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useWatchListStore } from '../stores/useWatchList.store.js';
-import { useState } from 'react';
 
 const AuctionCard = ({ auction }) => {
+  // navigate
+  const navigate = useNavigate();
   // time
   const now = useTimeStore((state) => state.now);
   const endTime = getFormattedTimeDiff(auction.endTime, now);
   const startTime = getRelativeTime(auction.startTime, now);
 
   // favorite
-  const [isFavorite, setIsFavorite] = useState(false);
-  const {addToFavorite, removeFromFavorite, checkFavorite} = useWatchListStore();
+  const favoriteIds = useWatchListStore(state => state.favoriteIds);
+  const {addToFavorite, removeFromFavorite } = useWatchListStore();
+  const isFavorite = favoriteIds.has(auction._id);
 
-  // check favorite
-  const check = async () => {
-    try {
-      const isFav = await checkFavorite(auction._id);
-      setIsFavorite(isFav);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  check();
 
   // add favorite / remove favorite
   const toogleFavorite = async(e) => {
@@ -32,74 +24,116 @@ const AuctionCard = ({ auction }) => {
 
     if (isFavorite) {
       await removeFromFavorite(auction._id);     
-      setIsFavorite(false);
     } else {
       await addToFavorite(auction._id);
-      setIsFavorite(true);
     }
   }
 
   return (
-    <div className="bg-dark rounded-lg overflow-hidden shadow-[0_4px_4px_#2a2a35] relative group hover:-translate-y-1">
+    <div className="group bg-slate-900 rounded-4xl overflow-hidden shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-white/5 relative">
+      {/* Top Badges */}
       {auction.isNew && (
-        <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
-          NEW
-        </span>
+        <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center pointer-events-none">
+          <div className="pointer-events-auto">
+            <span className="bg-amber-500/90 backdrop-blur-md text-slate-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+              NEW
+            </span>
+          </div>
+        </div>
       )}
-      <div className="relative">
-        <img src={auction.product.images[0].url} alt={auction.title} className="w-full h-48 object-cover" />
+
+      {/* Image Container */}
+      <div className="relative aspect-4/3 overflow-hidden">
+        <img 
+          src={auction.product.images[0].url} 
+          alt={auction.title} 
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
+        />
+        <div onClick={() => navigate(`/auctions/${auction._id}`)} className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500 cursor-pointer" />
+        
+        {/* Favorite Button */}
         <button
-        onClick={toogleFavorite}
-        className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition z-40 cursor-pointer">
-          <Heart size={20}  className={isFavorite
-          ? "fill-red-500 text-red-500"
-          : "text-white hover:text-red-300"} />
+          onClick={toogleFavorite}
+          className={`absolute top-6 right-6 p-2.5 rounded-full backdrop-blur-md transition-all z-10 cursor-pointer border active:scale-90 shadow-xl
+            ${isFavorite 
+              ? 'bg-rose-500/20 border-rose-500/50 text-rose-500 opacity-100' 
+              : 'bg-black/40 border-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-black/60'
+            }`}
+        >
+          <Heart size={20} className={isFavorite ? "fill-current" : ""} />
         </button>
       </div>
-      <div className="p-4">
-        <Link to={`/auctions/${auction._id}`} className="hover:underline">
-          <h3 className="text-white text-lg font-extrabold font-lato truncate mb-3">{auction.product.name}</h3>
+
+      {/* Content Area */}
+      <div className="p-6">
+        <Link to={`/auctions/${auction._id}`}>
+          <h3 className="text-white font-serif font-bold text-2xl truncate mb-4 group-hover:text-primary transition-colors cursor-pointer">
+            {auction.product.name}
+          </h3>
         </Link>
-        <div className="flex justify-between">
-          <div className="w-2/3">
-            <div className="font-semibold font-lato text-[11px] text-[#d1ae8d] mb-1">
-              CURRENT BID
+
+        <div className="flex gap-6 mb-6">
+          {/* Column 1: Bid Info */}
+          <div className="w-1/2 flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">
+                CURRENT BID
+              </p>
+              <p className="text-2xl font-bold text-white tracking-tight leading-none">
+                {auction.currentPrice ? <span>{auction.currentPrice} VND</span> : <span>None</span>}
+              </p>
             </div>
-            <div className="text-base font-semibold font-lato text-yellow-500 mb-3">
-              {auction.currentPrice} VND
-            </div>
-            <div className="text-[13px] font-lato font-semibold text-white mb-4">
-            Posted <br /><span className="text-base text-lighter"> {startTime}</span>
+            <div className="mt-4">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">
+                POSTED
+              </p>
+              <p className="text-sm font-medium text-slate-300">
+                {startTime}
+              </p>
             </div>
           </div>
-          <div className="w-1/3">
-            <div className="font-semibold font-lato text-[11px] text-[#d1ae8d] mb-1">
-              HIGHEST BIDDER
+
+          {/* Column 2: Highest Bidder & Action */}
+          <div className="w-1/2 flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">
+                HIGHEST BIDDER
+              </p>
+              <p className="text-lg font-bold text-slate-100 truncate">
+                {auction.winnerId && <span>{auction.winnerId.username}</span>}
+                {!auction.winnerId && <span>None</span>}
+              </p>
             </div>
-            <div className="text-base font-semibold font-lato text-yellow-500 mb-3">
-              {auction.winnerId && <span>{auction.winnerId.username}</span>}
-              {!auction.winnerId && <span>Be the first!</span>}
-            </div>
-            <div className="flex items-center">
-              <Link to={`/auctions/${auction._id}`} className="bg-yellow-500 w-full text-center hover:bg-yellow-600 text-black font-bold py-1.5 rounded-lg focus:outline-none transition-colors mb-4 mt-2">
-                Bid
-              </Link>
+            <div className="mt-4">
+              <button onClick={() => navigate(`/auctions/${auction._id}`)} className="w-full bg-primary hover:bg-accent text-slate-950 font-black py-3.5 rounded-2xl transition-all active:scale-[0.98] text-xs uppercase tracking-widest shadow-xl shadow-amber-500/10 cursor-pointer">
+                  Place Bid
+              </button>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between text-[13px] text-white border-t border-gray-700 pt-3">
-          <div className="flex items-center">
-            {/* <Gavel size={14} className="mr-1" /> */}
-            {auction.bids}
+
+        {/* Footer Info */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+          <div className="flex items-center text-slate-400">
+            <span className="text-xs font-bold tracking-widest uppercase">{auction.bids} BIDS</span>
           </div>
-          {endTime == -1 && (<div>ENDED</div>)}
-          {!endTime && (<div>ENDING</div>)}
-          {endTime != -1 && endTime && (<div >END IN <span className="text-red-400 text-base">{endTime}</span></div>)}
           
+          <div className="flex items-center">
+            {endTime == -1 && (<span className='text-sm font-bold text-slate-500 mr-2 uppercase tracking-widest'>ENDED</span>)}
+            {!endTime && (<span className='text-sm font-bold text-slate-500 mr-2 uppercase tracking-widest'>ENDING</span>)}
+            {endTime != -1 && endTime && (
+              <div>
+                <span className="text-sm font-bold text-slate-500 mr-2 uppercase tracking-widest">ENDS IN</span>
+                <span className={`text-sm font-black tracking-tight ${endTime === -1 ? "text-slate-500" : "text-primary"}`}>
+                  {endTime}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default AuctionCard
+export default AuctionCard;

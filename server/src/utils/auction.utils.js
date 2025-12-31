@@ -5,161 +5,168 @@ import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import cron from "node-cron";
 import Auction from "../models/Auction.js";
-
-// singleton...
 export const initAuctionConfig = async () => {
   try {
-    let config = await AuctionConfig.findOne();
-    if (!config) {
-      config = new AuctionConfig({
-        extendThreshold: 300,
-        extendDuration: 600,
+    let auctionConfig = await AuctionConfig.findOne();
+    if (!auctionConfig) {
+      auctionConfig = new AuctionConfig({
+        extendThreshold: 60000 * 5,
+        extendDuration: 60000 * 10,
       });
-      await config.save();
+      await auctionConfig.save();
     }
   } catch (err) {
     throw err;
   }
 };
 
-function formatPriceVND(amount) {
-  return new Intl.NumberFormat("vi-VN").format(amount) + " VND";
-}
+const maskFirstHalf = (str) => {
+  if (!str) return "";
+  const half = Math.floor(str.length / 2);
+  return "*".repeat(half) + str.slice(half);
+};
+
+const formatPriceVND = (amount) =>
+  new Intl.NumberFormat("vi-VN").format(amount) + " VND";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: config.EMAIL_APP,
+    pass: config.PASSWORD_EMAIL_APP,
+  },
+});
+
+const styles = {
+  container: `background-color: #f3f4f6; padding: 40px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;`,
+  wrapper: `max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);`,
+  header: `background-color: #2563eb; padding: 24px; text-align: center;`,
+  headerText: `color: #ffffff; font-size: 24px; font-weight: bold; margin: 0; letter-spacing: 1px;`,
+  body: `padding: 32px; color: #374151; line-height: 1.6; font-size: 16px;`,
+  buttonContainer: `text-align: center; margin-top: 32px; margin-bottom: 16px;`,
+  button: `display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;`,
+  footer: `background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb;`,
+  highlight: `color: #2563eb; font-weight: 600;`,
+  blockquote: `border-left: 4px solid #e5e7eb; padding-left: 16px; margin: 20px 0; color: #6b7280; font-style: italic;`,
+  infoBox: `background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 20px 0;`,
+};
+
+const sendEmail = async (to, subject, html) => {
+  await transporter.sendMail({
+    from: `"Your Auctiz" <${config.EMAIL_APP}>`,
+    to,
+    subject,
+    html,
+  });
+};
 
 export const sendQuestionEmail = async (seller, link, question) => {
-  try {
-    sendEmail(
-      seller.email,
-      "[Auctiz] You Have a New Comment on Your Auction",
-      `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #2c3e50;">New Comment on Your Auction</h2>
-        
-        <p>Hello <strong>${
-          seller.firstName + " " + seller.lastName || "Seller"
-        }</strong>,</p>
+  const sellerName = seller.firstName + " " + seller.lastName || "Seller";
 
-        <p>You’ve received a new comment on one of your auctions.</p>
-
-        <div style="padding: 12px; margin: 16px 0; background: #f7f9fc; border-left: 4px solid #4a90e2;">
-          <p style="margin: 0; font-style: italic;">
-            “${question}”
-          </p>
-        </div>
-
-        <p>To view the comment and respond, click the button below:</p>
-
-        <a href="${link}" 
-           style="display: inline-block; padding: 12px 20px; background: #4a90e2; 
-                  color: #fff; text-decoration: none; border-radius: 6px; margin-top: 10px;">
-          View Auction
-        </a>
-
-        <br/><br/>
-
-        <p style="font-size: 14px; color: #777;">
-          If you did not expect this email, you can safely ignore it.
-        </p>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
-
-        <p style="font-size: 12px; color: #aaa;">
-          This is an automated message from <strong>Your Auctiz</strong>.
-        </p>
-      </div>
+  await sendEmail(
+    seller.email,
+    "[Auctiz] You Have a New Comment on Your Auction",
     `
-    );
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #111827;">New Comment Received</h2>
+          <p>Hello <strong>${sellerName}</strong>,</p>
+          <p>Someone is interested in your auction and has left a question:</p>
+          
+          <div style="${styles.blockquote}">
+            "${question}"
+          </div>
+          
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">Reply Now</a>
+          </div>
+          
+          <p style="margin-bottom: 0;">Please respond promptly to increase your chances of a successful sale.</p>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
+    </div>
+    `
+  );
 };
 
 export const sendAnswerEmail = async (bidder, link, question, answer) => {
-  try {
-    sendEmail(
-      bidder.email,
-      "[Auctiz] A Comment Has Been Answered in an Auction You Joined",
-      `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #4a90e2;">A Comment Has Been Answered</h2>
+  const bidderName = bidder.firstName + " " + bidder.lastName || "Bidder";
 
-        <p>Hello <strong>${
-          bidder.firstName + " " + bidder.lastName || "Bidder"
-        }</strong>,</p>
-
-        <p>A question in an auction you participated in has just been answered.</p>
-
-        <div style="padding: 12px; margin: 16px 0; background: #f7f9fc; border-left: 4px solid #4a90e2;">
-          <p style="margin: 0; font-style: italic;">
-            “${question}”
-          </p>
-          <p style="margin: 8px 0 0; color: #2c3e50;">
-            <strong>Answer:</strong> ${answer}
-          </p>
+  await sendEmail(
+    bidder.email,
+    "[Auctiz] Seller Answered Your Question",
+    `
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
         </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #111827;">New Reply</h2>
+          <p>Hello <strong>${bidderName}</strong>,</p>
+          <p>The seller has responded to your question:</p>
+          
+          <div style="${styles.infoBox}">
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">Your Question:</p>
+            <p style="margin: 0 0 16px 0; font-style: italic;">"${question}"</p>
+            
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #2563eb; font-weight: bold;">Seller's Answer:</p>
+            <p style="margin: 0;">"${answer}"</p>
+          </div>
 
-        <p>You can view the full discussion and auction details here:</p>
-
-        <a href="${link}" 
-          style="display: inline-block; padding: 12px 20px; background: #4a90e2; 
-                  color: #fff; text-decoration: none; border-radius: 6px; margin-top: 10px;">
-          View Auction
-        </a>
-
-        <br/><br/>
-
-        <p style="font-size: 14px; color: #777;">
-          If you did not expect this email, you can safely ignore it.
-        </p>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;" />
-
-        <p style="font-size: 12px; color: #aaa;">
-          This is an automated message from <strong>Your Auctiz</strong>.
-        </p>
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">View Auction</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
       </div>
-  `
-    );
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
+    </div>
+    `
+  );
 };
 
 export const sendRejectedBidderEmail = async (bidder, productName, link) => {
-  try {
-    sendEmail(
-      bidder.email,
-      "[Auctiz] Your Bid Has Been Rejected",
-      `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h2 style="color: #FF5722;">Bid Rejection Notice</h2>
+  const bidderName = bidder.firstName + " " + bidder.lastName || "Bidder";
 
-      <p>Hello <strong>${
-        bidder.firstName + " " + bidder.lastName || "Bidder"
-      }</strong>,</p>
-
-      <p>We regret to inform you that your bid on the auction <strong>"${productName}"</strong> has been <strong>rejected by the seller</strong>.</p>
-
-      <p>As a result, you will <strong>no longer be allowed to place any further bids</strong> on this auction.</p>
-
-      <p>You can view the auction details here:</p>
-      <a href="${link}"
-        style="display:inline-block; padding:10px 16px; background:#FF5722; color:white; text-decoration:none; border-radius:5px;">
-        View Auction
-      </a>
-
-      <p style="font-size: 12px; color: #aaa;">
-        This is an automated message from <strong>Your Auctiz</strong>.
-      </p>
+  await sendEmail(
+    bidder.email,
+    "[Auctiz] Important Update Regarding Your Bid",
+    `
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${
+          styles.header
+        }" style="background-color: #dc2626;"> <h1 style="${
+      styles.headerText
+    }">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #dc2626;">Bid Rejected</h2>
+          <p>Hello <strong>${bidderName}</strong>,</p>
+          <p>We regret to inform you that your bid on <strong>"${productName}"</strong> has been rejected by the seller.</p>
+          
+          <p>This can happen for various reasons determined by the seller. You can check the auction details for more information.</p>
+          
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">View Auction</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
     </div>
-  `
-    );
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
+    `
+  );
 };
 
 export const sendPlaceBidEmail = async (
@@ -168,142 +175,148 @@ export const sendPlaceBidEmail = async (
   bidEntryAmount,
   bidMaxAmount
 ) => {
-  try {
-    const bidder = await User.findById(bidderId).select(
-      "email firstName lastName"
-    );
+  const bidder = await User.findById(bidderId).select(
+    "email firstName lastName"
+  );
+  const seller = await User.findById(auction.sellerId).select(
+    "email firstName lastName"
+  );
 
-    const seller = await User.findById(auction.sellerId).select(
-      "email firstName lastName"
-    );
+  const bidderIds = await Bid.find({ auctionId: auction._id }).distinct(
+    "bidderId"
+  );
+  const bidders = await User.find({ _id: { $in: bidderIds } }).select(
+    "email firstName lastName"
+  );
 
-    bidder.bidEntryAmount = bidEntryAmount;
-    bidder.bidMaxAmount = bidMaxAmount;
+  const link = `${config.CLIENT_URL}/auctions/${auction._id}`;
+  const productName = auction.product.name;
 
-    const bidderIds = await Bid.find({
-      auctionId: auction._id,
-    }).distinct("bidderId");
-
-    const bidders = await User.find({ _id: { $in: bidderIds } }).select(
-      "email firstName lastName"
-    );
-
-    console.log(auction.id);
-
-    const link = `${config.CLIENT_URL}/auctions/${auction._id}`;
-
-    sendEmail(
-      bidder.email,
-      "[Auctiz] Your Bid Has Been Placed Successfully",
-      `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h2 style="color: #4CAF50;">Bid Placed Successfully</h2>
-
-      <p>Hello <strong>${bidder.firstName + " " + bidder.lastName}</strong>,</p>
-
-      <p>Your bid on the auction <strong>"${
-        auction.product.name
-      }"</strong> has been placed successfully.</p>
-
-      <p>Your current entry bid amount is:
-        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
-          bidder.bidEntryAmount
-        )}</strong>
-      </p>
-
-      <p>Your max bid amount is:
-        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
-          bidder.bidMaxAmount
-        )}</strong>
-      </p>
-
-      <a href="${link}"
-        style="display:inline-block; padding:10px 16px; background:#4CAF50; color:white; text-decoration:none; border-radius:5px;">
-        View Auction
-      </a>
-
-      <p style="font-size: 12px; color: #aaa;">This is an automated message from <strong>Auctiz</strong>.</p>
-    </div>
+  // 4a. Email to the Bidder (Success)
+  await sendEmail(
+    bidder.email,
+    "[Auctiz] Bid Placed Successfully",
     `
-    );
-
-    sendEmail(
-      seller.email,
-      "[Auctiz] A New Bid Has Been Placed on Your Auction",
-      `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h2 style="color: #2196F3;">New Bid Received</h2>
-
-      <p>Hello <strong>${seller.firstName + " " + seller.lastName}</strong>,</p>
-
-      <p>Your auction <strong>"${
-        auction.product.name
-      }"</strong> has received a new bid.</p>
-
-      <p>The bidder <strong>${
-        bidder.firstName + " " + bidder.lastName
-      }</strong> placed a max bid of:</p>
-
-      <p><strong style="color:#2196F3; font-size: 18px;">${formatPriceVND(
-        bidder.bidMaxAmount
-      )}</strong></p>
-
-      <p>The current price of auction is:
-        <strong style="color:#4CAF50; font-size: 18px;">${formatPriceVND(
-          auction.currentPrice
-        )}</strong>
-      </p>
-
-      <a href="${link}"
-        style="display:inline-block; padding:10px 16px; background:#2196F3; color:white; text-decoration:none; border-radius:5px;">
-        View Auction
-      </a>
-
-      <p style="font-size: 12px; color: #aaa;">This is an automated message from <strong>Auctiz</strong>.</p>
-    </div>
-    `
-    );
-
-    bidders
-      .filter((b) => b.id !== bidder.id)
-      .forEach((b) => {
-        sendEmail(
-          b.email,
-          "[Auctiz] A New Bid Was Placed on an Auction You Joined",
-          `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #FF9800;">New Bid Alert</h2>
-
-          <p>Hello <strong>${b.firstName + " " + b.lastName}</strong>,</p>
-
-          <p>A new bid has been placed on the auction <strong>"${
-            auction.product.name
-          }"</strong>.</p>
-
-          <p>The bidder <strong>${
-            bidder.firstName + " " + bidder.lastName
-          }</strong> has placed a entry bid of:</p>
-
-          <p><strong style="color:#FF9800; font-size: 18px;">${formatPriceVND(
-            bidder.bidEntryAmount
-          )}</strong></p>
-
-          <p>You can view the updated auction details here:</p>
-
-          <a href="${link}"
-            style="display:inline-block; padding:10px 16px; background:#FF9800; color:white; text-decoration:none; border-radius:5px;">
-            View Auction
-          </a>
-
-          <p style="font-size: 12px; color: #aaa;">This is an automated message from <strong>Auctiz</strong>.</p>
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
         </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #16a34a;">Bid Confirmed!</h2>
+          <p>Hello <strong>${bidder.firstName} ${bidder.lastName}</strong>,</p>
+          <p>You have successfully placed a bid on <strong>"${productName}"</strong>.</p>
+          
+          <div style="${styles.infoBox}">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">Entry Price:</td>
+                <td style="padding: 4px 0; font-weight: bold; text-align: right;">${formatPriceVND(
+                  bidEntryAmount
+                )}</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">Your Max Bid:</td>
+                <td style="padding: 4px 0; font-weight: bold; text-align: right;">${formatPriceVND(
+                  bidMaxAmount
+                )}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">Track Your Bid</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
+    </div>
+    `
+  );
+
+  // 4b. Email to the Seller (Notification)
+  await sendEmail(
+    seller.email,
+    "[Auctiz] New Bid on Your Auction",
+    `
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #111827;">Action on Your Auction!</h2>
+          <p>Hello <strong>${seller.firstName}</strong>,</p>
+          <p>Good news! A new bid has been placed on <strong>"${productName}"</strong>.</p>
+          
+          <div style="text-align: center; padding: 20px; background-color: #eff6ff; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">Max Bid Amount</p>
+            <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #2563eb;">${formatPriceVND(
+              bidMaxAmount
+            )}</p>
+          </div>
+
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">Manage Auction</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
+    </div>
+    `
+  );
+
+  // 4c. Email to other bidders (Outbid/Update notification)
+  const otherBidders = bidders.filter((b) => b.id !== bidder.id);
+
+  // Dùng Promise.all để gửi song song cho nhanh
+  await Promise.all(
+    otherBidders.map((b) =>
+      sendEmail(
+        b.email,
+        "[Auctiz] Auction Update: New Bid Placed",
         `
-        );
-      });
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
+      <div style="${styles.container}">
+        <div style="${styles.wrapper}">
+          <div style="${styles.header}">
+            <h1 style="${styles.headerText}">Auctiz</h1>
+          </div>
+          <div style="${styles.body}">
+            <h2 style="margin-top: 0; color: #111827;">Auction Update</h2>
+            <p>Hello <strong>${b.firstName}</strong>,</p>
+            <p>A new bid has been placed on an auction you are watching: <strong>"${productName}"</strong>.</p>
+            
+            <div style="${styles.infoBox}">
+              <p style="margin: 0 0 8px 0;"><strong>Latest Activity:</strong></p>
+              <ul style="padding-left: 20px; margin: 0;">
+                <li style="margin-bottom: 4px;">Bidder: ${maskFirstHalf(
+                  bidder.firstName + " " + bidder.lastName
+                )}</li>
+                <li>Current Entry Price: <strong>${formatPriceVND(
+                  bidEntryAmount
+                )}</strong></li>
+              </ul>
+            </div>
+
+            <p>Check if you've been outbid and place a new bid to stay in the lead!</p>
+
+            <div style="${styles.buttonContainer}">
+              <a href="${link}" style="${styles.button}">Place New Bid</a>
+            </div>
+          </div>
+          <div style="${styles.footer}">
+            &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+          </div>
+        </div>
+      </div>
+      `
+      )
+    )
+  );
 };
 
 export const sendWinnerEmail = async (
@@ -312,36 +325,40 @@ export const sendWinnerEmail = async (
   finalPrice,
   link
 ) => {
-  try {
-    sendEmail(
-      winner.email,
-      `[Auctiz] Congratulations! You Won the Auction`,
-      `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h2 style="color: #4CAF50;">Congratulations!</h2>
+  await sendEmail(
+    winner.email,
+    "[Auctiz] Congratulations! You Won!",
+    `
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #16a34a; text-align: center;">🎉 Congratulations! 🎉</h2>
+          <p>Hello <strong>${winner.firstName} ${winner.lastName}</strong>,</p>
+          <p>You have successfully won the auction for <strong>"${productName}"</strong>!</p>
+          
+          <div style="text-align: center; padding: 24px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin: 24px 0;">
+            <p style="margin: 0; font-size: 14px; color: #166534;">Final Winning Price</p>
+            <p style="margin: 8px 0 0 0; font-size: 28px; font-weight: bold; color: #15803d;">${formatPriceVND(
+              finalPrice
+            )}</p>
+          </div>
 
-      <p>Hello <strong>${
-        winner.firstName + " " + winner.lastName || "Winner"
-      }</strong>,</p>
+          <p>Please proceed to the auction page to finalize the transaction details with the seller.</p>
 
-      <p>We are pleased to inform you that you have <strong>won the auction</strong> for <strong>"${productName}"</strong> with a final bid of <strong>${finalPrice} VND</strong>.</p>
-
-      <p>You can view the auction and complete your purchase here:</p>
-      <a href="${link}"
-        style="display:inline-block; padding:10px 16px; background:#4CAF50; color:white; text-decoration:none; border-radius:5px;">
-        View Auction
-      </a>
-
-      <p style="font-size: 12px; color: #aaa;">
-        This is an automated message from <strong>Your Auctiz</strong>.
-      </p>
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">View Order Details</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
     </div>
-  `
-    );
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
+    `
+  );
 };
 
 export const sendSellerEmail = async (
@@ -351,95 +368,117 @@ export const sendSellerEmail = async (
   finalPrice = null,
   link
 ) => {
-  try {
-    const message = winner
-      ? `The winning bidder is <strong>${
-          winner.firstName + " " + winner.lastName
-        }</strong> with a final bid of <strong>${finalPrice} VND</strong>.`
-      : `Your auction ended with no winning bids.`;
+  const isSuccess = !!winner;
+  const statusColor = isSuccess ? "#16a34a" : "#6b7280";
+  const statusTitle = isSuccess
+    ? "Auction Sold Successfully!"
+    : "Auction Ended (No Bids)";
 
-    sendEmail(
-      seller.email,
-      `[Auctiz] Your Auction Has Ended`,
-      `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #2196F3;">Auction Ended</h2>
-
-        <p>Hello <strong>${
-          seller.firstName + " " + seller.lastName || "Seller"
-        }</strong>,</p>
-
-        <p>Your auction for <strong>"${productName}"</strong> has ended.</p>
-
-        <p>${message}</p>
-
-        <p>You can view the auction details here:</p>
-        <a href="${link}"
-          style="display:inline-block; padding:10px 16px; background:#2196F3; color:white; text-decoration:none; border-radius:5px;">
-          View Auction
-        </a>
-
-        <p style="font-size: 12px; color: #aaa;">
-          This is an automated message from <strong>Your Auctiz</strong>.
-        </p>
+  let contentHtml = "";
+  if (isSuccess) {
+    contentHtml = `
+      <p>Congratulations! Your auction for <strong>"${productName}"</strong> has ended with a winner.</p>
+      <div style="${styles.infoBox}">
+         <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding: 6px 0; color: #6b7280;">Winner:</td>
+              <td style="padding: 6px 0; font-weight: bold; text-align: right;">${
+                winner.firstName
+              } ${winner.lastName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6b7280;">Final Price:</td>
+              <td style="padding: 6px 0; font-weight: bold; text-align: right; color: #2563eb;">${formatPriceVND(
+                finalPrice
+              )}</td>
+            </tr>
+         </table>
       </div>
+      <p>Please contact the winner to arrange payment and delivery.</p>
+    `;
+  } else {
+    contentHtml = `
+      <p>Your auction for <strong>"${productName}"</strong> has ended.</p>
+      <div style="padding: 16px; background-color: #f3f4f6; border-radius: 6px; text-align: center; color: #6b7280; margin: 20px 0;">
+        Unfortunately, there were no valid bids for this item.
+      </div>
+      <p>You can try relisting the item or editing the details to attract more bidders.</p>
+    `;
+  }
+
+  await sendEmail(
+    seller.email,
+    `[Auctiz] Auction Ended: ${productName}`,
     `
-    );
-  } catch (err) {
-    console.log(err.message);
-    throw err;
-  }
-};
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: ${statusColor};">${statusTitle}</h2>
+          <p>Hello <strong>${seller.firstName} ${seller.lastName}</strong>,</p>
+          
+          ${contentHtml}
 
-const sendEmail = async (to, subject, contentHTML) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: config.EMAIL_APP,
-        pass: config.PASSWORD_EMAIL_APP,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"Your Auctiz" <${config.EMAIL_APP}>`,
-      to: to,
-      subject: subject,
-      html: contentHTML,
-    });
-  } catch (err) {
-    throw err;
-  }
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">View Result</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
+    </div>
+    `
+  );
 };
 
 cron.schedule("* * * * *", async () => {
-  const now = new Date();
-  const auctionsToEnd = await Auction.find({
-    status: "ongoing",
-    endTime: { $lte: now },
-  });
+  try {
+    const now = new Date();
+    const auctionsToEnd = await Auction.find({
+      status: "ongoing",
+      endTime: { $lte: now },
+    });
 
-  for (const auction of auctionsToEnd) {
-    auction.status = "ended";
+    const io = global.io;
 
-    await auction.save({ validateBeforeSave: false });
+    for (const auction of auctionsToEnd) {
+      const updated = await Auction.findOneAndUpdate(
+        { _id: auction._id, status: "ongoing" },
+        { status: "ended" },
+        { new: true }
+      );
 
-    const link = `${config.CLIENT_URL}/auctions/${auction.id}`;
+      if (!updated) continue;
 
-    const winner = await User.findById(auction.winnerId);
+      console.log(updated.id);
 
-    if (winner) {
-      sendWinnerEmail(winner, auction.product.name, auction.currentPrice, link);
+      io.to(`auction_${updated._id}`).emit("endTimeUpdate", updated.endTime);
+
+      const link = `${config.CLIENT_URL}/auctions/${auction._id}`;
+      const winner = await User.findById(auction.winnerId);
+      const seller = await User.findById(auction.sellerId);
+
+      if (winner) {
+        await sendWinnerEmail(
+          winner,
+          auction.product.name,
+          auction.currentPrice,
+          link
+        );
+      }
+
+      await sendSellerEmail(
+        seller,
+        auction.product.name,
+        winner,
+        auction.currentPrice,
+        link
+      );
     }
-
-    const seller = await User.findById(auction.sellerId);
-
-    sendSellerEmail(
-      seller,
-      auction.product.name,
-      winner,
-      auction.currentPrice,
-      link
-    );
+  } catch (err) {
+    console.error("[CRON END AUCTION ERROR]", err);
   }
 });

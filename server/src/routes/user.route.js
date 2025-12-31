@@ -9,7 +9,11 @@ import {
   changeAvatar,
   requestRole,
 } from "../controllers/user.controller.js";
-import { getActiveBids, getWonAuctions } from "../controllers/list.controller.js";
+import {
+  getCreatedAuctions,
+  getActiveBids,
+  getWonAuctions,
+} from "../controllers/list.controller.js";
 
 const router = express.Router();
 
@@ -23,6 +27,7 @@ router.patch("/me/password", changePassword);
 router.post("/me/requestRole", requestRole);
 
 router.get("/me/won-auctions", getWonAuctions);
+router.get("/me/created-auctions", getCreatedAuctions);
 router.get("/me/active-bids", getActiveBids);
 
 export default router;

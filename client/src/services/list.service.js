@@ -2,10 +2,10 @@ import api from "../utils/axios.js";
 
 // active bids and won auctions
 export const listService = {
-  getActiveBids: async(page=1, limit=9) => {
+  getActiveBids: async(page=1, limit=9,  searchQuery="", sortBy="newest") => {
     try {
       const res = await api.get("/users/me/active-bids", {
-        params: {page, limit},
+        params: {page, limit, searchQuery, sortBy},
       });
 
       return res.data;
