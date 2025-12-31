@@ -336,7 +336,15 @@ const RightSideBar = ({
 
         {/* SELLER INFO */}
         <div className="flex items-center gap-3 mb-6">
-          <FaRegCircleUser className="w-10 h-10"></FaRegCircleUser>
+          {seller?.avatar_url ? (
+            <img
+              src={seller?.avatar_url}
+              alt="Seller avatar"
+              className="w-10 h-10 rounded-full object-cover border border-black"
+            />
+          ) : (
+            <FaRegCircleUser className="w-10 h-10" />
+          )}
           <div>
             <p className="text-[16px] text-dark">
               Posted by{" "}

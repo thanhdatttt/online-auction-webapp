@@ -160,8 +160,18 @@ const CommentSection = ({ seller, endTime }) => {
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <FaRegCircleUser className="w-16 h-16"></FaRegCircleUser>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    {c.userId?.avatar_url ? (
+                      <img
+                        src={c.userId.avatar_url}
+                        alt="Seller avatar"
+                        // Thay đổi: dùng w-full h-full để theo size cha, thêm aspect-square để chống méo
+                        className="w-full h-full rounded-full object-cover border border-black aspect-square"
+                      />
+                    ) : (
+                      // Icon giữ nguyên
+                      <FaRegCircleUser className="w-10 h-10" />
+                    )}
                   </div>
 
                   {/* Content */}
