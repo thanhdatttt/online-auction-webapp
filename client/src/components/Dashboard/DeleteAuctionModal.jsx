@@ -1,22 +1,24 @@
 import { useState } from "react";
 import api from "../../utils/axios";
+import { toast } from "sonner";
 
-export default function DeleteUserModal({ open, onClose, user, onDeleted }) {
+export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
     const [deleting, setDeleting] = useState(false);
+    console.log(item);
     
     const confirmDelete = async () => {
-        if (!user) return;
+        if (!item) return;
 
         setDeleting(true);
         try {
-            const res = await api.post(`/admin/users/${user._id}/delete`);
+            const res = await api.post(`/admin/auction/${item._id}/delete`);
             if (res.status === 200){
-                toast.success("Delete User successfully!");
+                toast.success("Delete Auction successfully!");
                 onDeleted();
             }
         } catch (err) {
             console.error(err);
-            toast.error("Delete User unsuccessfully!");
+            toast.error("Delete Auction unsuccessfully!");
         } finally {
             setDeleting(false);
         }
@@ -37,7 +39,7 @@ export default function DeleteUserModal({ open, onClose, user, onDeleted }) {
                                 </svg>
                             </div>
                             <h2 className="text-2xl font-bold text-dark font-lato">
-                                Delete User
+                                Delete Auction
                             </h2>
                         </div>
                         
@@ -55,7 +57,7 @@ export default function DeleteUserModal({ open, onClose, user, onDeleted }) {
                     <div className="mb-6">
                         <p className="text-dark font-lato leading-relaxed">
                             Are you sure you want to delete{" "}
-                            <span className="font-semibold text-dark">{user?.username}</span>?
+                            <span className="font-semibold text-dark">{item?.product.name.length > 50 ? item?.product.name.slice(0,50) + "..." : item?.product.name}</span>?
                         </p>
                         <p className="text-dark/70 font-lato mt-2 text-sm">
                             This action cannot be undone. All user data will be permanently removed.
@@ -86,7 +88,7 @@ export default function DeleteUserModal({ open, onClose, user, onDeleted }) {
                                     Deleting...
                                 </span>
                             ) : (
-                                'Delete User'
+                                'Delete Auction'
                             )}
                         </button>
                     </div>

@@ -3,6 +3,7 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 import BaseTable from "./BaseTable";
 import EditExtensionPopup from "../EditExtensionModal";
 import { useAuctionStore } from "@/stores/useAuction.store";
+import DeleteAuctionModal from "../DeleteAuctionModal";
 import api from "@/utils/axios";
 
 export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange }) {
@@ -12,6 +13,9 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedAuction, setSelectedAuction] = useState(null);
 
     const {formatPrice, formatTime} = useAuctionStore();
 
@@ -127,7 +131,7 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
 
     const renderRow = (item) => (
         <div
-        key={item.product._id}
+        key={item._id}
         className="grid gap-4 px-6 py-[0.565rem] border-2 border-b border-decor hover:bg-amber-50 transition-colors"
         style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
         >
@@ -146,7 +150,10 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
                 </span>
             </div>
             <div className="flex items-center justify-end gap-2 mr-8">
-                <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
+                <button onClick={() => {
+                    setShowDeleteModal(true);
+                    setSelectedAuction(item);
+                }} className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>
@@ -171,6 +178,19 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
             loading={loading}
             onAdd={() => setIsPopupOpen(true)}
             renderRow={renderRow}
+            />
+
+            <DeleteAuctionModal
+                open={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                }}
+                onDeleted={() => {
+                    setShowDeleteModal(false);
+                    setSelectedAuction(null);
+                    loadData();
+                }}
+                item={selectedAuction}
             />
 
             <EditExtensionPopup

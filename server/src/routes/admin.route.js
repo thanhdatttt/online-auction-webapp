@@ -11,7 +11,8 @@ import {
   updateAuctionConfig,
   updateUserInfo,
   getAuctions,
-  getAuctionConfig
+  getAuctionConfig,
+  deleteAuction
 } from "../controllers/admin.controller.js";
 
 
@@ -33,4 +34,5 @@ router.patch("/users/:userId/status", updateUserStatus);
 router.get("/auctions", getAuctions);
 router.get("/auction/config", getAuctionConfig);
 router.put("/auction/config", updateAuctionConfig);
+router.post("/auction/:auctionId/delete", deleteAuction);
 export default router;

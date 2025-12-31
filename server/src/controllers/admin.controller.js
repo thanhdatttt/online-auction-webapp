@@ -67,6 +67,46 @@ export const getAuctions = async (req, res) => {
   }
 }
 
+export const deleteAuction = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+
+    if (!auctionId) {
+        return res.status(400).json({ message: "Missing auctionId" });
+    }
+
+    // 2. Find the auction by ID
+    const auction = await Auction.findById(auctionId);
+
+    if (!auction) {
+        return res.status(404).json({ message: "Auction not found" });
+    }
+
+    // 3. Check if it is already soft-deleted
+    if (auction.isDeleted === true) {
+        return res.status(400).json({
+            message: "Auction already deleted."
+        });
+    }
+
+    // 4. Perform the soft delete
+    auction.isDeleted = true;
+    await auction.save();
+
+    return res.status(200).json({
+        message: "Auction deleted successfully",
+        auction: {
+            id: auction._id,
+            productName: auction.product.name,
+            status: auction.status
+        }
+    });
+      
+  } catch (error) {
+      return res.status(500).json({message: error.message});
+  }
+}
+
 export const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
