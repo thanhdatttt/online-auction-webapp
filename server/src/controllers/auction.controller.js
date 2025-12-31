@@ -19,7 +19,7 @@ import RejectedBidder from "../models/RejectedBidder.js";
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;
-    const { name, description, imageUrls, mainImageId = null } = req.body;
+    const { categoryId, name, description, imageUrls, mainImageId = null } = req.body;
 
     const images = imageUrls.map((url) => ({
       _id: new mongoose.Types.ObjectId(),
@@ -27,6 +27,7 @@ export const createAuction = async (req, res) => {
     }));
 
     const product = {
+      categoryId: categoryId,
       name: name,
       description: description,
       images: images,
@@ -37,7 +38,7 @@ export const createAuction = async (req, res) => {
       product.mainImageId = product.images[0]._id;
     }
 
-    const { startPrice, buyNowPrice = null, gapPrice, endTime } = req.body;
+    const { startPrice, buyNowPrice = null, gapPrice, endTime, autoExtension } = req.body;
 
     const auction = new Auction({
       product: product,
@@ -46,6 +47,7 @@ export const createAuction = async (req, res) => {
       buyNowPrice: buyNowPrice,
       gapPrice: gapPrice,
       endTime: endTime,
+      autoExtension: autoExtension,
     });
 
     await auction.save();
