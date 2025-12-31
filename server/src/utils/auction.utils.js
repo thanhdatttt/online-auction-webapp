@@ -109,7 +109,7 @@ export const sendAnswerEmail = async (bidder, link, question, answer) => {
           <h1 style="${styles.headerText}">Auctiz</h1>
         </div>
         <div style="${styles.body}">
-          <h2 style="margin-top: 0; color: #111827;">New Reply</h2>
+          <h2 style="margin-top: 0; color: #111827;">New Reply to Your Question</h2>
           <p>Hello <strong>${bidderName}</strong>,</p>
           <p>The seller has responded to your question:</p>
           
@@ -120,6 +120,52 @@ export const sendAnswerEmail = async (bidder, link, question, answer) => {
             <p style="margin: 0 0 8px 0; font-size: 14px; color: #2563eb; font-weight: bold;">Seller's Answer:</p>
             <p style="margin: 0;">"${answer}"</p>
           </div>
+
+          <div style="${styles.buttonContainer}">
+            <a href="${link}" style="${styles.button}">View Auction</a>
+          </div>
+        </div>
+        <div style="${styles.footer}">
+          &copy; ${new Date().getFullYear()} Auctiz. All rights reserved.
+        </div>
+      </div>
+    </div>
+    `
+  );
+};
+
+export const sendGeneralAnswerEmail = async (
+  bidder,
+  link,
+  question,
+  answer,
+  productName
+) => {
+  const bidderName = bidder.firstName + " " + bidder.lastName || "User";
+
+  await sendEmail(
+    bidder.email,
+    "[Auctiz] New Q&A Activity on an Auction You Joined",
+    `
+    <div style="${styles.container}">
+      <div style="${styles.wrapper}">
+        <div style="${styles.header}">
+          <h1 style="${styles.headerText}">Auctiz</h1>
+        </div>
+        <div style="${styles.body}">
+          <h2 style="margin-top: 0; color: #111827;">Auction Update</h2>
+          <p>Hello <strong>${bidderName}</strong>,</p>
+          <p>A new question regarding <strong>"${productName}"</strong> has been answered by the seller.</p>
+          
+          <div style="${styles.infoBox}">
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">Question:</p>
+            <p style="margin: 0 0 16px 0; font-style: italic;">"${question}"</p>
+            
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #2563eb; font-weight: bold;">Seller's Answer:</p>
+            <p style="margin: 0;">"${answer}"</p>
+          </div>
+
+          <p style="font-size: 14px; color: #666;">Check it out, this information might be useful for your bidding strategy.</p>
 
           <div style="${styles.buttonContainer}">
             <a href="${link}" style="${styles.button}">View Auction</a>
