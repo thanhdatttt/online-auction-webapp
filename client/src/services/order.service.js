@@ -27,7 +27,7 @@ export const orderService = {
 
   payOrder: async (orderId, data) => {
     try {
-      const res = await api.put(`/orders/:${orderId}/pay`, data);
+      const res = await api.put(`/orders/${orderId}/pay`, data);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -37,7 +37,7 @@ export const orderService = {
 
   shipOrder: async (orderId, data) => {
     try {
-      const res = await api.put(`/orders/:${orderId}/ship`, data);
+      const res = await api.put(`/orders/${orderId}/ship`, data);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -47,7 +47,7 @@ export const orderService = {
 
   confirmReceived: async (orderId) => {
     try {
-      const res = await api.put(`/orders/:${orderId}/confirm-received`);
+      const res = await api.put(`/orders/${orderId}/confirm-received`);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -57,7 +57,7 @@ export const orderService = {
 
   cancelOrder: async (orderId) => {
     try {
-      const res = await api.put(`/orders/:${orderId}/cancel`);
+      const res = await api.put(`/orders/${orderId}/cancel`);
       return res.data;
     } catch (err) {
       console.log(err);

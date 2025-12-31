@@ -46,7 +46,7 @@ const AuctionCard = ({ auction }) => {
       <div className="relative aspect-4/3 overflow-hidden">
         <img 
           src={auction.product.images[0].url} 
-          alt={auction.title} 
+          alt={auction.product.name} 
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
         />
         <div onClick={() => navigate(`/auctions/${auction._id}`)} className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500 cursor-pointer" />

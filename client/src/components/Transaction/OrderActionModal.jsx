@@ -4,11 +4,12 @@ import { TransactionStatus } from "./OrderCard.jsx";
 import {
   X,MapPin, CreditCard, Truck, CheckCircle, ArrowRight, ShieldCheck, AlertTriangle, XCircle
 } from 'lucide-react';
+import { useState } from "react";
 
 const OrderActionModal = ({order, onClose}) => {
   const { payOrder, shipOrder, confirmReceived, cancelOrder } = useOrderStore();
   const user = useAuthStore((state) => state.user);
-  const role = order.sellerId == user._id ? "seller" : "bidder";
+  const role = order.sellerId._id == user._id ? "seller" : "bidder";
 
   // states
   const [shipAddress, setShipAddress] = useState(user.address);
@@ -115,7 +116,7 @@ const OrderActionModal = ({order, onClose}) => {
                         value={shipAddress}
                         onChange={(e) => setShipAddress(e.target.value)}
                         placeholder="Enter your address"
-                        className="w-full border-2 border-slate-100 rounded-2xl p-6 focus:border-amber-500 focus:outline-none transition-all h-32 resize-none text-slate-100 font-medium placeholder:text-slate-300"
+                        className="w-full border-2 border-slate-100 rounded-2xl p-6 focus:border-amber-500 focus:outline-none transition-all h-32 resize-none text-black font-medium placeholder:text-slate-300"
                       />
                       <button
                         onClick={() => payOrder(order._id, shipAddress)}
@@ -147,7 +148,7 @@ const OrderActionModal = ({order, onClose}) => {
                           value={trackingCode}
                           onChange={(e) => setTrackingCode(e.target.value)}
                           placeholder="Enter tracking code"
-                          className="w-full border-2 border-slate-100 rounded-2xl p-6 focus:border-amber-500 focus:outline-none transition-all h-32 resize-none text-slate-100 font-medium placeholder:text-slate-300"
+                          className="w-full border-2 border-slate-100 rounded-2xl p-6 focus:border-amber-500 focus:outline-none transition-all h-32 resize-none text-black font-medium placeholder:text-slate-300"
                         />
                         <button
                           onClick={() => shipOrder(order._id, trackingCode)}
@@ -171,15 +172,25 @@ const OrderActionModal = ({order, onClose}) => {
 
               {/* Confirm receipt */}
               {status === TransactionStatus.SHIPPING && (
-                <div className="text-center py-8">
-                  <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle size={40} />
-                  </div>
-                  <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Handover Complete</h3>
-                  <p className="text-slate-500 text-sm mb-8">The transaction has been successfully closed and ownership has been transferred.</p>
-                  <button onClick={handleComplete} className="w-full py-4 border-2 border-slate-100 rounded-xl font-bold hover:bg-slate-50 transition-all">
-                    Confirm and Close
-                  </button>
+                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                  {role === 'bidder' ? (
+                    <div className="text-center py-8">
+                      <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle size={40} />
+                      </div>
+                      <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Handover Complete</h3>
+                      <p className="text-slate-500 text-sm mb-8">The transaction has been successfully closed and ownership has been transferred. Please confirm the delivery</p>
+                      <button onClick={handleComplete} className="w-full py-4 border-2 border-slate-100 rounded-xl font-bold hover:bg-slate-50 transition-all">
+                        Confirm and Close
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                       <CheckCircle className="mx-auto text-amber-500 mb-4 animate-bounce" size={40} />
+                       <h4 className="text-xl font-bold text-slate-900 mb-2">Waiting delivery confirmation</h4>
+                       <p className="text-slate-500 text-sm">Please wait for the winner confirmation of the delivery.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

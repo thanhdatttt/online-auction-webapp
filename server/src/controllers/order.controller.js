@@ -87,7 +87,7 @@ export const payOrder = async (req, res) => {
         const order = req.order;
         checkOrderStatus(order, [ORDER_STATUS.WAITING_PAYMENT], "Order is not waiting for payment");
 
-        const {shipAddress} = req.body;
+        const shipAddress = req.body.shipAddress;
         if (!shipAddress) {
             return res.status(400).json({
                 message: "Missing shipping address",

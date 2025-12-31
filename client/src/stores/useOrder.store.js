@@ -4,6 +4,8 @@ import { toast } from "sonner";
 
 const replaceOrder = (orders, newOrder) =>
   orders.map(o => (o._id === newOrder._id ? newOrder : o));
+const updateOrder = (orders, orderId, updates) =>
+  orders.map(order => order._id === orderId ? { ...order, ...updates } : order);
 
 export const useOrderStore = create((set, get) => ({
   loading: false,
@@ -71,14 +73,18 @@ export const useOrderStore = create((set, get) => ({
     }
   },
 
-  payOrder: async (orderId, address) => {
+  payOrder: async (orderId, shipAddress) => {
     try {
       set({loading: true});
 
-      const res = await orderService.payOrder(orderId, address);
-      set({
-        purchaseOrders: replaceOrder(get().purchaseOrders, res.order),
-      });
+      const res = await orderService.payOrder(orderId, {shipAddress});
+      set(state => ({
+        purchaseOrders: updateOrder(state.purchaseOrders, orderId, {
+          shipAddress: res.order.shipAddress, 
+          paidAt: res.order.paidAt,
+          status: res.order.status,
+        })
+      }));
 
       toast.success("Payment submitted")
     } catch (err) {
@@ -94,10 +100,14 @@ export const useOrderStore = create((set, get) => ({
     try {
       set({loading: true});
 
-      const res = await orderService.shipOrder(orderId, trackingCode);
-      set({
-        saleOrders: replaceOrder(get().saleOrders, res.order),
-      });
+      const res = await orderService.shipOrder(orderId, {trackingCode});
+      set(state => ({
+        saleOrders: updateOrder(state.saleOrders, orderId, {
+          trackingCode: res.order.trackingCode, 
+          sellerConfirmedAt: res.order.sellerConfirmedAt, 
+          status: res.order.status,
+        })
+      }));
 
       toast.success("Order is shipping");
     } catch (err) {
@@ -114,9 +124,12 @@ export const useOrderStore = create((set, get) => ({
       set({loading: true});
 
       const res = await orderService.confirmReceived(orderId);
-      set({
-        purchaseOrders: replaceOrder(get().purchaseOrders, res.order),
-      });
+      set(state => ({
+        purchaseOrders: updateOrder(state.purchaseOrders, orderId, {
+          buyerConfirmedAt: res.order.buyerConfirmedAt,
+          status: res.order.status,
+        })
+      }));
 
       toast.success("Order completed");
     } catch (err) {
@@ -133,9 +146,12 @@ export const useOrderStore = create((set, get) => ({
       set({loading: true});
 
       const res = await orderService.cancelOrder(orderId);
-      set({
-        saleOrders: replaceOrder(get().saleOrders, res.order),
-      });
+      set(state => ({
+        saleOrders: updateOrder(state.saleOrders, orderId, {
+          canceledAt: res.order.canceledAt,
+          status: res.order.status,
+        })
+      }));
 
       toast.success("Order canceled");
     } catch (err) {

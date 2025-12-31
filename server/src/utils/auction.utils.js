@@ -413,7 +413,7 @@ const sendEmail = async (to, subject, contentHTML) => {
   }
 };
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
   const now = new Date();
   const auctionsToEnd = await Auction.find({
     status: "ongoing",
@@ -429,6 +429,8 @@ cron.schedule("* * * * *", async () => {
 
     const seller = await User.findById(auction.sellerId);
     
+    const winner = await User.findById(auction.winnerId);
+
     sendSellerEmail(
       seller,
       auction.product.name,
@@ -437,18 +439,23 @@ cron.schedule("* * * * *", async () => {
       link
     );
 
-    const winner = await User.findById(auction.winnerId);
 
     if (winner) {
       sendWinnerEmail(winner, auction.product.name, auction.currentPrice, link);
 
-      // create order if there is a winner
-      await Order.create({
+      // create order if not exists
+      const existedOrder = await Order.findOne({
         auctionId: auction._id,
-        sellerId: auction.sellerId,
-        buyerId: auction.winnerId,
-        finalPrice: auction.currentPrice,
       });
+
+      if (!existedOrder) {
+        await Order.create({
+          auctionId: auction._id,
+          sellerId: auction.sellerId,
+          buyerId: auction.winnerId,
+          finalPrice: auction.currentPrice,
+        });
+      }
     }
 
   }
