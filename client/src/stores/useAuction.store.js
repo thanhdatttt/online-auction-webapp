@@ -121,7 +121,7 @@ export const useAuctionStore = create((set, get) => ({
   },
   formatPrice: (rawPrice) => {
     try {
-      return new Intl.NumberFormat("de-DE").format(rawPrice) + " VND";
+      return new Intl.NumberFormat("de-DE").format(rawPrice);
     } catch (err) {
       throw err;
     }

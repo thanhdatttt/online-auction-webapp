@@ -1,5 +1,71 @@
 import RoleRequest from "../models/RoleRequest.js";
 import User from "../models/User.js";
+import Auction from "../models/Auction.js";
+import AuctionConfig from "../models/AuctionConfig.js";
+
+export const getAuctions = async (req, res) => {
+  try {
+    const {
+      search,        // filter by product name
+      status,        // filter by 'ongoing' or 'ended'
+      categoryId,    // filter by category
+      sort,          // e.g. "product:asc,bid:desc"
+      page = 1,
+    } = req.query;
+
+    const filter = {};
+
+    // 1. Search Logic (Product Name)
+    if (search) {
+      filter["product.name"] = { $regex: search, $options: "i" };
+    }
+
+    // 2. Filter Logic
+    if (status && status !== "all") filter.status = status;
+    if (categoryId && categoryId !== "all") filter["product.categoryId"] = categoryId;
+
+    // 3. Sorting Logic (Matches User Table pattern)
+    let sortObj = { createdAt: -1 }; // Default sort
+    if (sort) {
+      sortObj = {}; 
+      const fields = sort.split(",");
+
+      fields.forEach((pair) => {
+        const [field, order] = pair.split(":");
+        const sortOrder = order === "asc" ? 1 : -1;
+
+        // Map frontend sort keys to DB fields
+        if (field === "product") sortObj["product.name"] = sortOrder;
+        else if (field === "bid") sortObj["currentPrice"] = sortOrder;
+        else if (field === "endTime") sortObj["endTime"] = sortOrder;
+        else sortObj[field] = sortOrder;
+      });
+
+      if (!sortObj.createdAt) sortObj.createdAt = -1;
+    }
+
+    const limit = 9;
+    const skip = (page - 1) * limit;
+
+    const [auctions, total] = await Promise.all([
+      Auction.find(filter)
+        .populate("sellerId", "username email")
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit),
+      Auction.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalAuctions: total,
+      auctions, // Note: returning 'auctions' key
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
 
 export const deleteUser = async (req, res) => {
     try {
@@ -15,7 +81,14 @@ export const deleteUser = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        await User.findByIdAndDelete(userId);
+        if (user.isDeleted === true) {
+            return res.status(400).json({
+                message: "User already deleted."
+            });
+        }
+
+        user.isDeleted = true;
+        await user.save();
 
         return res.status(200).json({
             message: "User deleted successfully",
@@ -84,7 +157,9 @@ export const getUsers = async (req, res) => {
       page = 1,
     } = req.query;
 
-    const filter = {};
+    const filter = {
+      isDeleted: { $ne: true }
+    };
 
     if (search) {
       filter.$or = [
@@ -149,7 +224,7 @@ export const getUserbyId = async (req, res) => {
       const user = await User.findById(userId).select("-passwordHash -refreshToken -updatedAt -__v"); 
       // exclude password for safety
 
-      if (!user) {
+      if (!user || user.isDeleted) {
           return res.status(404).json({ message: "User not found" });
       }
 
@@ -172,7 +247,7 @@ export const updateUserStatus = async (req, res) => {
 
         // get user
         const user = await User.findById(userId).select("_id username role status");
-        if (!user) {
+        if (!user || user.isDeleted ) {
             return res.status(404).json({ message: "User not found." });
         }
 
@@ -210,7 +285,7 @@ export const updateUserInfo = async (req, res) => {
 
         const user = await User.findById(userId).select("-passwordHash -refreshToken -providers");
 
-        if (!user) {
+        if (!user || user.isDeleted) {
             return res.status(404).json({ message: "User not found." });
         }
 
@@ -259,7 +334,7 @@ export const promoteAdmin = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -294,7 +369,7 @@ export const demoteSeller = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -367,6 +442,10 @@ export const getRoleRequest = async (req, res) => {
       }
     });
     pipeline.push({ $unwind: "$user" });
+
+    pipeline.push({
+      $match: { "user.isDeleted": { $ne: true } }
+    });
 
     // Search by username
     if (search && search.trim() !== "") {
@@ -443,11 +522,18 @@ export const approveRoleRequest = async (req, res) => {
     if (request.status !== "pending")
       return res.status(400).json({ message: "Request already processed" });
 
+    
+    const userToPromote = await User.findById(request.userId);
+    if (userToPromote && !userToPromote.isDeleted) {
+      userToPromote.role = "seller";
+      await userToPromote.save();
+    } else {
+      return res.status(404).json({ message: "User associated with this request is deleted." });
+    }
+    
     request.status = "approved";
     request.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await request.save();
-
-    await User.findByIdAndUpdate(request.userId, { role: "seller" });
 
     res.json({ message: "Seller role approved for 7 days." });
   } catch (error) {
@@ -490,6 +576,19 @@ export const updateAuctionConfig = async (req, res) => {
       config.extendDuration = extendDuration;
     }
     await config.save();
+    res.json({ success: true, config });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAuctionConfig = async (req, res) => {
+  try {
+    let config = await AuctionConfig.findOne();
+    if (!config) {
+      config = new AuctionConfig();
+      await config.save();
+    }
     res.json({ success: true, config });
   } catch (err) {
     res.status(500).json({ error: err.message });

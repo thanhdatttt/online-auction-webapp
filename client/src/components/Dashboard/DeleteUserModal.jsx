@@ -9,7 +9,7 @@ export default function DeleteUserModal({ open, onClose, user, onDeleted }) {
 
         setDeleting(true);
         try {
-            const res = await api.post(`/admin/users/delete/${user._id}`);
+            const res = await api.post(`/admin/users/${user._id}/delete`);
             if (res.status === 200)
                 onDeleted();
         } catch (err) {

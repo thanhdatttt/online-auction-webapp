@@ -1,12 +1,25 @@
 import { useEffect, useState } from "react";
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import BaseTable from "./BaseTable";
+import EditExtensionPopup from "../EditExtensionModal";
+import { useAuctionStore } from "@/stores/useAuction.store";
+import api from "@/utils/axios";
 
 export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const {formatPrice, formatTime} = useAuctionStore();
+
+    const [sortState, setSortState] = useState({
+        product: "none",
+        bid: "none",
+        endTime: "none"
+    });
 
     const categories = [
         { id: 1, name: 'Arts' },
@@ -15,59 +28,69 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
         { id: 4, name: 'Collectibles' }
     ];
 
-    const productNames = [
-        "Nước suối Aquafina 500ml",
-        "Nước ngọt Coca-Cola lon",
-        "Snack Oishi vị tôm cay",
-        "Mì Hảo Hảo tôm chua cay",
-        "Trà xanh C2 330ml",
-        "Sữa tươi Vinamilk 1L",
-        "Bánh Oreo vani",
-        "Nước tăng lực Sting dâu",
-        "Cà phê lon Highlands"
-    ];
+    const toggleSort = (field) => {
+        setSortState((prev) => {
+            const order = prev[field] === "asc" ? "desc" : prev[field] === "desc" ? "none" : "asc";
 
-    function generateRelativeTime() {
-        const days = Math.floor(Math.random() * 5) + 1; // 1–5 days
-        const hours = Math.floor(Math.random() * 24);
-        const minutes = Math.floor(Math.random() * 60);
+            return { product: "none", bid: "none", endTime: "none", [field]: order };
+        });
+    };
 
-        return `${days} days ${hours}h ${minutes}m`;
-    }
 
-    function generateAbsoluteTime() {
-        const date = new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000); // within 7 days
+    const buildQueryString = () => {
+        const params = new URLSearchParams();
 
-        return date.toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true
-        }).toUpperCase(); // JAN 10, 10:00 AM
-    }
+        params.append("page", currentPage);
+
+        // search
+        if (searchQuery.trim() !== "") {
+            params.append("search", searchQuery.trim());
+        }
+
+        // filters
+        if (filterCategory !== "all") params.append("categoryId", filterCategory);
+        if (filterStatus !== "all") params.append("status", filterStatus);
+
+        // sorting
+        const sortParts = [];
+        Object.keys(sortState).forEach((key) => {
+            if (sortState[key] !== "none") sortParts.push(`${key}:${sortState[key]}`);
+        });
+        if (sortParts.length > 0) params.append("sort", sortParts.join(","));
+
+        return params.toString();
+    };
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+
+            const query = buildQueryString();
+
+            const res = await api.get(`/admin/auctions?${query}`);
+
+            console.log(res);
+            const data = res.data;
+            onTotalChange(data.totalPages);
+            setData(data.auctions);
+        } catch (error) {
+            console.error(error);
+        }
+        finally {
+            setLoading(false);
+        }
+
+    };
+
+    const handleSaveConfig = (config) => {
+        console.log('Configuration saved:', config);
+        // You can add a success notification here
+    };
 
     // Simulate data fetch
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-        const mockData = Array(9).fill(null).map((_, i) => {
-            const randomPrice = Math.floor(Math.random() * (10_000_000_000 - 10_000)) + 10_000;
-
-            return {
-                id: i + 1,
-                image: './dashboard/aquafina.jpeg',
-                name: productNames[Math.floor(Math.random() * productNames.length)],
-                status: ['live', 'ended'][i % 2],
-                currentBid: randomPrice.toLocaleString("vi-VN"),
-                endTime: Math.random() > 0.5 ? generateRelativeTime() : generateAbsoluteTime()
-            }
-        });
-        setData(mockData);
-        onTotalChange(156);
-        setLoading(false);
-        }, 500);
-    }, []);
+        loadData();
+    }, [currentPage, searchQuery, filterStatus, filterCategory, sortState]);
 
     const filters = (
         <div className="flex gap-3">
@@ -77,7 +100,7 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
                 className="px-4 py-2.5 bg-decor border-0 rounded-lg text-dark/80 font-lato font-medium focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
                 <option value="all">All Status</option>
-                <option value="live">Live</option>
+                <option value="ongoing">Live</option>
                 <option value="ended">Ended</option>
             </select>
             
@@ -95,28 +118,28 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
     );
 
     const columns = [
-        { header: 'Product Name', width: '4fr' },
-        { header: 'Current Bid', width: '2fr' },
-        { header: 'End Time', width: '2fr' },
+        { header: 'Product Name', width: '4fr', sortField: "product"},
+        { header: 'Current Bid', width: '2fr', sortField: "bid" },
+        { header: 'End Time', width: '2fr', sortField: "endTime" },
         { header: 'Status', width: '2fr' },
         { header: '', width: '2fr' }
     ];
 
     const renderRow = (item) => (
         <div
-        key={item.id}
+        key={item.product._id}
         className="grid gap-4 px-6 py-[0.565rem] border-2 border-b border-decor hover:bg-amber-50 transition-colors"
         style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}
         >
             <div className="font-semibold text-dark font-lato flex gap-2 items-center ml-16">
-                <img src={item.image} className="w-[2rem] h-[2rem] rounded-sm" />
-                {item.name}
+                <img src={item.product.images[0].url} className="w-8 h-8 rounded-sm" />
+                {item.product.name.length > 30 ? item.product.name.slice(0,30) + "..." : item.product.name}
             </div>
-            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.currentBid} VNĐ</div>
-            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{item.endTime}</div>
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{formatPrice(item.currentPrice)} VNĐ</div>
+            <div className="font-medium text-dark/80 font-lato flex items-center justify-center">{formatTime(item.endTime)}</div>
             <div className="flex items-center justify-center">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                item.status === 'live' ? 'bg-green-200 text-[#34A853]' :
+                item.status === 'ongoing' ? 'bg-green-200 text-[#34A853]' :
                 'bg-red-200 text-secondary'
                 }`}>
                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
@@ -131,18 +154,30 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
     );
 
     return (
-        <BaseTable
-        title="Products Management"
-        description="View and manage auction products"
-        buttonText="Edit Extension Time"
-        buttonIcon="./dashboard/edit-white.svg"
-        searchPlaceholder="Search by product name..."
-        filters={filters}
-        columns={columns}
-        data={data}
-        loading={loading}
-        onAdd={() => console.log('Edit extension')}
-        renderRow={renderRow}
-        />
+        <>
+            <BaseTable
+            title="Products Management"
+            description="View and manage auction products"
+            buttonText="Edit Extension Time"
+            buttonIcon="./dashboard/edit-white.svg"
+            searchPlaceholder="Search by product name..."
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortState={sortState}
+            onSortChange={toggleSort}
+            filters={filters}
+            columns={columns}
+            data={data}
+            loading={loading}
+            onAdd={() => setIsPopupOpen(true)}
+            renderRow={renderRow}
+            />
+
+            <EditExtensionPopup
+                isOpen={isPopupOpen}
+                onClose={() => setIsPopupOpen(false)}
+                onSave={handleSaveConfig}
+            />
+        </>
     );
 }

@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Search, Plus } from 'lucide-react';
 
-export default function BaseTable({ title, description, buttonText, buttonIcon, searchPlaceholder, filters, columns, data, loading, onAdd, renderRow }) {
-    const [searchQuery, setSearchQuery] = useState('');
-
+export default function BaseTable({ title, description, buttonText, buttonIcon, searchPlaceholder, searchQuery, onSearchChange, filters, columns, data, loading, onAdd, renderRow, onSortChange, sortState }) {
     return (
         <div className="flex-1 flex flex-col bg-light overflow-hidden">
             {/* Header */}
@@ -33,7 +31,7 @@ export default function BaseTable({ title, description, buttonText, buttonIcon, 
                         type="text"
                         placeholder={searchPlaceholder}
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => onSearchChange(e.target.value)}
                         className="w-full pl-12 pr-4 py-2.5 bg-decor border-0 rounded-lg text-dark placeholder-dark/60 focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
@@ -48,11 +46,25 @@ export default function BaseTable({ title, description, buttonText, buttonIcon, 
                 <div className="bg-light rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden ">
                     {/* Table Header */}
                     <div className="grid gap-4 px-6 py-3 bg-decor border-b border-decor" style={{ gridTemplateColumns: columns.map(c => c.width).join(' ') }}>
-                        {columns.map((col, idx) => (
-                            <div key={idx} className="text-sm font-regular font-lato text-dark/60 uppercase tracking-wide flex items-center justify-center">
-                                {col.header}
-                            </div>
-                        ))}
+                        {columns.map((col, idx) => {
+                            const field = col.sortField;
+                            const direction = sortState[field];
+
+                            return (
+                                <div key={idx} onClick={() => field && onSortChange(field)} 
+                                className="text-sm font-regular font-lato text-dark/60 uppercase tracking-wide flex items-center justify-center" >
+                                    <span className={field ? "cursor-pointer select-none" : ""}>
+                                        {col.header}
+                                        {field && direction !== "none" && (
+                                            <span className="ml-1 text-xs">
+                                                {direction === "asc" ? "▲" : "▼"}
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                            )
+                            
+                        })}
                     </div>
 
                     {/* Table Body */}

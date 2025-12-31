@@ -10,6 +10,8 @@ import {
   deleteUser, getRequestCount, createUser, getUserbyId, updateUserStatus,
   updateAuctionConfig,
   updateUserInfo,
+  getAuctions,
+  getAuctionConfig
 } from "../controllers/admin.controller.js";
 
 
@@ -28,5 +30,7 @@ router.patch("/users/:userId", updateUserInfo);
 router.post("/users/:userId/delete", deleteUser);
 router.patch("/users/:userId/status", updateUserStatus);
 
+router.get("/auctions", getAuctions);
+router.get("/auction/config", getAuctionConfig);
 router.put("/auction/config", updateAuctionConfig);
 export default router;

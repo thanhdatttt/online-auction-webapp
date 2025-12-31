@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema(
                 id: { type: String, unique: true, sparse: true, default: null },
             },
         },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
         role: {
             type: String,
             enum: ["bidder", "seller", "admin"],
