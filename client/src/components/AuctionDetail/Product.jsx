@@ -7,6 +7,7 @@ import { useAuctionStore } from "../../stores/useAuction.store";
 import { useWatchListStore } from "../../stores/useWatchList.store";
 import { useAuthStore } from "../../stores/useAuth.store";
 import { toast } from "sonner";
+import DOMPurify from 'dompurify';
 
 const Product = ({ p, postedOn, auctionId }) => {
   const [curImg, setCurImg] = useState(0);
@@ -40,6 +41,8 @@ const Product = ({ p, postedOn, auctionId }) => {
   // -------------------
 
   if (!p) return null;
+
+  const cleanHTML = DOMPurify.sanitize(p.description);
 
   return (
     <>
@@ -148,7 +151,10 @@ const Product = ({ p, postedOn, auctionId }) => {
       <div className="mt-8 border-b border-gray-300 pb-8">
         <h3 className="text-lg font-bold mb-3">Product Details</h3>
         <div className="text-sm md:text-base text-gray-700 space-y-2 leading-relaxed font-sans border-t border-gray-300 pt-3">
-          <p>{p.description}</p>
+          <div 
+            className="prose prose-sm max-w-none text-gray-700x font-lato"
+            dangerouslySetInnerHTML={{ __html: cleanHTML }} 
+          />
         </div>
       </div>
     </>

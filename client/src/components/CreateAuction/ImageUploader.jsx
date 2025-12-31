@@ -50,7 +50,7 @@ const ImageUploader = ({ images, onChange, error, productNameProps, productNameE
         <div className="flex gap-4 mb-4 overflow-x-auto pb-2 min-h-[120px]">
            {images.length > 0 ? (
              images.map((img, idx) => (
-               <div key={idx} className="relative w-32 h-24 shrink-0 bg-gray-200 rounded border border-gray-300 overflow-hidden">
+               <div key={idx} className="relative w-60 h-50 shrink-0 bg-gray-200 rounded border border-gray-300 overflow-hidden">
                  <img src={img.previewUrl} alt="Preview" className="w-full h-full object-cover"/>
                  <button 
                    type="button" // Important: prevents submitting the form
@@ -62,7 +62,7 @@ const ImageUploader = ({ images, onChange, error, productNameProps, productNameE
                </div>
              ))
            ) : (
-             <div className="w-full h-24 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded bg-[#FDFBF7]">
+             <div className="w-full h-50 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded bg-[#FDFBF7]">
                No images selected
              </div>
            )}

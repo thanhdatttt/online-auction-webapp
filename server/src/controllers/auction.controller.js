@@ -22,7 +22,7 @@ import { resetPassword } from "./auth.controller.js";
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;
-    const { name, description, imageUrls, mainImageId = null } = req.body;
+    const { categoryId, name, description, imageUrls, mainImageId = null } = req.body;
 
     const images = imageUrls.map((url) => ({
       _id: new mongoose.Types.ObjectId(),
@@ -30,6 +30,7 @@ export const createAuction = async (req, res) => {
     }));
 
     const product = {
+      categoryId: categoryId,
       name: name,
       description: description,
       images: images,
@@ -40,7 +41,7 @@ export const createAuction = async (req, res) => {
       product.mainImageId = product.images[0]._id;
     }
 
-    const { startPrice, buyNowPrice = null, gapPrice, endTime } = req.body;
+    const { startPrice, buyNowPrice = null, gapPrice, endTime, autoExtension } = req.body;
 
     const auction = new Auction({
       product: product,
@@ -49,6 +50,7 @@ export const createAuction = async (req, res) => {
       buyNowPrice: buyNowPrice,
       gapPrice: gapPrice,
       endTime: endTime,
+      autoExtension: autoExtension,
     });
 
     await auction.save();
@@ -819,6 +821,12 @@ export const getAuctions = async (req, res) => {
       case "newest":
         sortOptions = { createdAt: -1 };
         break;
+      case "bid_desc":
+        sortOptions = { bidCount: -1 };
+        break;
+      case "bid_asc":
+        sortOptions = { bidCount: 1 };
+        break;
       // case 'relevance':
       //   if (search) {
       //      sortOptions = { score: { $meta: "textScore" } };
@@ -835,11 +843,48 @@ export const getAuctions = async (req, res) => {
     // }
 
     const [auctions, total] = await Promise.all([
-      Auction.find(filter)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limitNum)
-        .populate("winnerId", "username avatar_url rating"),
+      Auction.aggregate([
+        // 1. FILTER ($match replaces .find)
+        { $match: filter },
+
+        // 2. LOOKUP (Join with Bids)
+        {
+          $lookup: {
+            from: "bids",
+            localField: "_id",
+            foreignField: "auctionId",
+            as: "bids"
+          }
+        },
+
+        // 3. COUNT (Calculate size)
+        {
+          $addFields: {
+            bidCount: { $size: "$bids" }
+          }
+        },
+
+        // 4. CLEANUP (Remove the heavy bids array)
+        { $project: { bids: 0 } },
+
+        // 5. SORT ($sort replaces .sort)
+        { $sort: sortOptions }, // Ensure sortOptions uses MongoDB syntax (e.g. { price: -1 })
+
+        // 6. PAGINATION ($skip & $limit)
+        { $skip: skip },
+        { $limit: limitNum },
+        
+        // 7. POPULATE (In aggregation, you must use $lookup for "populate" too)
+        {
+          $lookup: {
+            from: "users", // Assuming your users collection is named "users"
+            localField: "winnerId",
+            foreignField: "_id",
+            as: "winnerId"
+          }
+        },
+        { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } } // Unwind array to object
+      ]),
 
       Auction.countDocuments(filter),
     ]);

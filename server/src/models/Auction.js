@@ -11,8 +11,8 @@ const productSchema = new mongoose.Schema({
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
-    // required: true,
-    default: null,
+    required: true,
+    // default: null,
   },
   name: {
     type: String,
@@ -87,6 +87,10 @@ const auctionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  autoExtension: {
+    type: Boolean,
+    required: true,
+  }
 });
 
 export default mongoose.model("Auction", auctionSchema);
