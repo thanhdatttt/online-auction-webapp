@@ -25,6 +25,9 @@ const auctionSchema = z.object({
     .min(3, "You must upload at least three image")
     .max(5, "You can only upload up to 5 images"),
 
+  categoryId: z.string().min(1, "Please select a category"),
+  subCategoryId: z.string().min(1, "Please select a subcategory"),
+
   startPrice: z.string().refine((val) => parseCurrency(val) > 0, {
     message: "Starting price must be greater than 0",
   }),
@@ -68,6 +71,8 @@ const CreateAuction = () => {
     resolver: zodResolver(auctionSchema),
     defaultValues: {
       productName: '',
+      categoryId: '',
+      subCategoryId: '',
       startPrice: '',
       buyNowPrice: '',
       gapPrice: '',
@@ -95,7 +100,7 @@ const CreateAuction = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans text-gray-800">
+    <div className="min-h-screen font-lato text-gray-800">
 
       <main className="max-w-6xl mx-auto px-4 py-8 pt-24">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -134,6 +139,8 @@ const CreateAuction = () => {
               register={register} 
               control={control} // Needed for the Switch/Toggle if we use Controller
               errors={errors}
+              watch={watch}
+              setValue={setValue}
             />
 
           </div>

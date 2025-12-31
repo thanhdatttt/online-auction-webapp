@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
 import { useAuctionStore } from "../../stores/useAuction.store";
+import DOMPurify from 'dompurify';
 const Product = ({ p, postedOn }) => {
   const [curImg, setCurImg] = useState(0);
   const updateCurImg = (value) => {
@@ -11,6 +12,8 @@ const Product = ({ p, postedOn }) => {
   };
 
   const { formatTime } = useAuctionStore();
+
+  const cleanHTML = DOMPurify.sanitize(p.description);
 
   return (
     <>
@@ -96,7 +99,10 @@ const Product = ({ p, postedOn }) => {
       <div className="mt-8 border-b border-gray-300 pb-8">
         <h3 className="text-lg font-bold mb-3">Product Details</h3>
         <div className="text-sm md:text-base text-gray-700 space-y-2 leading-relaxed font-sans border-t border-gray-300 pt-3">
-          <p>{p.description}</p>
+          <div 
+            className="prose prose-sm max-w-none text-gray-700x font-lato"
+            dangerouslySetInnerHTML={{ __html: cleanHTML }} 
+          />
         </div>
       </div>
     </>

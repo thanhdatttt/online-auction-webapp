@@ -314,7 +314,6 @@ export const useAuctionStore = create((set, get) => ({
       const response = await auctionService.createAuction(payload);
       console.log(response);
       
-      set({ loading: false });
       toast.success("Create auction successfully");
 
     } catch (err) {

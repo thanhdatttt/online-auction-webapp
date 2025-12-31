@@ -12,6 +12,9 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.16",
+    "@tiptap/extension-color": "^3.14.0",
+    "@tiptap/extension-text-align": "^3.14.0",
+    "@tiptap/extension-text-style": "^3.14.0",
     "@tiptap/extension-underline": "^3.13.0",
     "@tiptap/react": "^3.13.0",
     "@tiptap/starter-kit": "^3.13.0",
@@ -19,6 +22,7 @@
     "Buffer": "^0.0.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "dompurify": "^3.3.1",
     "flowbite": "^4.0.0",
     "flowbite-react": "^0.12.10",
     "lucide-react": "^0.555.0",
@@ -44,6 +48,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
