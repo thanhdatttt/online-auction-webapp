@@ -3,6 +3,7 @@ import {
   Route,
   Navigate,
   Routes,
+  useLocation
 } from "react-router-dom";
 import { Toaster } from "sonner";
 import { useAuthStore } from "./stores/useAuth.store.js";
@@ -23,6 +24,31 @@ import AuctionPage from "./pages/AuctionPage.jsx";
 import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import MessengerChatBubble from "./components/Chat/MessageChatBubble.jsx";
+
+function ChatBubbleWrapper() {
+    const location = useLocation();
+    const { user } = useAuthStore();
+    
+    // Pages where chat bubble should NOT appear
+    const excludedPaths = [
+      '/signin',
+      '/signup',
+      '/forgotPassword',
+      '/auth/success',
+      '/dashboard'
+    ];
+    
+    // Check if current path should be excluded
+    const isExcluded = excludedPaths.some(path => 
+      location.pathname.startsWith(path)
+    );
+    
+    // Only show if user is logged in AND not on excluded pages
+    if (!user || isExcluded) return null;
+    
+    return <MessengerChatBubble />;
+}
 
 
 function App() {
@@ -85,6 +111,8 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />}></Route>
           </Route>
       </Routes>
+
+      <ChatBubbleWrapper />
     </Router>
     </>
   );
