@@ -50,7 +50,7 @@ const FeedbackLayout = () => {
 
     fetchFeedbacks();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]); // Hoặc [queryString] tùy code gốc của bạn, ở đây giữ nguyên [page] như bạn gửi
+  }, [page]);
 
   const onPageChange = (newPage) => {
     const next = new URLSearchParams(searchParams);
@@ -64,12 +64,11 @@ const FeedbackLayout = () => {
       ? Math.round((stats.totalPositive / stats.total) * 100)
       : 100;
 
-  // --- THÊM LOGIC MÀU SẮC TẠI ĐÂY ---
-  let colorClass = "text-[#22C55E]"; // Mặc định Xanh
+  let colorClass = "text-[#22C55E]";
   if (positivePercentage < 50) {
-    colorClass = "text-red-500"; // Đỏ
+    colorClass = "text-red-500";
   } else if (positivePercentage < 80) {
-    colorClass = "text-amber-500"; // Vàng cam
+    colorClass = "text-amber-500";
   }
 
   return (
@@ -78,7 +77,6 @@ const FeedbackLayout = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-normal text-[#1a1a1a] mb-2">Feedbacks</h1>
         <div className="text-[32px] font-medium items-center flex gap-2">
-          {/* Thay class cứng bằng biến colorClass */}
           <span className={`${colorClass} font-bold`}>
             +{positivePercentage}%
           </span>
@@ -103,7 +101,6 @@ const FeedbackLayout = () => {
           )}
 
           <div className="space-y-4">
-            {/* Giữ nguyên không map dữ liệu lại */}
             {feedbacks.map((item) => (
               <FeedbackCard key={item.id} item={item} />
             ))}
