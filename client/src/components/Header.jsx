@@ -101,7 +101,7 @@ const Header = () => {
         {/* buttons */}
         <button onClick={() => navigate("/auctions")} className="hover:text-primary transition cursor-pointer">Categories</button>
         <button onClick={handleWatchList} className="hover:text-primary transition cursor-pointer">Watch List</button>
-        <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
+        <button onClick={!user?.role ? () => navigate("/signin") : user.role === "seller" ? () => navigate("/auctions/create") : () => navigate("/home")} 
                 className="bg-primary px-8 py-2 rounded-md font-semibold hover:bg-accent hover:text-black transition cursor-pointer">
           {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
         </button>
@@ -135,7 +135,7 @@ const Header = () => {
       {/* mobile menu slide down */}
       {mobileMenu && (
         <div ref={mobileMenuRef} className="absolute top-full right-0 w-1/2 bg-dark text-lighter font-lora font-semibold flex flex-col lg:hidden shadow-lg z-50">
-          <button onClick={!user?.role ? () => navigate("/signin") : () => navigate("/home")} 
+          <button onClick={!user?.role ? () => navigate("/signin") : user.role === "seller" ? () => navigate("/auctions/create") : () => navigate("/home")} 
                   className="w-full py-4 text-2xl bg-primary hover:bg-[linear-gradient(to_right,#EA8611,#F6F7FA)] hover:text-black transition-colors">
             {!user?.role ? "Sign In" : user.role === "bidder" ? "Bid" : "Sell"}
           </button>

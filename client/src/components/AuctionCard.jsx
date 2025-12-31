@@ -115,7 +115,7 @@ const AuctionCard = ({ auction }) => {
         {/* Footer Info */}
         <div className="flex items-center justify-between pt-4 border-t border-white/5">
           <div className="flex items-center text-slate-400">
-            <span className="text-xs font-bold tracking-widest uppercase">{auction.bids} BIDS</span>
+            <span className="text-xs font-bold tracking-widest uppercase">{auction.bidCount} BIDS</span>
           </div>
           
           <div className="flex items-center">

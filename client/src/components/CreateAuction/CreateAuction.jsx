@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import AuctionDetails from './AuctionDetails';
@@ -107,9 +107,9 @@ const CreateAuction = () => {
           
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-[#1E1E24]">Create New Auction</h2>
-            <a href="#" className="flex items-center text-gray-500 text-sm mt-1 hover:text-[#EA8C1E] transition">
+            <Link to="/home" className="flex items-center text-gray-500 text-sm mt-1 hover:text-[#EA8C1E] transition">
               <ChevronLeft size={16} /> Back
-            </a>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -9,12 +9,12 @@ const Sortbar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
     
   const sortOptions = [
-    { label: 'Ending Soon', value: 'ending_soon' },
     { label: 'Newest', value: 'newest' },
+    { label: 'Ending Soon', value: 'ending_soon' },
     { label: 'Price: Low to High', value: 'price_asc' },
     { label: 'Price: High to Low', value: 'price_desc' },
   ];
-  const currentLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort By';  
+  const currentLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Newest';  
   
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -39,20 +39,23 @@ const Sortbar = () => {
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 w-full bg-[#f5eee3] border-2 border-[#2a2a35] rounded-xl overflow-hidden shadow-lg z-30">
           <ul className="flex flex-col">
-            {sortOptions.map((option) => (
-              <li key={option.value}>
-                <button
-                  onClick={() => handleSelect(option.value)}
-                  className={`w-full text-left px-4 py-3 font-semibold transition-colors text-sm ${
-                    sortBy === option.value
-                      ? 'bg-[#d9822b] text-[#f5eee3]' // Active State
-                      : 'text-[#2a2a35] hover:bg-[#e4dccf]'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              </li>
-            ))}
+            {sortOptions.map((option) => {
+              const isActive = sortBy === option.value || (!sortBy && option.value === 'newest');
+              return (
+                <li key={option.value}>
+                  <button
+                    onClick={() => handleSelect(option.value)}
+                    className={`w-full text-left px-4 py-3 font-semibold transition-colors text-sm ${
+                      sortBy === option.value
+                        ? 'bg-[#d9822b] text-[#f5eee3]' // Active State
+                        : 'text-[#2a2a35] hover:bg-[#e4dccf]'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li> 
+              )
+            })}
           </ul>
         </div>
       )}

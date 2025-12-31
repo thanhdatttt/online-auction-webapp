@@ -75,9 +75,12 @@ function App() {
           <Route path="/auctions" element={<AuctionPage />} />
 
           {/* protected route */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/auctions/create" element={<CreateAuctionPage />} />
+          <Route element={<ProtectedRoute roles={['bidder', 'seller']} />}>
             <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute roles={['seller']} />}>
+            <Route path="/auctions/create" element={<CreateAuctionPage />} />
           </Route>
         </Routes>
       </Router>
