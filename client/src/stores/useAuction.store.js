@@ -363,7 +363,4 @@ export const useAuctionStore = create((set, get) => ({
       set({ loadingHome: false });
     }
   },
-
-  submitRating: async () => {},
-  handleRating: async () => {},
 }));
