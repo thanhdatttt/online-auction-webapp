@@ -131,6 +131,52 @@ export const getCreatedAuctions = async (req, res) => {
   }
 };
 
+export const getFeedbacks = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
+
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    const filter = { ratedUserId: userId };
+
+    const [ratings, total] = await Promise.all([
+      Rating.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("raterId", "firstName lastName avatarUrl")
+        .populate({
+          path: "auctionId",
+          select: "product",
+        }),
+      Rating.countDocuments(filter),
+    ]);
+
+    const totalPositive = await Rating.countDocuments({
+      ratedUserId: userId,
+      rateType: "uprate",
+    });
+
+    return res.status(200).json({
+      message: "Get feedbacks successfully",
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      ratings: ratings,
+      totalPositive: totalPositive,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const getActiveBids = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -138,32 +184,34 @@ export const getActiveBids = async (req, res) => {
       return res.status(400).json({ message: "Missing userId" });
     }
 
-    let page = parseInt(req.query.page) || 1; // default page 1
-    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 9;
     let searchQuery = req.query.searchQuery || "";
     let sortBy = req.query.sortBy || "newest";
     const skip = (page - 1) * limit;
 
-    // sort
+    // sort options
     const sortOptions = {
       newest: { createdAt: -1 },
       price_asc: { currentPrice: 1 },
       price_desc: { currentPrice: -1 },
       ending_soon: { endTime: 1 },
     };
-    const sort = sortOptions[sortBy];
 
-    // search
+    const sort = sortOptions[sortBy] || sortOptions.newest;
+
     const match = searchQuery
       ? {
-          name: { $regex: searchQuery, $options: "i" },
+          "product.name": { $regex: searchQuery, $options: "i" },
         }
       : {};
 
     // find auctions that user have bidden
     const auctionIds = await Bid.distinct("auctionId", {
       bidderId: userId,
+      isActive: true,
     });
+
     if (!auctionIds || auctionIds.length == 0) {
       return res.status(200).json({
         message: "No auctions have been bidden",
@@ -180,13 +228,12 @@ export const getActiveBids = async (req, res) => {
       status: "ongoing",
       ...match,
     };
+
     // filter and pagination
     const [activeBids, total] = await Promise.all([
-      Auction.find({ _id: { $in: auctionIds } })
-        .sort({ endTime: -1 })
-        .skip(skip)
-        .limit(limit),
-      Auction.countDocuments({ _id: { $in: auctionIds } }),
+      Auction.find(filter).sort(sort).skip(skip).limit(limit),
+
+      Auction.countDocuments(filter),
     ]);
 
     return res.status(200).json({
@@ -198,6 +245,7 @@ export const getActiveBids = async (req, res) => {
       auctions: activeBids,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
