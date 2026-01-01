@@ -1,7 +1,10 @@
 import { Controller } from 'react-hook-form';
 import DateTimeInput from './DateTimeInput';
+import { useEffect, useMemo } from 'react';
+import { useCategoryStore } from '../../stores/useCategory.store';
+import { ChevronDown } from 'lucide-react';
 
-const AuctionDetails = ({ register, control, errors }) => {
+const AuctionDetails = ({ register, control, errors, watch, setValue }) => {
 
   const inputs = [
     { name: 'startPrice', label: 'Starting Price' },
@@ -9,12 +12,77 @@ const AuctionDetails = ({ register, control, errors }) => {
     { name: 'gapPrice', label: 'Bid Increment' },
   ];
 
+  const categories = useCategoryStore((state) => state.categories);
+
+  const { getCategories } = useCategoryStore();
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
+  const selectedCategoryId = watch('categoryId');
+
+  const availableSubCategories = useMemo(() => {
+    if (!selectedCategoryId) return [];
+
+    const category = categories.find(c => c._id === selectedCategoryId);
+    
+    return category?.children || []; 
+  }, [categories, selectedCategoryId]);
+
+  useEffect(() => {
+    setValue('subCategoryId', ''); 
+  }, [selectedCategoryId, setValue]);
+
+  console.log(categories);
+
   return (
     <div className="space-y-6">
       <div className="bg-[#EBE5D9] p-6 rounded-lg shadow-sm border border-[#dcd6ca]">
         <h3 className="text-xl font-bold text-gray-800 mb-4">Auction Information</h3>
         
+
         <div className="grid grid-cols-2 gap-4">
+          {/* Main Category */}
+          <div className="col-span-1">
+            <label className="block text-sm font-semibold mb-1 text-gray-700">Category</label>
+            <div className="relative">
+              <select
+                {...register('categoryId')} // This saves the ID (e.g., "cat_1")
+                className={`w-full p-2.5 pr-8 rounded border appearance-none focus:outline-none bg-[#FDFBF7]
+                  ${errors.categoryId ? 'border-red-500' : 'border-gray-300 focus:border-[#EA8C1E]'}`}
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-3 text-gray-500 pointer-events-none" />
+            </div>
+            {errors.categoryId && <p className="text-red-600 text-xs mt-1">{errors.categoryId.message}</p>}
+          </div>
+
+          {/* Sub Category (Populated from 'children') */}
+          <div className="col-span-1">
+            <label className="block text-sm font-semibold mb-1 text-gray-700">Subcategory</label>
+            <div className="relative">
+              <select
+                {...register('subCategoryId')} // This saves the ID (e.g., "sub_1")
+                disabled={!selectedCategoryId}
+                className={`w-full p-2.5 pr-8 rounded border appearance-none focus:outline-none 
+                  ${!selectedCategoryId ? 'bg-gray-200 cursor-not-allowed' : 'bg-[#FDFBF7]'}
+                  ${errors.subCategoryId ? 'border-red-500' : 'border-gray-300 focus:border-[#EA8C1E]'}`}
+              >
+                <option value="">Select Subcategory</option>
+                {availableSubCategories.map((sub) => (
+                  <option key={sub._id} value={sub._id}>{sub.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-3 text-gray-500 pointer-events-none" />
+            </div>
+            {errors.subCategoryId && <p className="text-red-600 text-xs mt-1">{errors.subCategoryId.message}</p>}
+          </div>
+
           {inputs.map((field) => (
             <div key={field.name} className="col-span-1">
               <label className="block text-sm font-semibold mb-1 text-gray-700">{field.label}</label>

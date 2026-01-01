@@ -1,38 +1,31 @@
 import { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react"; // Đổi icon sang trái cho đúng nghĩa 'Back'
 import Header from "../Header.jsx";
 import Product from "./Product.jsx";
 import CommentSection from "./CommentSection.jsx";
 import RightSideBar from "./RightSideBar.jsx";
 import SimilarItems from "./SimilarItems.jsx";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router"; // Thêm useNavigate
 import api from "../../utils/axios.js";
 import Error from "../Error.jsx";
 import { socket } from "../../utils/socket.js";
 import Loading from "../Loading.jsx";
 import { useAuthStore } from "../../stores/useAuth.store.js";
+
 const AuctionDetailLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
-
   const [error, setError] = useState(null);
-
   const [auction, setAuction] = useState({});
-
   const [seller, setSeller] = useState({});
-
   const [currentPrice, setCurrentPrice] = useState(null);
-
   const [dataWinner, setDataWinner] = useState({});
-
   const [endTime, setEndTime] = useState(null);
-
   const { id } = useParams();
-
   const [similarItems, setSimilarItems] = useState();
-
   const [showAlert, setShowAlert] = useState(null);
-
   const [isAllowed, setIsAllowed] = useState(null);
+
+  const navigate = useNavigate();
 
   const { accessToken } = useAuthStore();
 
@@ -91,7 +84,6 @@ const AuctionDetailLayout = () => {
     socket.on("endTimeUpdate", onEndTimeUpdate);
 
     socket.on("connect", () => {
-      // 🔥 SYNC LẠI KHI RECONNECT
       api.get(`guest/auctions/${id}`).then((res) => {
         setCurrentPrice(res.data.auction.currentPrice);
         setDataWinner(res.data.dataWinner);
@@ -179,9 +171,12 @@ const AuctionDetailLayout = () => {
 
             {/* ---------------- MAIN CONTENT WRAPPER ---------------- */}
             <div className="max-w-[1200px] mx-auto pt-32 px-4">
-              {/* Breadcrumb */}
-              <div className="text-gray-500 text-sm mb-4 flex items-center cursor-pointer hover:underline">
-                <span className="mr-1">Back</span> <ChevronRight size={14} />
+              {/* --- 2. XỬ LÝ SỰ KIỆN BACK --- */}
+              <div
+                onClick={() => navigate(-1)}
+                className="text-gray-500 text-sm mb-4 flex items-center cursor-pointer hover:underline w-fit"
+              >
+                <ChevronLeft size={14} /> <span className="ml-1">Back</span>
               </div>
 
               <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -191,6 +186,7 @@ const AuctionDetailLayout = () => {
                   <Product
                     p={auction.product}
                     postedOn={auction.startTime}
+                    auctionId={auction._id}
                   ></Product>
 
                   {/* HAVE A QUESTION SECTION */}

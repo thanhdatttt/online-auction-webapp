@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import AuctionDetails from './AuctionDetails';
@@ -24,6 +24,9 @@ const auctionSchema = z.object({
     .array(z.any())
     .min(3, "You must upload at least three image")
     .max(5, "You can only upload up to 5 images"),
+
+  categoryId: z.string().min(1, "Please select a category"),
+  subCategoryId: z.string().min(1, "Please select a subcategory"),
 
   startPrice: z.string().refine((val) => parseCurrency(val) > 0, {
     message: "Starting price must be greater than 0",
@@ -68,6 +71,8 @@ const CreateAuction = () => {
     resolver: zodResolver(auctionSchema),
     defaultValues: {
       productName: '',
+      categoryId: '',
+      subCategoryId: '',
       startPrice: '',
       buyNowPrice: '',
       gapPrice: '',
@@ -95,16 +100,16 @@ const CreateAuction = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans text-gray-800">
+    <div className="min-h-screen font-lato text-gray-800">
 
       <main className="max-w-6xl mx-auto px-4 py-8 pt-24">
         <form onSubmit={handleSubmit(onSubmit)}>
           
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-[#1E1E24]">Create New Auction</h2>
-            <a href="#" className="flex items-center text-gray-500 text-sm mt-1 hover:text-[#EA8C1E] transition">
+            <Link to="/home" className="flex items-center text-gray-500 text-sm mt-1 hover:text-[#EA8C1E] transition">
               <ChevronLeft size={16} /> Back
-            </a>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -134,6 +139,8 @@ const CreateAuction = () => {
               register={register} 
               control={control} // Needed for the Switch/Toggle if we use Controller
               errors={errors}
+              watch={watch}
+              setValue={setValue}
             />
 
           </div>
