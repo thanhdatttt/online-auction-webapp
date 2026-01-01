@@ -1,4 +1,8 @@
+import { useUserStore } from "../../../stores/useUser.store.js";
+
 const ChangeModalLayout = ({open, onClose, onSubmit, title, children}) => {
+  const {loading} = useUserStore();
+
   // handle when click backdrop
   const handleBackdropClick = () => {
     onClose();
@@ -23,7 +27,7 @@ const ChangeModalLayout = ({open, onClose, onSubmit, title, children}) => {
 
           {/* buttons */}
           <div className="flex items-center justify-between mt-6">
-            <button type="submit" className="bg-primary text-xl text-lighter px-4 py-2 rounded hover:bg-accent hover:text-black transition cursor-pointer">Save change</button>
+            <button type="submit" disabled={loading} className="bg-primary text-xl text-lighter px-4 py-2 rounded hover:bg-accent hover:text-black transition cursor-pointer disabled:bg-accent disabled:text-amber-50">Save change</button>
             <button type="button" onClick={onClose} className="text-primary text-xl hover:underline cursor-pointer">Cancel</button>
           </div>
         </form>

@@ -231,7 +231,7 @@ export const getActiveBids = async (req, res) => {
 
     // filter and pagination
     const [activeBids, total] = await Promise.all([
-      Auction.find(filter).sort(sort).skip(skip).limit(limit),
+      Auction.find(filter).sort(sort).skip(skip).limit(limit).populate("winnerId", "username"),
 
       Auction.countDocuments(filter),
     ]);
