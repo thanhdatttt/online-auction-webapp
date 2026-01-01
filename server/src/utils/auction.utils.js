@@ -471,6 +471,20 @@ cron.schedule("* * * * *", async () => {
           auction.currentPrice,
           link
         );
+
+        // create order if not exists
+        const existedOrder = await Order.findOne({
+          auctionId: auction._id,
+        });
+
+        if (!existedOrder) {
+          await Order.create({
+            auctionId: auction._id,
+            sellerId: auction.sellerId,
+            buyerId: auction.winnerId,
+            finalPrice: auction.currentPrice,
+          });
+        }
       }
 
       await sendSellerEmail(
