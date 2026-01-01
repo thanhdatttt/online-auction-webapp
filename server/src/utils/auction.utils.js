@@ -483,7 +483,7 @@ export const sendSellerEmail = async (
   );
 };
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
   try {
     const now = new Date();
     const auctionsToEnd = await Auction.find({
@@ -517,6 +517,19 @@ cron.schedule("* * * * *", async () => {
           auction.currentPrice,
           link
         );
+
+        const existedOrder = await Order.findOne({
+          auctionId: auction._id,
+        });
+
+        if (!existedOrder) {
+          await Order.create({
+            auctionId: auction._id,
+            sellerId: auction.sellerId,
+            buyerId: auction.winnerId,
+            finalPrice: auction.currentPrice,
+          });
+        }
       }
 
       await sendSellerEmail(
