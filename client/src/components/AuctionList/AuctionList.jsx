@@ -70,7 +70,9 @@ const loading = useAuctionStore((state) => state.loading);
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 pt-24 flex flex-col lg:flex-row gap-8">
+    <div>
+      <AuctionListHeader/>
+      <main className="container mx-auto px-4 py-8 pt-10 flex flex-col lg:flex-row gap-8">
         <aside className="w-64 bg-[#1F2125] p-6 rounded-2xl min-h-[500px]">
           <div className="space-y-1">
             {/* 1. The "All Auctions" Static Option */}
@@ -114,7 +116,7 @@ const loading = useAuctionStore((state) => state.loading);
           </div>
         </section>
       </main>
-    </>
+    </div>
   )
 }
 
