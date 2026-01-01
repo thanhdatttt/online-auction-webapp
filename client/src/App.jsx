@@ -25,6 +25,7 @@ import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import MessengerChatBubble from "./components/Chat/MessageChatBubble.jsx";
+import TransactionPage from "./pages/TransactionPage.jsx";
 
 function ChatBubbleWrapper() {
     const location = useLocation();
@@ -95,17 +96,18 @@ function App() {
 
           {/* guest route */}
           <Route path="/home" element={<HomePage />} />
-          <Route path="/instructions" element={<InstructionPage/>}/>
-          <Route
-            path="/auctions/:id"
-            element={<AuctionDetailPage></AuctionDetailPage>}
-          />
+          <Route path="/instructions" element={<InstructionPage/>} />
+          <Route path="/auctions/:id" element={<AuctionDetailPage></AuctionDetailPage>} />
           <Route path="/auctions" element={<AuctionPage />} />
 
           {/* protected route */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/auctions/create" element={<CreateAuctionPage />} />
+          <Route element={<ProtectedRoute roles={['bidder', 'seller']} />}>
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/transactions" element={<TransactionPage/>}/>
+          </Route>
+
+          <Route element={<ProtectedRoute roles={['seller']} />}>
+            <Route path="/auctions/create" element={<CreateAuctionPage />} />
           </Route>
           <Route element={<AdminRoute />}>
             <Route path="/dashboard" element={<DashboardPage />}></Route>

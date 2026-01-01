@@ -6,7 +6,7 @@ import api from "../../../utils/axios";
 import Error from "../../Error";
 import Loading from "../../Loading";
 import AuctionCreatedCard from "./AuctionCreatedCard";
-import { useSearchParams } from "react-router-dom"; // Lưu ý: react-router-dom thay vì react-router
+import { useSearchParams } from "react-router-dom";
 import { SearchIcon } from "lucide-react";
 
 const AuctionCreatedLayout = () => {
@@ -130,10 +130,11 @@ const AuctionCreatedLayout = () => {
         </form>
 
         {/* Filter Buttons */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 overflow-x-auto">
+          {/* TAB: ONGOING */}
           <button
             onClick={() => onFilterChange("ongoing")}
-            className={`pb-2 text-sm font-medium transition-all ${
+            className={`pb-2 text-sm font-medium transition-all whitespace-nowrap ${
               status === "ongoing"
                 ? "text-black border-b-2 border-black"
                 : "text-gray-500 hover:text-gray-800"
@@ -141,15 +142,29 @@ const AuctionCreatedLayout = () => {
           >
             Ongoing
           </button>
+
+          {/* TAB: ENDED */}
           <button
             onClick={() => onFilterChange("ended")}
-            className={`pb-2 text-sm font-medium transition-all ${
+            className={`pb-2 text-sm font-medium transition-all whitespace-nowrap ${
               status === "ended"
                 ? "text-black border-b-2 border-black"
                 : "text-gray-500 hover:text-gray-800"
             }`}
           >
             Ended
+          </button>
+
+          {/* TAB: SUCCESSFUL (Mới thêm) */}
+          <button
+            onClick={() => onFilterChange("successful")}
+            className={`pb-2 text-sm font-medium transition-all whitespace-nowrap ${
+              status === "successful"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Successful
           </button>
         </div>
       </div>

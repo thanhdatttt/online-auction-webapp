@@ -1,10 +1,11 @@
 import { useWatchListStore } from "../../../stores/useWatchList.store.js";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
+import Loading from "../../Loading.jsx";
 import WatchListHeader from "./WatchListHeader.jsx";
 import ListGrid from "../ListGrid.jsx";
 import Pagination from "../Pagination.jsx";
 import Divider from "../Divider.jsx";
-import { useSearchParams } from "react-router";
 
 const WatchListSection = () => {
   // states
@@ -35,17 +36,18 @@ const WatchListSection = () => {
       <Divider/>
 
       <WatchListHeader />
-      {items.length > 0 ? 
-      (<>
-        <ListGrid items={items} loading={loading}/>
-        <div className="flex justify-center mt-8">
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
-        </div>
-      </>) :
-      (<div className="flex items-center justify-center">
-        <p className="text-center text-2xl font-bold">No auctions in watch list</p>
-      </div>)
-      }   
+      {loading ? <Loading/> :
+        items.length > 0 ? 
+        (<>
+          <ListGrid items={items} loading={loading}/>
+          <div className="flex justify-center mt-8">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}/>
+          </div>
+        </>) :
+        (<div className="flex items-center justify-center">
+          <p className="text-center text-2xl font-bold">No auctions in watch list</p>
+        </div>)
+      } 
     </div>
   );
 }

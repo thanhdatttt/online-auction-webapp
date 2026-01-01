@@ -115,19 +115,19 @@ export const getFavorites = async (req, res) => {
     // search
     const match = searchQuery
     ? {
-        name: { $regex: searchQuery, $options: "i" },
+        "product.name": { $regex: searchQuery, $options: "i" },
       }
     : {};
 
-    const paginated = await Favorite.findOne({ userId })
+    const paginated = await Favorite.findOne({userId})
     .populate({
       path: "auctions",
-      match,
-      options: {
-        skip,
-        limit,
-        sort: sort,
-      }
+      match: match,
+      options: { skip, limit, sort },
+      populate: {
+        path: "winnerId",
+        select: "username avatar_url rating",
+      },
     });
     const total = paginated.auctions.length;
 

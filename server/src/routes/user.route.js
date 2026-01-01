@@ -13,6 +13,7 @@ import {
   getCreatedAuctions,
   getActiveBids,
   getWonAuctions,
+  getFeedbacks,
 } from "../controllers/list.controller.js";
 
 const router = express.Router();
@@ -29,5 +30,6 @@ router.post("/me/requestRole", requestRole);
 router.get("/me/won-auctions", getWonAuctions);
 router.get("/me/created-auctions", getCreatedAuctions);
 router.get("/me/active-bids", getActiveBids);
+router.get("/me/feedbacks", getFeedbacks);
 
 export default router;

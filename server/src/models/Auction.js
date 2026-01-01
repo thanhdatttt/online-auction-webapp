@@ -11,8 +11,8 @@ const productSchema = new mongoose.Schema({
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
-    // required: true,
-    default: null,
+    required: true,
+    // default: null,
   },
   name: {
     type: String,
@@ -79,16 +79,22 @@ const auctionSchema = new mongoose.Schema({
     ref: "User",
     default: null,
   },
-  minPositiveRatingPercent: {
-    type: Number,
-    min: 0,
-    max: 100,
-    default: null,
+  allowUnratedBidder: {
+    type: Boolean,
+    default: false,
   },
   isDeleted: {
     type: Boolean,
     default: false,
   },
+  autoExtension: {
+    type: Boolean,
+    default: true,
+  },
+  autoExtension: {
+    type: Boolean,
+    required: true,
+  }
 });
 
 auctionSchema.pre(/^find/, function (next) {

@@ -1,11 +1,6 @@
 import AuctionCard from "../AuctionCard.jsx";
-import Loading from "../Loading.jsx";
 
-const ListGrid = ({items, loading}) => {
-  // if being loading
-  if (loading)
-    return <Loading/>;
-
+const ListGrid = ({items}) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {items.map((auction) => (
