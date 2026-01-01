@@ -71,7 +71,10 @@ export const auctionService = {
   },
   createAuction: async (data) => {
     try{
-      const res = await api.post("/auctions", data);
+      const res = await api.post("/auctions", {
+        ...data,
+        categoryId: data.subCategoryId,
+      });
       return res.data;
     } catch (err){
       console.log(err);

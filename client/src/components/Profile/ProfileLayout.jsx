@@ -9,7 +9,8 @@ import { useLocation } from "react-router-dom";
 import { AuctionWonLayout } from "./AuctionWon/AuctionWonLayout.jsx";
 import AuctionCreatedLayout from "./AuctionCreated/AuctionCreatedLayout.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
-
+import FeedbackLayout from "./Feedback/FeedbackLayout.jsx";
+import Header from "../Header.jsx";
 const ProfileLayout = () => {
   // user info
   const user = useAuthStore((state) => state.user);
@@ -25,7 +26,8 @@ const ProfileLayout = () => {
     activebids: <ActiveBidLayout />,
     auctionwon: <AuctionWonLayout />,
     auctioncreated: <AuctionCreatedLayout />,
-    feedbacks: <WatchListSection />,
+    feedbacks: <FeedbackLayout />,
+    payment: <ProfileSection />,
   };
 
   // sections state

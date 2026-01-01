@@ -67,26 +67,44 @@ export const getWonAuctions = async (req, res) => {
 export const getCreatedAuctions = async (req, res) => {
   try {
     const status = req.query.status || "ended";
-
     const q = req.query.q || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
 
     const userId = req.user.id;
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
 
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 9;
-    const skip = (page - 1) * limit;
-
-    const createdAuctionIds = await Auction.find({
+    let filter = {
       sellerId: userId,
-      status: status,
-    }).distinct("_id");
+      "product.name": { $regex: q, $options: "i" },
+    };
 
-    console.log(createdAuctionIds);
+    if (status === "successful") {
+      filter.status = "ended";
+      filter.winnerId = { $ne: null };
+    } else {
+      filter.status = status;
+    }
 
-    if (createdAuctionIds.length === 0) {
+    const [auctions, total] = await Promise.all([
+      Auction.find(filter)
+        .sort({ endTime: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("winnerId", "firstName lastName"),
+      Auction.countDocuments(filter),
+    ]);
+
+    const auctionIdsOnPage = auctions.map((a) => a._id);
+
+    const ratings = await Rating.find({
+      auctionId: { $in: auctionIdsOnPage },
+    });
+
+    if (auctions.length === 0) {
       return res.status(200).json({
         message: "No created auction found",
         page,
@@ -94,36 +112,67 @@ export const getCreatedAuctions = async (req, res) => {
         total: 0,
         totalPages: 1,
         auctions: [],
+        ratings: [],
       });
     }
 
-    const [created, total, ratings] = await Promise.all([
-      Auction.find({
-        sellerId: userId,
-        status: status,
-        "product.name": { $regex: q, $options: "i" },
-      })
-        .sort({ endTime: 1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("winnerId", "firstName lastName"),
-      Auction.countDocuments({
-        sellerId: userId,
-        status: status,
-        "product.name": { $regex: q, $options: "i" },
-      }),
-      await Rating.find({ auctionId: { $in: createdAuctionIds } }),
-    ]);
     return res.status(200).json({
       message: "Get created auctions successfully",
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      auctions: created,
+      auctions: auctions,
       ratings: ratings,
     });
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getFeedbacks = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
+
+    const userId = req.user.id;
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    const filter = { ratedUserId: userId };
+
+    const [ratings, total] = await Promise.all([
+      Rating.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("raterId", "firstName lastName avatarUrl")
+        .populate({
+          path: "auctionId",
+          select: "product",
+        }),
+      Rating.countDocuments(filter),
+    ]);
+
+    const totalPositive = await Rating.countDocuments({
+      ratedUserId: userId,
+      rateType: "uprate",
+    });
+
+    return res.status(200).json({
+      message: "Get feedbacks successfully",
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      ratings: ratings,
+      totalPositive: totalPositive,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -135,22 +184,22 @@ export const getActiveBids = async (req, res) => {
       return res.status(400).json({ message: "Missing userId" });
     }
 
-    let page = parseInt(req.query.page) || 1;   // default page 1
-    let limit = parseInt(req.query.limit) || 9; // default 9 items per page
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 9;
     let searchQuery = req.query.searchQuery || "";
     let sortBy = req.query.sortBy || "newest";
     const skip = (page - 1) * limit;
 
-    // sort
+    // sort options
     const sortOptions = {
       newest: { createdAt: -1 },
       price_asc: { currentPrice: 1 },
       price_desc: { currentPrice: -1 },
       ending_soon: { endTime: 1 },
     };
-    const sort = sortOptions[sortBy];
 
-    // search
+    const sort = sortOptions[sortBy] || sortOptions.newest;
+
     const match = searchQuery
     ? {
         "product.name": { $regex: searchQuery, $options: "i" },
@@ -160,7 +209,9 @@ export const getActiveBids = async (req, res) => {
     // find auctions that user have bidden
     const auctionIds = await Bid.distinct("auctionId", {
       bidderId: userId,
+      isActive: true,
     });
+
     if (!auctionIds || auctionIds.length == 0) {
       return res.status(200).json({
         message: "No auctions have been bidden",
@@ -177,16 +228,13 @@ export const getActiveBids = async (req, res) => {
       status: "ongoing",
       ...match,
     };
+
     // filter and pagination
     const [activeBids, total] = await Promise.all([
-      Auction.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .populate("winnerId", "username avatar_url rating"),
-      Auction.countDocuments({ _id: { $in: auctionIds } }),
-    ]);
+      Auction.find(filter).sort(sort).skip(skip).limit(limit),
 
+      Auction.countDocuments(filter),
+    ]);
 
     return res.status(200).json({
       message: "Get active bids successfully",
@@ -197,6 +245,7 @@ export const getActiveBids = async (req, res) => {
       auctions: activeBids,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };

@@ -28,6 +28,8 @@ const io = new Server(server, {
     origin: config.CLIENT_URL,
     credentials: true,
   },
+  pingInterval: 25000,
+  pingTimeout: 20000,
 });
 app.set("io", io);
 
@@ -38,6 +40,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {});
 });
 
+global.io = io;
 // set up server
 app.use(cors({ origin: config.CLIENT_URL, credentials: true }));
 app.use(express.json());
