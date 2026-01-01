@@ -55,9 +55,15 @@ export const useAuctionStore = create((set, get) => ({
 
       const { limit } = get().pagination;
       const { searchQuery, sortBy, categoryId } = get();
-      const response = await auctionService.getAuctions({ page: pageNumber, limit, sort: sortBy, search: searchQuery, categoryId: categoryId });
-      set({ 
-        auctions: response.auctions, 
+      const response = await auctionService.getAuctions({
+        page: pageNumber,
+        limit,
+        sort: sortBy,
+        search: searchQuery,
+        categoryId: categoryId,
+      });
+      set({
+        auctions: response.auctions,
         pagination: {
           page: pageNumber,
           limit: limit,
@@ -65,7 +71,7 @@ export const useAuctionStore = create((set, get) => ({
           totalPages: Math.ceil(response.pagination.totalItems / limit),
         },
       });
-      console.log(response)
+      console.log(response);
       // toast.success("Load auctions successfully");
     } catch (err) {
       console.log(err);
@@ -122,7 +128,7 @@ export const useAuctionStore = create((set, get) => ({
   },
   formatPrice: (rawPrice) => {
     try {
-      return new Intl.NumberFormat("de-DE").format(rawPrice) + " VND";
+      return new Intl.NumberFormat("de-DE").format(rawPrice);
     } catch (err) {
       throw err;
     }
@@ -311,7 +317,7 @@ export const useAuctionStore = create((set, get) => ({
 
     try {
       const signatureData = await uploadService.getSignature();
-      const uploadPromises = imageFiles.map(img => 
+      const uploadPromises = imageFiles.map((img) =>
         uploadService.uploadImage(img, signatureData)
       );
       const imageUrls = await Promise.all(uploadPromises);
@@ -324,9 +330,8 @@ export const useAuctionStore = create((set, get) => ({
 
       const response = await auctionService.createAuction(payload);
       console.log(response);
-      
-      toast.success("Create auction successfully");
 
+      toast.success("Create auction successfully");
     } catch (err) {
       console.log(err);
       toast.error("Create auction failed, please try again");
@@ -338,12 +343,12 @@ export const useAuctionStore = create((set, get) => ({
 
   getHomeAuctions: async () => {
     try {
-      set({loadingHome: true});
+      set({ loadingHome: true });
 
       const [hero, endingSoon, highestPrice] = await Promise.all([
-        auctionService.getAuctions({page: 1, limit: 1, sort: "newest"}),
-        auctionService.getAuctions({page: 1, limit: 5, sort: "ending_soon"}),
-        auctionService.getAuctions({page: 1, limit: 5, sort: "price_desc"}),
+        auctionService.getAuctions({ page: 1, limit: 1, sort: "newest" }),
+        auctionService.getAuctions({ page: 1, limit: 5, sort: "ending_soon" }),
+        auctionService.getAuctions({ page: 1, limit: 5, sort: "price_desc" }),
       ]);
 
       set({
@@ -355,10 +360,7 @@ export const useAuctionStore = create((set, get) => ({
       console.log(err);
       throw err;
     } finally {
-      set({loadingHome: false});
+      set({ loadingHome: false });
     }
   },
-  
-  submitRating: async () => {},
-  handleRating: async () => {},
 }));

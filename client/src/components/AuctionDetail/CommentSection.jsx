@@ -22,7 +22,7 @@ const CommentSection = ({ seller, endTime }) => {
 
   const { user } = useAuthStore();
 
-  const { handleAnswer, handleQuestion } = useAuctionStore();
+  const { handleAnswer, handleQuestion, maskFirstHalf } = useAuctionStore();
 
   const isGuest = user === null;
 
@@ -31,7 +31,6 @@ const CommentSection = ({ seller, endTime }) => {
   const isBidder = !isGuest ? user._id !== seller._id : false;
 
   const isOnGoing = new Date() < new Date(endTime);
-
 
   useEffect(() => {
     let isMounted = true;
@@ -157,13 +156,25 @@ const CommentSection = ({ seller, endTime }) => {
             comments.map((c) => (
               <div
                 key={c._id}
-                className="border-b border-gray-400 pb-4 last:border-0 last:pb-0"
+                className="border-b border-gray-400 pb-6 mb-6 last:border-0 last:pb-0 last:mb-0"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                    <FaRegCircleUser className="w-16 h-16"></FaRegCircleUser>
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    {c.userId?.avatar_url ? (
+                      <img
+                        src={c.userId.avatar_url}
+                        alt="Seller avatar"
+                        className="w-full h-full rounded-full object-cover border border-black aspect-square"
+                      />
+                    ) : (
+                      <FaRegCircleUser className="w-10 h-10" />
+                    )}
                   </div>
-                  <div className="flex-1">
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Question Info */}
                     <p
                       className={
                         user?._id === c.userId?._id
@@ -174,67 +185,71 @@ const CommentSection = ({ seller, endTime }) => {
                       {!isGuest
                         ? c.userId?._id === user?._id
                           ? "You"
-                          : c.userId?.firstName + " " + c.userId?.lastName
-                        : c.userId?.firstName + " " + c.userId?.lastName}
+                          : maskFirstHalf(
+                              c.userId?.firstName + " " + c.userId?.lastName
+                            )
+                        : maskFirstHalf(
+                            c.userId?.firstName + " " + c.userId?.lastName
+                          )}
                       :{" "}
-                      <span className="font-normal text-gray-700">
+                      <span className="font-normal text-gray-700 break-words leading-relaxed">
                         {c.question}
                       </span>
                     </p>
+
+                    {/* --- ANSWER SECTION --- */}
+
+                    {/* CASE 1: USER/GUEST VIEW */}
                     {!isSeller && (
-                      <div className="mt-2 pl-3 border-gray-400 h-8">
+                      <div className="mt-3 pl-4 border-l-2 border-gray-300 py-1">
                         {c.answer ? (
-                          <>
-                            <span className="font-bold text-sm text-gray-800">
+                          <div className="text-sm leading-relaxed break-words">
+                            <span className="font-bold text-gray-800 mr-1">
                               Answer:
-                            </span>{" "}
-                            <span className="text-sm text-gray-600">
-                              {c.answer}
                             </span>
-                          </>
+                            <span className="text-gray-600">{c.answer}</span>
+                          </div>
                         ) : (
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-500 italic">
                             There is no answer yet.
                           </span>
                         )}
                       </div>
                     )}
+
+                    {/* CASE 2: SELLER VIEW */}
                     {isSeller && (
-                      <div className="mt-2 pl-3 border-gray-400 h-8">
+                      <div className="mt-3 pl-4 border-l-2 border-gray-300 py-1">
                         {c.answer ? (
-                          <>
-                            <span className="font-bold text-sm text-gray-800">
+                          <div className="text-sm leading-relaxed break-words">
+                            <span className="font-bold text-gray-800 mr-1">
                               Answer:
-                            </span>{" "}
-                            <span className="text-sm text-gray-600">
-                              {c.answer}
                             </span>
-                          </>
+                            <span className="text-gray-600">{c.answer}</span>
+                          </div>
                         ) : (
-                          <>
-                            <div className="flex justify-start gap-2">
-                              <span className="font-bold text-sm text-gray-800">
-                                Answer:
-                              </span>
-                              <form
-                                onSubmit={(e) => processAnswer(e, c._id)}
-                                className="w-full"
-                              >
-                                <input
-                                  type="text"
-                                  disabled={!isOnGoing}
-                                  value={answer}
-                                  placeholder={
-                                    isOnGoing
-                                      ? "Enter a answer."
-                                      : "This auction is already closed."
-                                  }
-                                  onChange={(e) => setAnswer(e.target.value)}
-                                  className="mr-2 outline-none rounded-md text-sm flex items-center"
-                                ></input>
-                              </form>
-                            </div>
-                          </>
+                          <div className="flex items-center gap-2 w-full">
+                            <span className="font-bold text-sm text-gray-800 whitespace-nowrap">
+                              Answer:
+                            </span>
+                            <form
+                              onSubmit={(e) => processAnswer(e, c._id)}
+                              className="flex-1"
+                            >
+                              <input
+                                type="text"
+                                disabled={!isOnGoing}
+                                value={answer}
+                                placeholder={
+                                  isOnGoing
+                                    ? "Enter a answer."
+                                    : "This auction is already closed."
+                                }
+                                onChange={(e) => setAnswer(e.target.value)}
+                                className="w-full px-3 py-1.5 text-sm text-gray-700 border border-gray-400 rounded-md focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
+                              ></input>
+                            </form>
+                          </div>
                         )}
                       </div>
                     )}

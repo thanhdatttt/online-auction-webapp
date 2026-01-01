@@ -28,6 +28,8 @@ const io = new Server(server, {
     origin: config.CLIENT_URL,
     credentials: true,
   },
+  pingInterval: 25000,
+  pingTimeout: 20000,
 });
 app.set("io", io);
 

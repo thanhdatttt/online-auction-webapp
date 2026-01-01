@@ -4,12 +4,11 @@ import ProfileSection from "./Account/AccountLayout.jsx";
 import WatchListSection from "./WatchList/WatchListLayout.jsx";
 import ActiveBidLayout from "./ActiveBids/ActiveBidLayout.jsx";
 import SideBar from "./SideBar.jsx";
-import Divider from "./Divider.jsx";
 import { useLocation } from "react-router-dom";
 import { AuctionWonLayout } from "./AuctionWon/AuctionWonLayout.jsx";
 import AuctionCreatedLayout from "./AuctionCreated/AuctionCreatedLayout.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
-
+import FeedbackLayout from "./Feedback/FeedbackLayout.jsx";
 const ProfileLayout = () => {
   // user info
   const user = useAuthStore((state) => state.user);
@@ -25,7 +24,7 @@ const ProfileLayout = () => {
     activebids: <ActiveBidLayout />,
     auctionwon: <AuctionWonLayout />,
     auctioncreated: <AuctionCreatedLayout />,
-    feedbacks: <WatchListSection />,
+    feedbacks: <FeedbackLayout />,
   };
 
   // sections state

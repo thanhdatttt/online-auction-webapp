@@ -79,11 +79,13 @@ const auctionSchema = new mongoose.Schema({
     ref: "User",
     default: null,
   },
-  minPositiveRatingPercent: {
-    type: Number,
-    min: 0,
-    max: 100,
-    default: null,
+  allowUnratedBidder: {
+    type: Boolean,
+    default: false,
+  },
+  autoExtension: {
+    type: Boolean,
+    default: true,
   },
   autoExtension: {
     type: Boolean,

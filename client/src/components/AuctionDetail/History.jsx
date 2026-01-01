@@ -256,7 +256,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                           {formatTime(h.bidTime)}
                         </span>
                         <span className="font-semibold">
-                          {formatPrice(h.bidEntryAmount)}
+                          {formatPrice(h.bidEntryAmount) + " VND"}
                         </span>
                       </div>
                     </div>
@@ -284,7 +284,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                             Max
                           </span>
                           <span className="font-semibold">
-                            {formatPrice(h.bidMaxAmount)}
+                            {formatPrice(h.bidMaxAmount) + " VND"}
                           </span>
                         </div>
                       )}
@@ -293,7 +293,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                           {formatTime(h.bidTime)}
                         </span>
                         <span className="font-semibold">
-                          {formatPrice(h.bidEntryAmount)}
+                          {formatPrice(h.bidEntryAmount) + " VND"}
                         </span>
                       </div>
                     </div>
@@ -322,7 +322,7 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                           {formatTime(h.bidTime)}
                         </span>
                         <span className="font-semibold">
-                          {formatPrice(h.bidEntryAmount)}
+                          {formatPrice(h.bidEntryAmount) + " VND"}
                         </span>
                       </div>
                     </div>

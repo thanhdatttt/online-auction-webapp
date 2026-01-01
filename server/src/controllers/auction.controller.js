@@ -13,6 +13,7 @@ import {
   sendRejectedBidderEmail,
   sendWinnerEmail,
   sendSellerEmail,
+  sendGeneralAnswerEmail,
 } from "../utils/auction.utils.js";
 import { config } from "../configs/config.js";
 import RejectedBidder from "../models/RejectedBidder.js";
@@ -81,10 +82,7 @@ export const getAuctionDetail = async (req, res) => {
 
     if (!seller) return res.status(404).json({ message: "Seller not found" });
 
-    if (
-      auction.status === "ended" ||
-      auction.minPositiveRatingPercent === null
-    ) {
+    if (auction.status === "ended") {
       showAlert = false;
     } else {
       if (user) {
@@ -94,7 +92,7 @@ export const getAuctionDetail = async (req, res) => {
             ratedUserId: user._id,
           });
 
-          if (ratingCount === 0) {
+          if (ratingCount === 0 && !auction.allowUnratedBidder) {
             showAlert = true;
           } else {
             const positiveRatingCount = await Rating.countDocuments({
@@ -105,8 +103,7 @@ export const getAuctionDetail = async (req, res) => {
             const positiveRatingPercent =
               (positiveRatingCount / ratingCount) * 100;
 
-            if (positiveRatingPercent < auction.minPositiveRatingPercent)
-              showAlert = true;
+            if (positiveRatingPercent < 80) showAlert = true;
             else showAlert = false;
           }
         }
@@ -214,7 +211,28 @@ export const placeBid = async (req, res) => {
         .json({ message: "This auction is already closed." });
     }
 
-    // if (auction.minPositiveRatingPercent != null && auction.minPositiveRatingPercent)
+    const totalRatings = await Rating.countDocuments({ ratedUserId: userId });
+
+    if (totalRatings === 0)
+      if (!auction.allowUnratedBidder)
+        return res.status(400).json({
+          message: "The seller does not allow unrated bidders to place bids.",
+        });
+      else {
+        const totalPositiveRatings = await Rating.countDocuments({
+          ratedUserId: userId,
+          rateType: "uprate",
+        });
+
+        const positiveRatingPercent =
+          (totalPositiveRatings / totalRatings) * 100;
+
+        if (positiveRatingPercent < 80)
+          return res.status(403).json({
+            message:
+              "You must have at least 80% positive rating to place a bid.",
+          });
+      }
 
     const rejectedBidder = await RejectedBidder.findOne({
       bidderId: userId,
@@ -430,12 +448,8 @@ export const addComment = async (req, res) => {
 
 export const answerComment = async (req, res) => {
   try {
-    console.log("here");
-
     const now = new Date();
-
     const userId = req.user.id;
-
     const { auctionId } = req.params;
 
     const auction = await Auction.findById(auctionId);
@@ -460,7 +474,11 @@ export const answerComment = async (req, res) => {
 
     const { commentId } = req.params;
 
-    const comment = await Comment.findById(commentId);
+    // Populate userId để lấy thông tin người đặt câu hỏi ngay tại đây
+    const comment = await Comment.findById(commentId).populate(
+      "userId",
+      "email firstName lastName"
+    );
 
     if (!comment)
       return res
@@ -472,9 +490,17 @@ export const answerComment = async (req, res) => {
     if (!answer || answer.length === 0)
       return res.status(400).json({ message: "Answer must not be blank." });
 
+    // Cập nhật câu trả lời
     comment.answer = answer;
-
     comment.answerTime = now;
+    await comment.save(); // Lưu trước cho chắc chắn
+
+    const link = `${config.CLIENT_URL}/auctions/${auctionId}`;
+
+    const asker = comment.userId;
+    if (asker && asker.email) {
+      await sendAnswerEmail(asker, link, comment.question, comment.answer);
+    }
 
     const bidderIds = await Bid.find({
       auctionId: auctionId,
@@ -485,20 +511,29 @@ export const answerComment = async (req, res) => {
       "email firstName lastName"
     );
 
-    const link = `${config.CLIENT_URL}/auctions/${auctionId}`;
+    await Promise.all(
+      bidders.map((bidder) => {
+        if (asker && bidder._id.toString() === asker._id.toString()) {
+          return Promise.resolve();
+        }
 
-    for (const bidder of bidders) {
-      if (bidder.email) {
-        sendAnswerEmail(bidder, link, comment.question, comment.answer);
-      }
-    }
-
-    await comment.save();
+        if (bidder.email) {
+          return sendGeneralAnswerEmail(
+            bidder,
+            link,
+            comment.question,
+            comment.answer,
+            auction.product.name || "Item"
+          );
+        }
+      })
+    );
 
     res
       .status(200)
       .json({ message: "Answered successfully", comment: comment });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
