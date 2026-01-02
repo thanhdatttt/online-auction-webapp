@@ -87,10 +87,6 @@ const auctionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  autoExtension: {
-    type: Boolean,
-    required: true,
-  }
 });
 
 export default mongoose.model("Auction", auctionSchema);
