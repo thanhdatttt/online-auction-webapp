@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { Heart, ChevronDown, ChevronUp } from "lucide-react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/vi";
 import { useAuctionStore } from "../../stores/useAuction.store";
 import { useWatchListStore } from "../../stores/useWatchList.store";
 import { useAuthStore } from "../../stores/useAuth.store";
 import { toast } from "sonner";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 const Product = ({ p, postedOn, auctionId }) => {
   const [curImg, setCurImg] = useState(0);
@@ -82,11 +79,11 @@ const Product = ({ p, postedOn, auctionId }) => {
       {/* GALLERY SECTION */}
       <div className="mt-6 flex gap-4 h-[350px] md:h-[450px]">
         {/* MAIN IMAGE */}
-        <div className="flex-1 bg-gray-200 rounded-sm overflow-hidden border border-gray-300 relative group">
+        <div className="flex-1 bg-light rounded-sm overflow-hidden border border-gray-300 relative group">
           {p.images && p.images.length > 0 && (
             <img
               src={p.images[curImg]?.url}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               alt="Main item"
             />
           )}
@@ -148,12 +145,12 @@ const Product = ({ p, postedOn, auctionId }) => {
       </div>
 
       {/* DETAILS */}
-      <div className="mt-8 border-b border-gray-300 pb-8">
+      <div className="mt-8 border-b border-gray-300 pb-8 w-full overflow-hidden">
         <h3 className="text-lg font-bold mb-3">Product Details</h3>
         <div className="text-sm md:text-base text-gray-700 space-y-2 leading-relaxed font-sans border-t border-gray-300 pt-3">
-          <div 
-            className="prose prose-sm max-w-none text-gray-700x font-lato"
-            dangerouslySetInnerHTML={{ __html: cleanHTML }} 
+          <div
+            className="prose prose-sm max-w-none text-gray-700 font-lato break-words [&_img]:max-w-full [&_img]:h-auto [&_iframe]:max-w-full"
+            dangerouslySetInnerHTML={{ __html: cleanHTML }}
           />
         </div>
       </div>
