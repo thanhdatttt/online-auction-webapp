@@ -733,9 +733,10 @@ export const buyNow = async (req, res) => {
     });
 
     if (exists)
-      return res
-        .status(409)
-        .json({ message: "You can not buyout to this product anymore." });
+      return res.status(409).json({
+        message:
+          "You have been rejected by the seller. You can not buyout to this product anymore.",
+      });
 
     const newBid = await Bid.create({
       auctionId: auctionId,
