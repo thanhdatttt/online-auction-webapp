@@ -53,6 +53,7 @@ export const createAuction = async (req, res) => {
       gapPrice,
       endTime,
       autoExtension,
+      allowUnratedBidder,
     } = req.body;
 
     const auction = new Auction({
@@ -63,6 +64,7 @@ export const createAuction = async (req, res) => {
       gapPrice: gapPrice,
       endTime: endTime,
       autoExtension: autoExtension,
+      allowUnratedBidder: allowUnratedBidder,
     });
 
     await auction.save();
@@ -986,6 +988,19 @@ export const getSimilarItems = async (req, res) => {
     ]);
 
     return res.status(200).json({ data: similarAuctions });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const getAuctionConfig = async (req, res) => {
+  try {
+    const auctionConfig = await AuctionConfig.findOne();
+
+    return res.status(200).json({
+      message: "Get auction config successfully.",
+      data: auctionConfig,
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

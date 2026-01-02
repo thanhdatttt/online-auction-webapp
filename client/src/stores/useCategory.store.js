@@ -10,10 +10,9 @@ export const useCategoryStore = create((set, get) => ({
     try {
       set({ loading: true });
 
-      
       const response = await categoryService.getCategories();
-      set({ 
-        categories: response.categories, 
+      set({
+        categories: response.categories,
       });
     } catch (err) {
       console.log(err);
@@ -23,5 +22,4 @@ export const useCategoryStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-
 }));
