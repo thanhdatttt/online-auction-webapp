@@ -3,6 +3,7 @@ import {
   Route,
   Navigate,
   Routes,
+  useLocation
 } from "react-router-dom";
 import { Toaster } from "sonner";
 import { useAuthStore } from "./stores/useAuth.store.js";
@@ -16,12 +17,39 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
 import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import TransactionPage from "./pages/TransactionPage.jsx";
+import MessengerChatBubble from "./components/Chat/MessageChatBubble.jsx";
+
+function ChatBubbleWrapper() {
+    const location = useLocation();
+    const { user } = useAuthStore();
+    
+    // Pages where chat bubble should NOT appear
+    const excludedPaths = [
+      '/signin',
+      '/signup',
+      '/forgotPassword',
+      '/auth/success',
+      '/dashboard'
+    ];
+    
+    // Check if current path should be excluded
+    const isExcluded = excludedPaths.some(path => 
+      location.pathname.startsWith(path)
+    );
+    
+    // Only show if user is logged in AND not on excluded pages
+    if (!user || isExcluded) return null;
+    
+    return <MessengerChatBubble />;
+}
 
 
 function App() {
@@ -80,9 +108,15 @@ function App() {
 
           <Route element={<ProtectedRoute roles={['seller']} />}>
             <Route path="/auctions/create" element={<CreateAuctionPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
-        </Routes>
-      </Router>
+          <Route element={<AdminRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />}></Route>
+          </Route>
+      </Routes>
+
+      <ChatBubbleWrapper />
+    </Router>
     </>
   );
 }
