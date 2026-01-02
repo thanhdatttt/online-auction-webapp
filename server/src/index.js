@@ -18,6 +18,7 @@ import guestRoute from "./routes/guest.route.js";
 import uploadRoute from "./routes/upload.route.js";
 import orderRoute from "./routes/order.route.js";
 import ratingRoute from "./routes/rating.route.js";
+import chatRoute from "./routes/chat.route.js";
 // create server
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +61,7 @@ app.use("/api/users", userRoute);
 app.use("/api/favorites", favoriteRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
+app.use("/api/chat", chatRoute);
 // admin routes
 app.use(authorize("admin"));
 app.use("/api/admin", adminRoute);
