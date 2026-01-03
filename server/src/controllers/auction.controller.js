@@ -489,7 +489,6 @@ export const answerComment = async (req, res) => {
 
     const { commentId } = req.params;
 
-    // Populate userId để lấy thông tin người đặt câu hỏi ngay tại đây
     const comment = await Comment.findById(commentId).populate(
       "userId",
       "email firstName lastName"
@@ -652,10 +651,7 @@ export const rejectBidder = async (req, res) => {
         auction.winnerId = newWinnerBidDoc.bidderId;
 
         await newWinnerBidDoc.save();
-        await newWinnerBidDoc.populate(
-          "bidderId",
-          "firstName lastName avatar_url"
-        );
+        await newWinnerBidDoc.populate("bidderId", "firstName lastName");
 
         const winner = await User.findById(newWinnerBidDoc.bidderId);
         console.log("New Winner:", winner);

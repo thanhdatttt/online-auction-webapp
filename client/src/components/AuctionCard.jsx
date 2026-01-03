@@ -21,7 +21,7 @@ const AuctionCard = ({ auction }) => {
   const { addToFavorite, removeFromFavorite } = useWatchListStore();
   const isFavorite = favoriteIds.has(auction._id);
 
-  const { formatPrice } = useAuctionStore();
+  const { maskFirstHalf, formatCompactNumber } = useAuctionStore();
 
   // add favorite / remove favorite
   const toogleFavorite = async (e) => {
@@ -49,9 +49,9 @@ const AuctionCard = ({ auction }) => {
 
       {/* Image Container */}
       <div className="relative aspect-4/3 overflow-hidden">
-        <img 
-          src={auction.product.images[0].url} 
-          alt={auction.product.name} 
+        <img
+          src={auction.product.images[0].url}
+          alt={auction.product.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
         />
         <div
@@ -90,7 +90,9 @@ const AuctionCard = ({ auction }) => {
               </p>
               <p className="text-2xl font-bold text-white tracking-tight leading-none">
                 {auction.currentPrice ? (
-                  <span>{formatPrice(auction.currentPrice) + " VND"}</span>
+                  <span>
+                    {formatCompactNumber(auction.currentPrice) + " VND"}
+                  </span>
                 ) : (
                   <span>None</span>
                 )}
@@ -111,7 +113,15 @@ const AuctionCard = ({ auction }) => {
                 HIGHEST BIDDER
               </p>
               <p className="text-lg font-bold text-slate-100 truncate">
-                {auction.winnerId && <span>{auction.winnerId.username}</span>}
+                {auction.winnerId && (
+                  <span>
+                    {maskFirstHalf(
+                      auction.winnerId.firstName +
+                        " " +
+                        auction.winnerId.lastName
+                    )}
+                  </span>
+                )}
                 {!auction.winnerId && <span>None</span>}
               </p>
             </div>
