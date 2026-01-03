@@ -4,7 +4,7 @@ import { useAuctionStore } from "../../stores/useAuction.store";
 const Hero = ({ auction }) => {
   const navigate = useNavigate();
 
-  const { formatCompactNumber } = useAuctionStore();
+  const { formatCompactNumber, formatPrice } = useAuctionStore();
 
   return (
     <section className="relative pt-32 pb-20 overflow-hidden bg-lighter">
