@@ -20,7 +20,7 @@ const auctionSchema = z
       .min(5, "Product name must be at least 5 characters"),
 
     // Description can be HTML string
-    description: z.string().min(20, "Please provide a detailed description"),
+    description: z.string().min(20, "Please provide a detailed description with over 20 characters"),
 
     // Custom validation for file array
     images: z
@@ -107,9 +107,9 @@ const CreateAuction = () => {
 
     const success = await createAuction(cleanData, rawFiles);
 
+    console.log(success)
     if (success) {
-      alert("Auction Created Successfully!");
-      navigate('/home');
+      navigate("/home");
     }
   };
 
@@ -167,7 +167,7 @@ const CreateAuction = () => {
               <ProductDescription
                 description={field.value}
                 setDescription={field.onChange}
-                error={errors.description?.message}
+                error={errors.description}
               />
             )}
           />

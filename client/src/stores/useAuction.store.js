@@ -333,6 +333,7 @@ export const useAuctionStore = create((set, get) => ({
       console.log(response);
 
       toast.success("Create auction successfully");
+      return response;
     } catch (err) {
       console.log(err);
       toast.error("Create auction failed, please try again");

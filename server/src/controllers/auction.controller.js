@@ -60,6 +60,7 @@ export const createAuction = async (req, res) => {
       product: product,
       sellerId: sellerId,
       startPrice: startPrice,
+      currentPrice: startPrice,
       buyNowPrice: buyNowPrice,
       gapPrice: gapPrice,
       endTime: endTime,
