@@ -17,6 +17,7 @@ const HomeLayout = () => {
     heroAuction,
     homeEndingSoon,
     homeHighestPrice,
+    homePopularRecommend,
   } = useAuctionStore();
 
   useEffect(() => {
@@ -32,7 +33,7 @@ const HomeLayout = () => {
       {heroAuction && <Hero auction={heroAuction}/>}
       <About/>
       <CategoryBrowse/>
-      <PopularRecommend/>
+      {homePopularRecommend && <PopularRecommend auctions={homePopularRecommend}/>}
       {homeHighestPrice && <HighPrice auctions={homeHighestPrice}/>}
       {homeEndingSoon && <EndingSoon auctions={homeEndingSoon}/>}
       <Proposition/>

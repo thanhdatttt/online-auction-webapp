@@ -95,7 +95,7 @@ const CreateAuction = () => {
     
     if (success) {
       alert("Auction Created Successfully!");
-      navigate('/dashboard');
+      navigate('/home');
     }
   };
 

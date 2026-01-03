@@ -60,7 +60,6 @@ const loading = useAuctionStore((state) => state.loading);
     setOpenCategoryId(prev => prev === id ? null : id);
   };
 
-  // --- NEW: Handle "All Auctions" Click ---
   const handleAllAuctions = () => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("categoryId"); // Remove filter
@@ -75,28 +74,23 @@ const loading = useAuctionStore((state) => state.loading);
       <main className="container mx-auto px-4 py-8 pt-10 flex flex-col lg:flex-row gap-8">
         <aside className="w-64 bg-[#1F2125] p-6 rounded-2xl min-h-[500px]">
           <div className="space-y-1">
-            {/* 1. The "All Auctions" Static Option */}
-                <div 
-                    onClick={handleAllAuctions}
-                    className={`flex items-center gap-3 py-2 cursor-pointer transition-colors duration-200 mb-4 pb-4 border-b border-gray-700
-                        ${!categoryId ? "text-orange-500" : "text-gray-300 hover:text-white"}`}
-                >
-                    {/* <LayoutGrid size={20} /> */}
-                    <span className="font-lato font-bold text-lg tracking-wide">All Auctions</span>
-                </div>
-                {/* 2. The Categories List */}
-                {categories.map((category) => (
-                    <Sidebar 
-                        key={category._id} 
-                        category={category}
-                        // Pass controlled props
-                        isOpen={openCategoryId === category._id}
-                        onToggle={handleCategoryToggle}
-                    />
-                ))}
-          {/* {categories.map((category, index) => (
-            <Sidebar key={index} category={category} />
-          ))} */}
+              <div 
+                  onClick={handleAllAuctions}
+                  className={`flex items-center gap-3 py-2 cursor-pointer transition-colors duration-200 mb-4 pb-4 border-b border-gray-700
+                      ${!categoryId ? "text-orange-500" : "text-gray-300 hover:text-white"}`}
+              >
+                  <span className="font-lato font-bold text-lg tracking-wide">All Auctions</span>
+              </div>
+              {/* The Categories List */}
+              {categories.map((category) => (
+                  <Sidebar 
+                      key={category._id} 
+                      category={category}
+                      // Pass controlled props
+                      isOpen={openCategoryId === category._id}
+                      onToggle={handleCategoryToggle}
+                  />
+              ))}
           </div>
         </aside>
 

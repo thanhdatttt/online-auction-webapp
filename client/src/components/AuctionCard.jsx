@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useWatchListStore } from "../stores/useWatchList.store.js";
 import { useAuctionStore } from "../stores/useAuction.store.js";
+import { useAuthStore } from "../stores/useAuth.store.js";
 
 const AuctionCard = ({ auction }) => {
   // navigate
@@ -21,7 +22,11 @@ const AuctionCard = ({ auction }) => {
   const { addToFavorite, removeFromFavorite } = useWatchListStore();
   const isFavorite = favoriteIds.has(auction._id);
 
-  const { formatPrice } = useAuctionStore();
+  const { formatPrice, maskFirstHalf } = useAuctionStore();
+
+  const user = useAuthStore((state) => state.user);
+  const isGuest = user === null;
+  const isWinner = !isGuest ? user?._id === auction.winnerId : false;
 
   // add favorite / remove favorite
   const toogleFavorite = async (e) => {
@@ -111,7 +116,12 @@ const AuctionCard = ({ auction }) => {
                 HIGHEST BIDDER
               </p>
               <p className="text-lg font-bold text-slate-100 truncate">
-                {auction.winnerId && <span>{auction.winnerId.username}</span>}
+                {isWinner
+                    ? "You"
+                    : maskFirstHalf(
+                        auction.winnerId?.username
+                      )}
+                {/* {auction.winnerId && <span>{auction.winnerId.username}</span>} */}
                 {!auction.winnerId && <span>None</span>}
               </p>
             </div>
