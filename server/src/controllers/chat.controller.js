@@ -5,45 +5,25 @@ import User from "../models/User.js";
 // Send a message (Start new conversation OR reply)
 export const sendMessage = async (req, res) => {
   try {
+    const { conversationId } = req.params;
+    const { text } = req.body;
     const senderId = req.user.id;
-    const { recipientId, conversationId, text } = req.body;
 
-    let targetConversationId = conversationId;
+    if (!text) return res.status(400).json({ message: "Message text required" });
 
-    // CASE 1: Starting a new chat via Recipient ID
-    if (!targetConversationId && recipientId) {
-      // Check if conversation already exists between these two users
-      let conversation = await Conversation.findOne({
-        participants: { $all: [senderId, recipientId] },
-      });
-
-      // If not, create it
-      if (!conversation) {
-        conversation = await Conversation.create({
-          participants: [senderId, recipientId],
-        });
-      }
-      targetConversationId = conversation._id;
-    }
-
-    if (!targetConversationId) {
-      return res.status(400).json({ message: "Conversation ID or Recipient ID required." });
-    }
-
-    // Create the message
     const newMessage = await Message.create({
-      conversationId: targetConversationId,
-      senderId: senderId,
-      text: text,
+      conversationId,
+      senderId,
+      text,
     });
 
-    // Update conversation with last message reference and time
-    await Conversation.findByIdAndUpdate(targetConversationId, {
+    // 2. Update the conversation (lastMessage + timestamp)
+    await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: newMessage._id,
-      updatedAt: new Date(), // Force update timestamp for sorting
+      updatedAt: new Date(), // Updates the 'updatedAt' field for sorting conversation list
     });
 
-    // Populate sender info for immediate frontend display
+    // 3. Populate and return
     const populatedMessage = await newMessage.populate(
       "senderId",
       "firstName lastName avatar_url"
@@ -51,7 +31,34 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(populatedMessage);
   } catch (error) {
-    console.error("Error in sendMessage:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const startConversation = async (req, res) => {
+  try {
+    const senderId = req.user.id;
+    const { recipientId } = req.body;
+
+    if (!recipientId) return res.status(400).json({ message: "Recipient ID required" });
+
+    // Check if conversation exists
+    let conversation = await Conversation.findOne({
+      participants: { $all: [senderId, recipientId] },
+    });
+
+    // If not, create it
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [senderId, recipientId],
+      });
+    }
+
+    // Populate user details so frontend can display immediately
+    await conversation.populate("participants", "firstName lastName avatar_url");
+
+    res.status(200).json(conversation);
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

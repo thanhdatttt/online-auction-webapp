@@ -5,8 +5,21 @@ import BaseTable from "./BaseTable";
 export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [sortAlphabetical, setSortAlphabetical] = useState(null);
-    const [sortProducts, setSortProducts] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const [sortState, setSortState] = useState({
+        category: "none",
+        product: "none"
+    });
+
+    const toggleSort = (field) => {
+        setSortState((prev) => {
+            const order = prev[field] === "asc" ? "desc" : prev[field] === "desc" ? "none" : "asc";
+
+            return { category: "none", product: "none", [field]: order };
+        });
+    };
 
     // Simulate data fetch
     useEffect(() => {
@@ -24,24 +37,8 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
     }, []);
 
     const columns = [
-        { 
-            header: (
-                <span className="flex items-center justify-center cursor-pointer" onClick={() => setSortAlphabetical(prev => prev === null ? 'asc' : prev === 'asc' ? 'desc' : null)}>
-                Category Name
-                <span className="ml-1 text-xs">{sortAlphabetical === null ? '' : sortAlphabetical === 'asc' ? '▲' : '▼'}</span>
-                </span>
-            ), 
-            width: '5fr'
-        },
-        { 
-            header: (
-                <span className="flex items-center justify-center cursor-pointer" onClick={() => setSortProducts(prev => prev === null ? 'asc' : prev === 'asc' ? 'desc' : null)}>
-                No. of Products
-                <span className="ml-1 text-xs">{sortProducts === null ? '' : sortProducts === 'asc' ? '▲' : '▼'}</span>
-                </span>
-            ), 
-            width: '3fr'
-        },
+        { header: 'Category Name', width: '5fr', sortField: "category" },
+        { header: 'No. of Products', width: '3fr', sortField: "product" },
         { header: '', width: '4fr' }
     ];
 
@@ -74,10 +71,14 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
         buttonText="Add New Category"
         buttonIcon="./dashboard/plus.svg"
         searchPlaceholder="Search by category name..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortState={sortState}
+        onSortChange={toggleSort}
         columns={columns}
         data={data}
         loading={loading}
-        onAdd={() => console.log('Add category')}
+        onAdd={() => setIsPopupOpen(true)}
         renderRow={renderRow}
         />
     );

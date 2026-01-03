@@ -6,6 +6,7 @@ import Bid from "../models/Bid.js";
 import cron from "node-cron";
 import Auction from "../models/Auction.js";
 import Order from "../models/Order.js";
+import Conversation from "../models/Conversation.js";
 
 // singleton...
 export const initAuctionConfig = async () => {
@@ -530,6 +531,23 @@ cron.schedule("*/1 * * * *", async () => {
             buyerId: auction.winnerId,
             finalPrice: auction.currentPrice,
           });
+        }
+
+        try {
+          // Check if conversation already exists between seller and winner
+          let conversation = await Conversation.findOne({
+            participants: { $all: [auction.sellerId, auction.winnerId] },
+          });
+
+          // If not, create it
+          if (!conversation) {
+            conversation = await Conversation.create({
+              participants: [auction.sellerId, auction.winnerId],
+            });
+            console.log(`Conversation created for Auction ${auction._id}`);
+          }
+        } catch (convErr) {
+          console.error("Error creating conversation:", convErr);
         }
       }
 
