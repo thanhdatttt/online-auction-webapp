@@ -29,7 +29,36 @@ This project demonstrates a **full-stack web architecture** with a RESTful API, 
 - TailwindCSS for styling and dark mode support
 
 ---
-
+```text
+online-auction-webapp/
+│
+├── client/
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Page-level components
+│   │   ├── stores/          # Zustand stores
+│   │   ├── services/        # API service layer
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── utils/           # Helper functions
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   └── package.json
+│
+├── server/
+│   ├── src/
+│   │   ├── controllers/     # Request handlers
+│   │   ├── models/          # Mongoose schemas
+│   │   ├── routes/          # API routes
+│   │   ├── middlewares/     # Auth & error handling
+│   │   ├── config/          # Environment & DB config
+│   │   └── server.js
+│   └── package.json
+│
+├── .env.
+├── README.md
+├── package.json
+└── package-lock.json
+```
 ---
 
 ## ⚙️ Tech Stack
@@ -46,3 +75,47 @@ This project demonstrates a **full-stack web architecture** with a RESTful API, 
 - 🔑 **JWT (JSON Web Token)** for authentication
 - 🧩 **dotenv** for environment variables
 - 🚦 **CORS** for cross-origin access
+
+---
+## ▶️ How to Run the Project
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/your-username/online-auction-webapp.git
+cd online-auction-webapp
+```
+
+---
+
+### 2️⃣ Run Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+The backend server will run at:
+
+```
+http://localhost:5000
+```
+
+---
+
+### 3️⃣ Run Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will run at:
+
+```
+http://localhost:5173
+```
+
+---
