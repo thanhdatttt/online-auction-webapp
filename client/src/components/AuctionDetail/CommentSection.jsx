@@ -46,7 +46,6 @@ const CommentSection = ({ seller, endTime }) => {
         if (isMounted) setComments(res.data.comments);
       } catch (err) {
         if (isMounted) setError(err.message);
-        console.log(err.message);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -59,8 +58,6 @@ const CommentSection = ({ seller, endTime }) => {
     };
   }, [id]);
 
-  console.log(comments);
-
   const processQuestion = async () => {
     try {
       const res = await handleQuestion(id, question);
@@ -69,7 +66,6 @@ const CommentSection = ({ seller, endTime }) => {
         setQuestion("");
       }
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   };
@@ -81,7 +77,6 @@ const CommentSection = ({ seller, endTime }) => {
     if (!currentAnswer) return;
 
     const res = await handleAnswer(id, questionId, currentAnswer);
-    console.log(res);
     if (res.status === 200) {
       setComments((prev) =>
         prev.map((i) => {

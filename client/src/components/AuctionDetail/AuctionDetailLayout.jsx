@@ -24,7 +24,7 @@ const AuctionDetailLayout = () => {
   const [similarItems, setSimilarItems] = useState();
   const [showAlert, setShowAlert] = useState(null);
   const [isAllowed, setIsAllowed] = useState(null);
-
+  const [upPercentSeller, setUpPercentSeller] = useState(null);
   const navigate = useNavigate();
 
   const { accessToken } = useAuthStore();
@@ -48,6 +48,7 @@ const AuctionDetailLayout = () => {
         setShowAlert(res.data.showAlert);
         setIsAllowed(!res.data.showAlert);
         setCurrentPrice(res.data.auction.currentPrice);
+        setUpPercentSeller(res.data.upPercentSeller);
       } catch (err) {
         if (isMounted) setError(err.message);
       } finally {
@@ -102,7 +103,6 @@ const AuctionDetailLayout = () => {
   const handleCloseShowAlert = () => {
     setShowAlert(false);
   };
-
   return (
     <>
       {isLoading && <Loading />}
@@ -205,6 +205,7 @@ const AuctionDetailLayout = () => {
                     dataWinner={dataWinner}
                     endTime={endTime}
                     isAllowed={isAllowed}
+                    upPercentSeller={upPercentSeller}
                   ></RightSideBar>
                 </div>
               </div>

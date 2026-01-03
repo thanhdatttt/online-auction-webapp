@@ -71,7 +71,6 @@ export const useAuctionStore = create((set, get) => ({
           totalPages: Math.ceil(response.pagination.totalItems / limit),
         },
       });
-      console.log(response);
       // toast.success("Load auctions successfully");
     } catch (err) {
       console.log(err);
@@ -208,7 +207,6 @@ export const useAuctionStore = create((set, get) => ({
       newCurrentPrice,
       auction
     );
-    console.log(validateMsg);
     if (validateMsg) {
       toast.error(validateMsg);
       return;
@@ -338,7 +336,6 @@ export const useAuctionStore = create((set, get) => ({
       };
 
       const response = await auctionService.createAuction(payload);
-      console.log(response);
 
       toast.success("Create auction successfully");
     } catch (err) {

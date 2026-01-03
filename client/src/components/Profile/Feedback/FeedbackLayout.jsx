@@ -40,7 +40,6 @@ const FeedbackLayout = () => {
           totalPositive: res.data.totalPositive,
         });
         setTotalPages(res.data.totalPages);
-        console.log(res.data);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load feedbacks");
       } finally {
@@ -59,13 +58,17 @@ const FeedbackLayout = () => {
     setSearchParams(next);
   };
 
+  // --- LOGIC MỚI: Kiểm tra Seller mới ---
+  const isNewSeller = stats.total === 0;
+
   const positivePercentage =
-    stats.total > 0
-      ? Math.round((stats.totalPositive / stats.total) * 100)
-      : 100;
+    stats.total > 0 ? Math.round((stats.totalPositive / stats.total) * 100) : 0;
 
   let colorClass = "text-[#22C55E]";
-  if (positivePercentage < 50) {
+
+  if (isNewSeller) {
+    colorClass = "text-gray-500";
+  } else if (positivePercentage < 50) {
     colorClass = "text-red-500";
   } else if (positivePercentage < 80) {
     colorClass = "text-amber-500";
@@ -76,18 +79,27 @@ const FeedbackLayout = () => {
       {/* Title Section */}
       <div className="mb-6">
         <h1 className="text-3xl font-normal text-[#1a1a1a] mb-2">Feedbacks</h1>
+
         <div className="text-[32px] font-medium items-center flex gap-2">
-          <span className={`${colorClass} font-bold`}>
-            +{positivePercentage}%
-          </span>
-          <span className="text-[#1a1a1a]">Positive Feedback</span>
+          {isNewSeller ? (
+            <span className={`${colorClass} font-bold text-2xl`}>
+              No ratings yet
+            </span>
+          ) : (
+            <>
+              <span className={`${colorClass} font-bold`}>
+                +{positivePercentage}%
+              </span>
+              <span className="text-[#1a1a1a]">Positive Feedback</span>
+            </>
+          )}
         </div>
       </div>
 
       {/* Divider */}
       <div className="border-t border-[#D1D5DB] mb-8 w-full opacity-60"></div>
 
-      {/* Content Area */}
+      {/* Content Area - GIỮ NGUYÊN */}
       {isLoading ? (
         <Loading />
       ) : error ? (

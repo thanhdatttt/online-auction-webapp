@@ -9,7 +9,6 @@ export const auctionService = {
 
       return res.data;
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   },
@@ -18,7 +17,6 @@ export const auctionService = {
       const res = await api.post(`/auctions/${auctionId}/buyout`);
       return res.data;
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   },
@@ -29,7 +27,6 @@ export const auctionService = {
       });
       return res;
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   },
@@ -43,7 +40,6 @@ export const auctionService = {
       );
       return res;
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   },
@@ -54,7 +50,6 @@ export const auctionService = {
       });
       return res;
     } catch (err) {
-      console.log(err.message);
       throw err;
     }
   },
@@ -65,19 +60,17 @@ export const auctionService = {
       });
       return res.data;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   },
   createAuction: async (data) => {
-    try{
+    try {
       const res = await api.post("/auctions", {
         ...data,
         categoryId: data.subCategoryId,
       });
       return res.data;
-    } catch (err){
-      console.log(err);
+    } catch (err) {
       throw err;
     }
   },
