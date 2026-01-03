@@ -146,6 +146,18 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  continue_with_facebook: async () => {
+    try {
+      set({loading: true});
+      await authService.continue_with_facebook();
+    } catch (err) {
+      console.log(err);
+      throw err;
+    } finally {
+      set({loading: false});
+    }
+  },
+
   fetchMe: async () => {
     try {
       set({ loading: true });

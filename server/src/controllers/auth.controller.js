@@ -447,12 +447,8 @@ export const facebookCallback = async (req, res) => {
       sameSite: "strict",
       maxAge: REFRESH_TOKEN_TTL,
     });
-    res.status(201).json({
-      message: "Login with Facebook successfully",
-      accessToken,
-      refreshToken,
-      user,
-    });
+    const redirectUrl = `${config.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
+    return res.redirect(redirectUrl);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
