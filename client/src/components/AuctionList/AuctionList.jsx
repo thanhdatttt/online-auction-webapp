@@ -7,6 +7,8 @@ import { useAuctionStore } from "../../stores/useAuction.store.js";
 import { useCategoryStore } from "../../stores/useCategory.store.js";
 import { useSearchParams } from "react-router";
 import AuctionListHeader from "./AuctionListHeader.jsx";
+import Loading from "../Loading.jsx";
+import EmptyState from "../EmptyState.jsx";
 
 const AuctionList = () => {
 const auctions = useAuctionStore((state) => state.auctions);
@@ -93,21 +95,29 @@ const loading = useAuctionStore((state) => state.loading);
               ))}
           </div>
         </aside>
-
         <section className="lg:w-3/4">
           <div className="flex justify-end mb-4">
             <Sortbar />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[13px] gap-y-[23px]">
-            {auctions.map((auction, index) => (
-              <AuctionCard key={index} auction={auction} />
-            ))}
-          </div>
+          {loading && <Loading message="Loading Auctions"/>}
+          {!loading && <>
+            {!auctions || auctions.length === 0 && <EmptyState/>}
+            {auctions && <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[13px] gap-y-[23px]">
+                {auctions.map((auction, index) => (
+                  <AuctionCard key={index} auction={auction} />
+                ))}
+              </div>
 
-          <div className="flex justify-center mt-8 space-x-2">
-            <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} />
-          </div>
+              <div className="flex justify-center mt-8 space-x-2">
+                <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} />
+              </div>
+              </>
+            }
+          </>
+          }
+          
         </section>
       </main>
     </div>

@@ -818,7 +818,10 @@ export const getAuctions = async (req, res) => {
 
     if (categoryId) {
       const categoriesToInclude = await getCategoryAndDescendants(categoryId);
-      filter["product.categoryId"] = { $in: categoriesToInclude };
+      // filter["product.categoryId"] = { $in: categoriesToInclude };
+      filter["product.categoryId"] = { 
+        $in: categoriesToInclude.map(id => new mongoose.Types.ObjectId(id)) 
+      };
     }
 
     const pageNum = parseInt(page);
