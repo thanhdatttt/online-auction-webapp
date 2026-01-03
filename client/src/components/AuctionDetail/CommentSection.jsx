@@ -16,7 +16,7 @@ const CommentSection = ({ seller, endTime }) => {
 
   const [question, setQuestion] = useState(null);
 
-  const [answer, setAnswer] = useState(null);
+  const [answers, setAnswers] = useState({});
 
   const { id } = useParams();
 
@@ -76,15 +76,19 @@ const CommentSection = ({ seller, endTime }) => {
 
   const processAnswer = async (e, questionId) => {
     e.preventDefault();
-    const res = await handleAnswer(id, questionId, answer);
+    const currentAnswer = answers[questionId];
+
+    if (!currentAnswer) return;
+
+    const res = await handleAnswer(id, questionId, currentAnswer);
     console.log(res);
     if (res.status === 200) {
       setComments((prev) =>
         prev.map((i) => {
-          return i._id === questionId ? { ...i, answer: answer } : i;
+          return i._id === questionId ? { ...i, answer: currentAnswer } : i;
         })
       );
-      setAnswer("");
+      setAnswers((prev) => ({ ...prev, [questionId]: "" }));
     }
   };
 
@@ -239,13 +243,18 @@ const CommentSection = ({ seller, endTime }) => {
                               <input
                                 type="text"
                                 disabled={!isOnGoing}
-                                value={answer}
+                                value={answers[c._id] || ""}
                                 placeholder={
                                   isOnGoing
                                     ? "Enter a answer."
                                     : "This auction is already closed."
                                 }
-                                onChange={(e) => setAnswer(e.target.value)}
+                                onChange={(e) =>
+                                  setAnswers({
+                                    ...answers,
+                                    [c._id]: e.target.value,
+                                  })
+                                }
                                 className="w-full px-3 py-1.5 text-sm text-gray-700 border border-gray-400 rounded-md focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
                               ></input>
                             </form>
