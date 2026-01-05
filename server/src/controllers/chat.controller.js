@@ -18,16 +18,26 @@ export const sendMessage = async (req, res) => {
     });
 
     // 2. Update the conversation (lastMessage + timestamp)
-    await Conversation.findByIdAndUpdate(conversationId, {
+    const conversation = await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: newMessage._id,
       updatedAt: new Date(), // Updates the 'updatedAt' field for sorting conversation list
-    });
+    }, { new: true }).populate("participants");
 
     // 3. Populate and return
     const populatedMessage = await newMessage.populate(
       "senderId",
       "firstName lastName avatar_url"
     );
+
+    const io = req.app.get("io"); // Get IO instance from app
+    
+    if (conversation && io) {
+      conversation.participants.forEach(participant => {
+        // Emit to everyone in the conversation (sender AND receiver)
+        // This ensures the receiver gets the bubble update, and sender confirms receipt
+        io.to(`user_${participant._id.toString()}`).emit("newMessage", populatedMessage);
+      });
+    }
 
     res.status(201).json(populatedMessage);
   } catch (error) {
@@ -119,7 +129,7 @@ export const getMessages = async (req, res) => {
       query._id = { $lt: cursor };
     }
 
-    const messages = await Message.find({ query })
+    const messages = await Message.find(query)
       .populate("senderId", "firstName lastName avatar_url")
       .sort({ _id: -1 }) // Oldest first (chat style)
       .limit(LIMIT);

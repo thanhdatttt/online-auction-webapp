@@ -544,7 +544,15 @@ cron.schedule("*/1 * * * *", async () => {
             conversation = await Conversation.create({
               participants: [auction.sellerId, auction.winnerId],
             });
+
+            await conversation.populate("participants", "firstName lastName avatar_url email");
             console.log(`Conversation created for Auction ${auction._id}`);
+            
+            // Emit to Seller
+            io.to(`user_${auction.sellerId}`).emit("newConversation", conversation);
+            
+            // Emit to Winner
+            io.to(`user_${auction.winnerId}`).emit("newConversation", conversation);
           }
         } catch (convErr) {
           console.error("Error creating conversation:", convErr);
