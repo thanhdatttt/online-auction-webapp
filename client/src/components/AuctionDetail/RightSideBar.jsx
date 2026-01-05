@@ -298,7 +298,7 @@ const RightSideBar = ({
           {isOnGoing ? (
             <>
               <p className="text-xs text-dark uppercase tracking-widest mb-2">
-                Current Bid
+                {newWinner ? "Current Bid" : "Start Price"}
               </p>
               <p className="text-3xl font-medium text-dark mb-4">
                 {formatPrice(newCurrentPrice) + " VND"}
