@@ -185,8 +185,8 @@ export const useAuctionStore = create((set, get) => ({
       ? auction.currentPrice
       : auction.startPrice;
 
-    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 50) {
-      return `Place bid failed. Your bid max amount greater than the current bid and 50 times gap price.`;
+    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 1000) {
+      return `Place bid failed. Your bid max amount greater than the current bid and 1000 times gap price.`;
     }
 
     return null;
