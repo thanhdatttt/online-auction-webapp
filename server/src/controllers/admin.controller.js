@@ -2,6 +2,7 @@ import RoleRequest from "../models/RoleRequest.js";
 import User from "../models/User.js";
 import Auction from "../models/Auction.js";
 import AuctionConfig from "../models/AuctionConfig.js";
+import Category from "../models/Category.js";
 
 export const getAuctions = async (req, res) => {
   try {
@@ -632,5 +633,190 @@ export const getAuctionConfig = async (req, res) => {
     res.json({ success: true, config });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const getCategories = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
+
+    const { sort, search } = req.query;
+    
+    let filter = [];
+    if (search) {
+      const searchRegex = { $regex: search, $options: 'i' }; // Case-insensitive
+      filter = [
+        {
+          $match: {
+            $or: [
+              { name: searchRegex },                 // Match the Parent Name
+              { "allDescendants.name": searchRegex } // Match ANY Descendant Name
+            ]
+          }
+        }
+      ];
+    }
+
+    let sortStage = { createdAt: -1 };
+
+    if (sort) {
+      sortStage = {}; 
+      const fields = sort.split(",");
+
+      fields.forEach((pair) => {
+        const [field, order] = pair.split(":");
+        const sortOrder = order === "asc" ? 1 : -1;
+
+        // Map frontend sort keys to DB fields
+        if (field === "auctionCount") sortStage["auctionCount"] = sortOrder;
+        else if (field === "category") sortStage["name"] = sortOrder;
+        else sortStage[field] = sortOrder;
+      });
+
+      if (!sortStage.createdAt) sortStage.createdAt = -1;
+    }
+
+    const result = await Category.aggregate([
+      // STEP 1: Filter Top-Level Only
+      { $match: { parentId: null } },
+
+      // STEP 2: Calculate Parent Auction Count (Required for Sorting)
+      // We must do this BEFORE pagination to sort correctly by popularity
+      {
+        $graphLookup: {
+          from: "categories",
+          startWith: "$_id",
+          connectFromField: "_id",
+          connectToField: "parentId",
+          as: "allDescendants"
+        }
+      },
+      ...filter,
+      {
+        $addFields: {
+          allCategoryIds: {
+            $concatArrays: [["$_id"], "$allDescendants._id"]
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "auctions",
+          let: { categoryIds: "$allCategoryIds" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$product.categoryId", "$$categoryIds"] }
+              }
+            }
+          ],
+          as: "related_auctions"
+        }
+      },
+      {
+        $addFields: {
+          auctionCount: { $size: "$related_auctions" }
+        }
+      },
+
+      // STEP 3: Sort (Must happen before slicing the page)
+      { $sort: sortStage },
+
+      // STEP 4: Pagination via Facet
+      {
+        $facet: {
+          // Pipeline A: Get Total Count
+          metadata: [{ $count: "total" }],
+          
+          // Pipeline B: Get Page Data
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            
+            // --- OPTIMIZATION: Only lookup children for this page's results ---
+            {
+              $lookup: {
+                from: "categories",
+                localField: "_id",
+                foreignField: "parentId",
+                as: "children",
+                pipeline: [
+                  // A. Find descendants of THIS child
+                  {
+                    $graphLookup: {
+                      from: "categories",
+                      startWith: "$_id",
+                      connectFromField: "_id",
+                      connectToField: "parentId",
+                      as: "childDescendants"
+                    }
+                  },
+                  // B. Combine IDs
+                  {
+                    $addFields: {
+                      childAllIds: { $concatArrays: [["$_id"], "$childDescendants._id"] }
+                    }
+                  },
+                  // C. Count Auctions
+                  {
+                    $lookup: {
+                      from: "auctions",
+                      let: { ids: "$childAllIds" },
+                      pipeline: [
+                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] } } }
+                      ],
+                      as: "childAuctions"
+                    }
+                  },
+                  // D. Clean up child
+                  {
+                    $addFields: { auctionCount: { $size: "$childAuctions" } }
+                  },
+                  { 
+                    $project: { 
+                      name: 1, slug: 1, image_url: 1, auctionCount: 1 
+                    } 
+                  },
+                  { $sort: { name: 1 } }
+                ]
+              }
+            },
+            
+            // Final cleanup for the data stream
+            { 
+              $project: { 
+                related_auctions: 0, 
+                allDescendants: 0, 
+                allCategoryIds: 0 
+              } 
+            }
+          ]
+        }
+      }
+    ]);
+
+    // 5. Unpack the Facet Result
+    const data = result[0].data;
+    const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+
+    res.status(200).json({
+      message: "Categories retrieved successfully",
+      categories: data,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ 
+        message: "Failed to get categories list", 
+        err: err.message 
+    });
   }
 };

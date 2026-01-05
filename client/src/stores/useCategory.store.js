@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import { categoryService } from "../services/category.service.js";
+import { uploadService } from "@/services/upload.service.js";
 
 export const useCategoryStore = create((set, get) => ({
   loading: false,
@@ -25,18 +26,16 @@ export const useCategoryStore = create((set, get) => ({
   createCategories: async (formData, imageFile) => {
     set({ loading: true });
     try {
-      const signatureData = await uploadService.getSignature();
-      const imageUrl = await Promise.all(uploadService.uploadImage(imageFile, signatureData));
+      const signatureData = await uploadService.getCategorySignature();
+      const image_url = await uploadService.uploadImage(imageFile, signatureData);
 
       const payload = {
         ...formData,
-        imageUrl,
+        image_url,
       };
+      console.log(payload);
       
       const response = await categoryService.createCategory(payload);
-      set({ 
-        categories: response.categories, 
-      });
       
     } catch (err) {
       console.log(err);

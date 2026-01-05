@@ -14,7 +14,7 @@ export const categoryService = {
   createCategory: async (data) => {
     try{
       const res = await api.post("/categories", {
-        data
+        ...data
       });
       return res.data;
     } catch (err){

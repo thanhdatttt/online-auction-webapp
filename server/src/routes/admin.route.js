@@ -12,9 +12,11 @@ import {
   updateUserInfo,
   getAuctions,
   getAuctionConfig,
-  deleteAuction
+  deleteAuction,
+  getCategories,
 } from "../controllers/admin.controller.js";
 
+import { createCategory } from "../controllers/category.controller.js";
 
 const router = express.Router();
 
@@ -35,4 +37,7 @@ router.get("/auctions", getAuctions);
 router.get("/auction/config", getAuctionConfig);
 router.put("/auction/config", updateAuctionConfig);
 router.post("/auction/:auctionId/delete", deleteAuction);
+
+router.get("/categories", getCategories);
+router.post("/categories", createCategory);
 export default router;
