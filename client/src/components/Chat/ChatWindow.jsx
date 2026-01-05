@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { X, Minimize2, Send } from 'lucide-react';
 import api from '@/utils/axios';
 import { useAuthStore } from '@/stores/useAuth.store';
@@ -16,6 +16,20 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
     const isFirstLoad = useRef(true);
+
+    const scrollToBottom = (smooth = true) => {
+        messagesEndRef.current?.scrollIntoView({ 
+            behavior: smooth ? 'smooth' : 'auto',
+            block: 'end'
+        });
+    };
+
+    useLayoutEffect(() => {
+        if (isFirstLoad.current && messages.length > 0) {
+            scrollToBottom(false); // Instant scroll for first load
+            isFirstLoad.current = false;
+        }
+    }, [messages]);
 
     const fetchMessages = async (cursor = null) => {
         try {
@@ -42,10 +56,7 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
                 requestAnimationFrame(() => {
                     container.scrollTop = container.scrollHeight - previousHeight;
                 });
-            } else if (isFirstLoad.current) {
-                scrollToBottom();
-                isFirstLoad.current = false;
-            }
+            } 
 
         } catch (error) {
             console.error("Failed to load messages", error);
@@ -59,7 +70,7 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
         if (!container || loading || !hasMore) return;
 
         // If user scrolls to top (within 50px), load more
-        if (container.scrollTop < 50) {
+        if (container.scrollTop < 20) {
             fetchMessages(nextCursor);
         }
     };
@@ -97,10 +108,6 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
         }
     };
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     useEffect(() => {
         fetchMessages();
         // Join the conversation room (optional, depending on your socket logic)
@@ -113,7 +120,7 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
             // Only append if the message belongs to THIS conversation
             if (msg.conversationId === conversation.id) {
                 setMessages(prev => [...prev, msg]);
-                scrollToBottom();
+                setTimeout(() => scrollToBottom(true), 100);
             }
         };
 
@@ -123,6 +130,21 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
 
     return (
         <div className="w-80 h-[500px] bg-white rounded-lg shadow-2xl flex flex-col">
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background-color: #cbd5e1;
+                    border-radius: 20px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background-color: #94a3b8;
+                }
+            `}</style>
             {/* Header */}
             <div className="p-3 border-b border-gray-200 flex items-center justify-between bg-secondary rounded-t-lg">
                 <div className="flex items-center gap-2">
@@ -160,7 +182,7 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
             </div>
 
             {/* Messages */}
-            <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-3 bg-light">
+            <div ref={chatContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-3 bg-light custom-scrollbar">
                 {loading && hasMore && (
                     <div className="text-center py-2">
                         <span className="text-xs text-gray-400">Loading history...</span>
@@ -192,6 +214,8 @@ export default function ChatWindow({ conversation, onClose, onMinimize }) {
                         </div>
                     )
                 })}
+
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
