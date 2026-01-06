@@ -709,7 +709,8 @@ export const getCategories = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $in: ["$product.categoryId", "$$categoryIds"] }
+                $expr: { $in: ["$product.categoryId", "$$categoryIds"] },
+                isDeleted: { $ne: true }
               }
             }
           ],
@@ -766,7 +767,7 @@ export const getCategories = async (req, res) => {
                       from: "auctions",
                       let: { ids: "$childAllIds" },
                       pipeline: [
-                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] } } }
+                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] }, isDeleted: { $ne: true } } }
                       ],
                       as: "childAuctions"
                     }

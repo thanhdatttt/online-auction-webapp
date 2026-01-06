@@ -832,6 +832,8 @@ export const getAuctions = async (req, res) => {
       };
     }
 
+    filter.isDeleted = { $ne: true };
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
