@@ -66,10 +66,10 @@ app.use("/api/favorites", favoriteRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
 app.use("/api/chat", chatRoute);
-// seller routes
-app.use("/api", authorize("seller"), sellerRoute);
 // admin routes
 app.use("/api/admin", authorize("admin"), adminRoute);
+// seller routes
+app.use("/api", authorize("seller"), sellerRoute);
 
 // run server
 connectDB().then(async () => {
