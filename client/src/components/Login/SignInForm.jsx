@@ -31,7 +31,7 @@ const SignInForm = () => {
   const navigate = useNavigate();
 
   // get api
-  const { login, continue_with_google } = useAuthStore();
+  const { login, continue_with_google, continue_with_facebook } = useAuthStore();
 
   // validate form
   const {
@@ -190,7 +190,9 @@ const SignInForm = () => {
             {" "}
             <FcGoogle size={30}></FcGoogle> Continue with Google
           </button>
-          <button className="w-full py-2 px-8 text-2xl font-lora font-semibold flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer">
+          <button 
+            onClick={continue_with_facebook}
+            className="w-full py-2 px-8 text-2xl font-lora font-semibold flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer">
             {" "}
             <FaFacebook size={30} color="blue"></FaFacebook> Continue with
             Facebook

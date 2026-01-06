@@ -132,11 +132,27 @@ export const getAuctionDetail = async (req, res) => {
 
     const highestPrice = auction.highestPrice;
 
+    let upPercentSeller = -1;
+
+    const sellerTotalRatings = await Rating.countDocuments({
+      ratedUserId: auction.sellerId,
+    });
+
+    if (sellerTotalRatings !== 0) {
+      const sellerTotalPositiveRatings = await Rating.countDocuments({
+        ratedUserId: auction.sellerId,
+        rateType: "uprate",
+      });
+
+      upPercentSeller = (sellerTotalPositiveRatings / sellerTotalRatings) * 100;
+    }
+
     res.status(200).json({
       auction: auction,
       seller: seller,
       dataWinner: { winner: winner, highestPrice: highestPrice },
       showAlert: showAlert,
+      upPercentSeller: upPercentSeller,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -490,7 +506,6 @@ export const answerComment = async (req, res) => {
 
     const { commentId } = req.params;
 
-    // Populate userId để lấy thông tin người đặt câu hỏi ngay tại đây
     const comment = await Comment.findById(commentId).populate(
       "userId",
       "email firstName lastName"
@@ -621,9 +636,6 @@ export const rejectBidder = async (req, res) => {
         },
         { $limit: 2 },
       ]);
-
-      console.log("New Candidates:", candidates);
-
       if (candidates.length === 0) {
         auction.winnerId = null;
         auction.currentPrice = auction.startPrice;
@@ -653,13 +665,9 @@ export const rejectBidder = async (req, res) => {
         auction.winnerId = newWinnerBidDoc.bidderId;
 
         await newWinnerBidDoc.save();
-        await newWinnerBidDoc.populate(
-          "bidderId",
-          "firstName lastName avatar_url"
-        );
+        await newWinnerBidDoc.populate("bidderId", "firstName lastName");
 
         const winner = await User.findById(newWinnerBidDoc.bidderId);
-        console.log("New Winner:", winner);
 
         const highestPrice = auction.highestPrice;
 
@@ -864,20 +872,30 @@ export const getAuctions = async (req, res) => {
 
     const [auctions, total] = await Promise.all([
       Auction.aggregate([
-        // 1. FILTER ($match replaces .find)
         { $match: filter },
 
-        // 2. LOOKUP (Join with Bids)
         {
           $lookup: {
             from: "bids",
-            localField: "_id",
-            foreignField: "auctionId",
+
+            let: { auction_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$auctionId", "$$auction_id"] },
+
+                      { $eq: ["$isActive", true] },
+                    ],
+                  },
+                },
+              },
+              { $project: { _id: 1 } },
+            ],
             as: "bids",
           },
         },
-
-        // 3. COUNT (Calculate size)
         {
           $addFields: {
             bidCount: { $size: "$bids" },
@@ -887,25 +905,24 @@ export const getAuctions = async (req, res) => {
         // 4. CLEANUP (Remove the heavy bids array)
         { $project: { bids: 0 } },
 
-        // 5. SORT ($sort replaces .sort)
-        { $sort: sortOptions }, // Ensure sortOptions uses MongoDB syntax (e.g. { price: -1 })
+        // 5. SORT
+        { $sort: sortOptions },
 
-        // 6. PAGINATION ($skip & $limit)
+        // 6. PAGINATION
         { $skip: skip },
         { $limit: limitNum },
 
-        // 7. POPULATE (In aggregation, you must use $lookup for "populate" too)
+        // 7. POPULATE WINNER
         {
           $lookup: {
-            from: "users", // Assuming your users collection is named "users"
+            from: "users",
             localField: "winnerId",
             foreignField: "_id",
             as: "winnerId",
           },
         },
-        { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } }, // Unwind array to object
+        { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } },
       ]),
-
       Auction.countDocuments(filter),
     ]);
 

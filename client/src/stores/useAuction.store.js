@@ -72,7 +72,6 @@ export const useAuctionStore = create((set, get) => ({
           totalPages: Math.ceil(response.pagination.totalItems / limit),
         },
       });
-      console.log(response);
       // toast.success("Load auctions successfully");
     } catch (err) {
       console.log(err);
@@ -89,6 +88,15 @@ export const useAuctionStore = create((set, get) => ({
     const half = Math.floor(len / 2);
     const masked = "*".repeat(half) + str.slice(half);
     return masked;
+  },
+
+  formatCompactNumber: (number) => {
+    if (number === undefined || number === null) return "0";
+
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(number);
   },
 
   formatTime: (rawTime) => {
@@ -178,8 +186,8 @@ export const useAuctionStore = create((set, get) => ({
       ? auction.currentPrice
       : auction.startPrice;
 
-    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 50) {
-      return `Place bid failed. Your bid max amount greater than the current bid and 50 times gap price.`;
+    if (basePrice && bidMaxAmount > basePrice + auction.gapPrice * 1000) {
+      return `Place bid failed. Your bid max amount greater than the current bid and 1000 times gap price.`;
     }
 
     return null;
@@ -200,7 +208,6 @@ export const useAuctionStore = create((set, get) => ({
       newCurrentPrice,
       auction
     );
-    console.log(validateMsg);
     if (validateMsg) {
       toast.error(validateMsg);
       return;
@@ -330,7 +337,6 @@ export const useAuctionStore = create((set, get) => ({
       };
 
       const response = await auctionService.createAuction(payload);
-      console.log(response);
 
       toast.success("Create auction successfully");
       return response;

@@ -54,9 +54,9 @@ const AuctionCard = ({ auction }) => {
 
       {/* Image Container */}
       <div className="relative aspect-4/3 overflow-hidden">
-        <img 
-          src={auction.product.images[0].url} 
-          alt={auction.product.name} 
+        <img
+          src={auction.product.images[0].url}
+          alt={auction.product.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
         />
         <div
@@ -95,7 +95,9 @@ const AuctionCard = ({ auction }) => {
               </p>
               <p className="text-2xl font-bold text-white tracking-tight leading-none">
                 {auction.currentPrice ? (
-                  <span>{formatPrice(auction.currentPrice) + " VND"}</span>
+                  <span>
+                    {formatPrice(auction.currentPrice) + " VND"}
+                  </span>
                 ) : (
                   <span>None</span>
                 )}
