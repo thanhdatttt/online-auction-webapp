@@ -189,7 +189,7 @@ const MenuBar = ({ editor }) => {
 };
 
 // --- Main Editor Component ---
-const ProductDescription = ({ description, setDescription }) => {
+const ProductDescription = ({ description, setDescription, error }) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -238,6 +238,11 @@ const ProductDescription = ({ description, setDescription }) => {
         <MenuBar editor={editor} />
         <EditorContent editor={editor} />
       </div>
+      {error && (
+        <p className="text-red-500 text-xs mt-1">
+          {error.message}
+        </p>
+      )}
     </div>
   );
 };

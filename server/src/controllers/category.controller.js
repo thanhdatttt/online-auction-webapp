@@ -19,7 +19,7 @@ export const getCategories = async (req, res) => {
 
 export const createCategory = async (req, res) => {
   try {
-    const { name, parentId, description } = req.body;
+    const { name, parentId, description, image_url } = req.body;
 
     if (parentId) {
       const parentCategory = await Category.findById(parentId);
@@ -32,6 +32,7 @@ export const createCategory = async (req, res) => {
       name,
       parentId: parentId || null,
       description: description || null,
+      image_url: image_url,
     });
 
     const savedCategory = await category.save();

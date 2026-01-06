@@ -20,8 +20,6 @@ export const getWonAuctions = async (req, res) => {
       status: "ended",
     }).distinct("_id");
 
-    console.log(wonAuctionIds);
-
     if (wonAuctionIds.length === 0) {
       return res.status(200).json({
         message: "No won auction found",
@@ -201,10 +199,10 @@ export const getActiveBids = async (req, res) => {
     const sort = sortOptions[sortBy] || sortOptions.newest;
 
     const match = searchQuery
-    ? {
-        "product.name": { $regex: searchQuery, $options: "i" },
-      }
-    : {};
+      ? {
+          "product.name": { $regex: searchQuery, $options: "i" },
+        }
+      : {};
 
     // find auctions that user have bidden
     const auctionIds = await Bid.distinct("auctionId", {
@@ -231,7 +229,11 @@ export const getActiveBids = async (req, res) => {
 
     // filter and pagination
     const [activeBids, total] = await Promise.all([
-      Auction.find(filter).sort(sort).skip(skip).limit(limit),
+      Auction.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .populate("winnerId", "username"),
 
       Auction.countDocuments(filter),
     ]);

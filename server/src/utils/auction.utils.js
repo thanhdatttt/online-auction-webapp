@@ -6,6 +6,7 @@ import Bid from "../models/Bid.js";
 import cron from "node-cron";
 import Auction from "../models/Auction.js";
 import Order from "../models/Order.js";
+import Conversation from "../models/Conversation.js";
 
 // singleton...
 export const initAuctionConfig = async () => {
@@ -285,7 +286,7 @@ export const sendPlaceBidEmail = async (
     `
   );
 
-  // 4b. Email to the Seller (Notification)
+  // 4b. Email to the Seller (Notification) - ĐÃ CẬP NHẬT THÊM bidEntryAmount
   await sendEmail(
     seller.email,
     "[Auctiz] New Bid on Your Auction",
@@ -300,11 +301,22 @@ export const sendPlaceBidEmail = async (
           <p>Hello <strong>${seller.firstName}</strong>,</p>
           <p>Good news! A new bid has been placed on <strong>"${productName}"</strong>.</p>
           
-          <div style="text-align: center; padding: 20px; background-color: #eff6ff; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 0; font-size: 14px; color: #6b7280;">Max Bid Amount</p>
-            <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #2563eb;">${formatPriceVND(
-              bidMaxAmount
-            )}</p>
+          <div style="padding: 20px; background-color: #eff6ff; border-radius: 8px; margin: 20px 0;">
+            
+            <div style="text-align: center; border-bottom: 1px solid #bfdbfe; padding-bottom: 15px; margin-bottom: 15px;">
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">Entry Amount (Current Price)</p>
+              <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #374151;">${formatPriceVND(
+                bidEntryAmount
+              )}</p>
+            </div>
+
+            <div style="text-align: center;">
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">Max Bid Amount</p>
+              <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #2563eb;">${formatPriceVND(
+                bidMaxAmount
+              )}</p>
+            </div>
+
           </div>
 
           <div style="${styles.buttonContainer}">
@@ -337,7 +349,7 @@ export const sendPlaceBidEmail = async (
           <div style="${styles.body}">
             <h2 style="margin-top: 0; color: #111827;">Auction Update</h2>
             <p>Hello <strong>${b.firstName}</strong>,</p>
-            <p>A new bid has been placed on an auction you are watching: <strong>"${productName}"</strong>.</p>
+            <p>A new bid has been placed on an auction you are bidding: <strong>"${productName}"</strong>.</p>
             
             <div style="${styles.infoBox}">
               <p style="margin: 0 0 8px 0;"><strong>Latest Activity:</strong></p>
@@ -530,6 +542,31 @@ cron.schedule("*/1 * * * *", async () => {
             buyerId: auction.winnerId,
             finalPrice: auction.currentPrice,
           });
+        }
+
+        try {
+          // Check if conversation already exists between seller and winner
+          let conversation = await Conversation.findOne({
+            participants: { $all: [auction.sellerId, auction.winnerId] },
+          });
+
+          // If not, create it
+          if (!conversation) {
+            conversation = await Conversation.create({
+              participants: [auction.sellerId, auction.winnerId],
+            });
+
+            await conversation.populate("participants", "firstName lastName avatar_url email");
+            console.log(`Conversation created for Auction ${auction._id}`);
+            
+            // Emit to Seller
+            io.to(`user_${auction.sellerId}`).emit("newConversation", conversation);
+            
+            // Emit to Winner
+            io.to(`user_${auction.winnerId}`).emit("newConversation", conversation);
+          }
+        } catch (convErr) {
+          console.error("Error creating conversation:", convErr);
         }
       }
 

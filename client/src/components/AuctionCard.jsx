@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useWatchListStore } from "../stores/useWatchList.store.js";
 import { useAuctionStore } from "../stores/useAuction.store.js";
+import { useAuthStore } from "../stores/useAuth.store.js";
 
 const AuctionCard = ({ auction }) => {
   // navigate
@@ -21,7 +22,11 @@ const AuctionCard = ({ auction }) => {
   const { addToFavorite, removeFromFavorite } = useWatchListStore();
   const isFavorite = favoriteIds.has(auction._id);
 
-  const { formatPrice } = useAuctionStore();
+  const { formatPrice, maskFirstHalf } = useAuctionStore();
+
+  const user = useAuthStore((state) => state.user);
+  const isGuest = user === null;
+  const isWinner = !isGuest ? user?._id === auction.winnerId : false;
 
   // add favorite / remove favorite
   const toogleFavorite = async (e) => {
@@ -49,9 +54,9 @@ const AuctionCard = ({ auction }) => {
 
       {/* Image Container */}
       <div className="relative aspect-4/3 overflow-hidden">
-        <img 
-          src={auction.product.images[0].url} 
-          alt={auction.product.name} 
+        <img
+          src={auction.product.images[0].url}
+          alt={auction.product.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
         />
         <div
@@ -90,7 +95,9 @@ const AuctionCard = ({ auction }) => {
               </p>
               <p className="text-2xl font-bold text-white tracking-tight leading-none">
                 {auction.currentPrice ? (
-                  <span>{formatPrice(auction.currentPrice) + " VND"}</span>
+                  <span>
+                    {formatPrice(auction.currentPrice) + " VND"}
+                  </span>
                 ) : (
                   <span>None</span>
                 )}
@@ -111,7 +118,12 @@ const AuctionCard = ({ auction }) => {
                 HIGHEST BIDDER
               </p>
               <p className="text-lg font-bold text-slate-100 truncate">
-                {auction.winnerId && <span>{auction.winnerId.username}</span>}
+                {isWinner
+                    ? "You"
+                    : maskFirstHalf(
+                        auction.winnerId?.username
+                      )}
+                {/* {auction.winnerId && <span>{auction.winnerId.username}</span>} */}
                 {!auction.winnerId && <span>None</span>}
               </p>
             </div>

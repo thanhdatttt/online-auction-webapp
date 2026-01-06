@@ -22,7 +22,13 @@ import { resetPassword } from "./auth.controller.js";
 export const createAuction = async (req, res) => {
   try {
     const sellerId = req.user.id;
-    const { categoryId, name, description, imageUrls, mainImageId = null } = req.body;
+    const {
+      categoryId,
+      name,
+      description,
+      imageUrls,
+      mainImageId = null,
+    } = req.body;
 
     const images = imageUrls.map((url) => ({
       _id: new mongoose.Types.ObjectId(),
@@ -41,16 +47,25 @@ export const createAuction = async (req, res) => {
       product.mainImageId = product.images[0]._id;
     }
 
-    const { startPrice, buyNowPrice = null, gapPrice, endTime, autoExtension } = req.body;
+    const {
+      startPrice,
+      buyNowPrice = null,
+      gapPrice,
+      endTime,
+      autoExtension,
+      allowUnratedBidder,
+    } = req.body;
 
     const auction = new Auction({
       product: product,
       sellerId: sellerId,
       startPrice: startPrice,
+      currentPrice: startPrice,
       buyNowPrice: buyNowPrice,
       gapPrice: gapPrice,
       endTime: endTime,
       autoExtension: autoExtension,
+      allowUnratedBidder: allowUnratedBidder,
     });
 
     await auction.save();
@@ -92,8 +107,9 @@ export const getAuctionDetail = async (req, res) => {
             ratedUserId: user._id,
           });
 
-          if (ratingCount === 0 && !auction.allowUnratedBidder) {
-            showAlert = true;
+          if (ratingCount === 0) {
+            if (!auction.allowUnratedBidder) showAlert = true;
+            else showAlert = false;
           } else {
             const positiveRatingCount = await Rating.countDocuments({
               ratedUserId: user._id,
@@ -116,11 +132,27 @@ export const getAuctionDetail = async (req, res) => {
 
     const highestPrice = auction.highestPrice;
 
+    let upPercentSeller = -1;
+
+    const sellerTotalRatings = await Rating.countDocuments({
+      ratedUserId: auction.sellerId,
+    });
+
+    if (sellerTotalRatings !== 0) {
+      const sellerTotalPositiveRatings = await Rating.countDocuments({
+        ratedUserId: auction.sellerId,
+        rateType: "uprate",
+      });
+
+      upPercentSeller = (sellerTotalPositiveRatings / sellerTotalRatings) * 100;
+    }
+
     res.status(200).json({
       auction: auction,
       seller: seller,
       dataWinner: { winner: winner, highestPrice: highestPrice },
       showAlert: showAlert,
+      upPercentSeller: upPercentSeller,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -213,26 +245,24 @@ export const placeBid = async (req, res) => {
 
     const totalRatings = await Rating.countDocuments({ ratedUserId: userId });
 
-    if (totalRatings === 0)
+    if (totalRatings === 0) {
       if (!auction.allowUnratedBidder)
         return res.status(400).json({
           message: "The seller does not allow unrated bidders to place bids.",
         });
-      else {
-        const totalPositiveRatings = await Rating.countDocuments({
-          ratedUserId: userId,
-          rateType: "uprate",
+    } else {
+      const totalPositiveRatings = await Rating.countDocuments({
+        ratedUserId: userId,
+        rateType: "uprate",
+      });
+
+      const positiveRatingPercent = (totalPositiveRatings / totalRatings) * 100;
+
+      if (positiveRatingPercent < 80)
+        return res.status(403).json({
+          message: "You must have at least 80% positive rating to place a bid.",
         });
-
-        const positiveRatingPercent =
-          (totalPositiveRatings / totalRatings) * 100;
-
-        if (positiveRatingPercent < 80)
-          return res.status(403).json({
-            message:
-              "You must have at least 80% positive rating to place a bid.",
-          });
-      }
+    }
 
     const rejectedBidder = await RejectedBidder.findOne({
       bidderId: userId,
@@ -265,16 +295,18 @@ export const placeBid = async (req, res) => {
         .status(409)
         .json({ message: "Bidder should purchase outright now." });
 
-    const auctionConfig = await AuctionConfig.findOne();
+    if (auction.autoExtension) {
+      const auctionConfig = await AuctionConfig.findOne();
 
-    const endTime = new Date(auction.endTime).getTime();
+      const endTime = new Date(auction.endTime).getTime();
 
-    if (auctionConfig && endTime - now <= auctionConfig.extendThreshold) {
-      auction.endTime = new Date(
-        auction.endTime.getTime() + auctionConfig.extendDuration
-      );
+      if (auctionConfig && endTime - now <= auctionConfig.extendThreshold) {
+        auction.endTime = new Date(
+          auction.endTime.getTime() + auctionConfig.extendDuration
+        );
 
-      io.to(`auction_${auctionId}`).emit("endTimeUpdate", auction.endTime);
+        io.to(`auction_${auctionId}`).emit("endTimeUpdate", auction.endTime);
+      }
     }
 
     let bidEntryAmount;
@@ -474,7 +506,6 @@ export const answerComment = async (req, res) => {
 
     const { commentId } = req.params;
 
-    // Populate userId để lấy thông tin người đặt câu hỏi ngay tại đây
     const comment = await Comment.findById(commentId).populate(
       "userId",
       "email firstName lastName"
@@ -605,9 +636,6 @@ export const rejectBidder = async (req, res) => {
         },
         { $limit: 2 },
       ]);
-
-      console.log("New Candidates:", candidates);
-
       if (candidates.length === 0) {
         auction.winnerId = null;
         auction.currentPrice = auction.startPrice;
@@ -637,13 +665,9 @@ export const rejectBidder = async (req, res) => {
         auction.winnerId = newWinnerBidDoc.bidderId;
 
         await newWinnerBidDoc.save();
-        await newWinnerBidDoc.populate(
-          "bidderId",
-          "firstName lastName avatar_url"
-        );
+        await newWinnerBidDoc.populate("bidderId", "firstName lastName");
 
         const winner = await User.findById(newWinnerBidDoc.bidderId);
-        console.log("New Winner:", winner);
 
         const highestPrice = auction.highestPrice;
 
@@ -720,9 +744,10 @@ export const buyNow = async (req, res) => {
     });
 
     if (exists)
-      return res
-        .status(409)
-        .json({ message: "You can not buyout to this product anymore." });
+      return res.status(409).json({
+        message:
+          "You have been rejected by the seller. You can not buyout to this product anymore.",
+      });
 
     const newBid = await Bid.create({
       auctionId: auctionId,
@@ -801,7 +826,10 @@ export const getAuctions = async (req, res) => {
 
     if (categoryId) {
       const categoriesToInclude = await getCategoryAndDescendants(categoryId);
-      filter["product.categoryId"] = { $in: categoriesToInclude };
+      // filter["product.categoryId"] = { $in: categoriesToInclude };
+      filter["product.categoryId"] = { 
+        $in: categoriesToInclude.map(id => new mongoose.Types.ObjectId(id)) 
+      };
     }
 
     const pageNum = parseInt(page);
@@ -844,48 +872,57 @@ export const getAuctions = async (req, res) => {
 
     const [auctions, total] = await Promise.all([
       Auction.aggregate([
-        // 1. FILTER ($match replaces .find)
         { $match: filter },
 
-        // 2. LOOKUP (Join with Bids)
         {
           $lookup: {
             from: "bids",
-            localField: "_id",
-            foreignField: "auctionId",
-            as: "bids"
-          }
-        },
 
-        // 3. COUNT (Calculate size)
+            let: { auction_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$auctionId", "$$auction_id"] },
+
+                      { $eq: ["$isActive", true] },
+                    ],
+                  },
+                },
+              },
+              { $project: { _id: 1 } },
+            ],
+            as: "bids",
+          },
+        },
         {
           $addFields: {
-            bidCount: { $size: "$bids" }
-          }
+            bidCount: { $size: "$bids" },
+          },
         },
 
         // 4. CLEANUP (Remove the heavy bids array)
         { $project: { bids: 0 } },
 
-        // 5. SORT ($sort replaces .sort)
-        { $sort: sortOptions }, // Ensure sortOptions uses MongoDB syntax (e.g. { price: -1 })
+        // 5. SORT
+        { $sort: sortOptions },
 
-        // 6. PAGINATION ($skip & $limit)
+        // 6. PAGINATION
         { $skip: skip },
         { $limit: limitNum },
-        
-        // 7. POPULATE (In aggregation, you must use $lookup for "populate" too)
+
+        // 7. POPULATE WINNER
         {
           $lookup: {
-            from: "users", // Assuming your users collection is named "users"
+            from: "users",
             localField: "winnerId",
             foreignField: "_id",
-            as: "winnerId"
-          }
+            as: "winnerId",
+          },
         },
-        { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } } // Unwind array to object
+        { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } },
       ]),
-
       Auction.countDocuments(filter),
     ]);
 
@@ -972,6 +1009,19 @@ export const getSimilarItems = async (req, res) => {
     ]);
 
     return res.status(200).json({ data: similarAuctions });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const getAuctionConfig = async (req, res) => {
+  try {
+    const auctionConfig = await AuctionConfig.findOne();
+
+    return res.status(200).json({
+      message: "Get auction config successfully.",
+      data: auctionConfig,
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

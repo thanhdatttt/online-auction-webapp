@@ -72,6 +72,21 @@ export const authService = {
     }
   },
 
+  continue_with_facebook: async () => {
+    try {
+      const res = await api.get("/auth/facebook/url");
+      const { url } = res.data;
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Something went wrong. Can not get Facebook URL.");
+      }
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
   fetchMe: async () => {
     try {
       const res = await api.get("/users/me", {withCredentials: true});

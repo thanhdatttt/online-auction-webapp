@@ -92,7 +92,7 @@ const SignUpForm = () => {
   const [step, setStep] = useState(1);
 
   // set up
-  const { signup, verify_otp, create_user, continue_with_google } = useAuthStore();
+  const { signup, verify_otp, create_user, continue_with_google, continue_with_facebook } = useAuthStore();
 
   // update step state
   const nextStep = () => {
@@ -261,10 +261,11 @@ const SignUpForm = () => {
                   {" "}
                   <FcGoogle size={30}></FcGoogle> Continue with Google
                 </button>
-                <button className="w-3/4 py-2 px-4 text-2xl flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer">
+                <button 
+                  onClick={continue_with_facebook}
+                  className="w-3/4 py-2 px-4 text-2xl flex items-center justify-center gap-2 border border-gray-200 rounded-3xl hover:bg-gray-700 transition cursor-pointer">
                   {" "}
-                  <FaFacebook size={30} color="blue"></FaFacebook> Continue with
-                  Facebook
+                  <FaFacebook size={30} color="blue"></FaFacebook> Continue with Facebook
                 </button>
               </div>
             </div>

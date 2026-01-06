@@ -4,7 +4,6 @@ import { useAuctionStore } from "../../../stores/useAuction.store";
 import { Link } from "react-router";
 
 const FeedbackCard = ({ item }) => {
-  console.log(item);
   const { formatTime } = useAuctionStore();
   return (
     <div className="flex flex-col sm:flex-row border border-black bg-light w-full h-auto sm:h-40">
