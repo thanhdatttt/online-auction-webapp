@@ -4,7 +4,7 @@ import { useAuctionStore } from "../../stores/useAuction.store";
 const Hero = ({ auction }) => {
   const navigate = useNavigate();
 
-  const { formatPrice } = useAuctionStore();
+  const { formatCompactNumber, formatPrice } = useAuctionStore();
 
   return (
     <section className="relative pt-32 pb-20 overflow-hidden bg-lighter">
@@ -101,7 +101,9 @@ const Hero = ({ auction }) => {
                   </p>
                   <p className="text-2xl font-bold text-amber-600">
                     {auction.currentPrice ? (
-                      <span>{formatPrice(auction.currentPrice) + " VND"}</span>
+                      <span>
+                        {formatCompactNumber(auction.currentPrice) + " VND"}
+                      </span>
                     ) : (
                       <span>None</span>
                     )}

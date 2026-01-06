@@ -21,8 +21,6 @@ const AuctionWonCard = ({ item, rating }) => {
 
   const [showModal, setShowModal] = useState(false);
 
-  console.log(rating);
-
   const handleRateType = (value) => {
     if (isRated) return;
 
@@ -32,8 +30,6 @@ const AuctionWonCard = ({ item, rating }) => {
       else setRateType(value);
     }
   };
-
-  console.log(reviewContent);
 
   const handleShowModal = (value) => {
     const validateMsg = validateRating({ reviewContent, rateType });

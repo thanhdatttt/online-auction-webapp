@@ -15,6 +15,7 @@ const RightSideBar = ({
   dataWinner,
   endTime,
   isAllowed,
+  upPercentSeller,
 }) => {
   const newCurrentPrice = currentPrice
     ? currentPrice
@@ -297,7 +298,7 @@ const RightSideBar = ({
           {isOnGoing ? (
             <>
               <p className="text-xs text-dark uppercase tracking-widest mb-2">
-                Current Bid
+                {newWinner ? "Current Bid" : "Start Price"}
               </p>
               <p className="text-3xl font-medium text-dark mb-4">
                 {formatPrice(newCurrentPrice) + " VND"}
@@ -361,7 +362,10 @@ const RightSideBar = ({
             </p>
             <div className="flex items-center gap-2">
               <span className="text-[16px] px-1 rounded flex items-center gap-0.5">
-                <ThumbsUp size={15} /> 98%
+                <ThumbsUp size={15} />{" "}
+                {upPercentSeller === -1
+                  ? "New seller"
+                  : Math.round(upPercentSeller) + "%"}
               </span>
             </div>
           </div>
