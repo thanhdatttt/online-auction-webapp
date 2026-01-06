@@ -22,7 +22,7 @@ const AuctionCard = ({ auction }) => {
   const { addToFavorite, removeFromFavorite } = useWatchListStore();
   const isFavorite = favoriteIds.has(auction._id);
 
-  const { formatPrice, maskFirstHalf } = useAuctionStore();
+  const { formatPrice, maskFirstHalf, formatCompactNumber } = useAuctionStore();
 
   const user = useAuthStore((state) => state.user);
   const isGuest = user === null;
@@ -96,7 +96,7 @@ const AuctionCard = ({ auction }) => {
               <p className="text-2xl font-bold text-white tracking-tight leading-none">
                 {auction.currentPrice ? (
                   <span>
-                    {formatPrice(auction.currentPrice) + " VND"}
+                    {formatCompactNumber(auction.currentPrice) + " VND"}
                   </span>
                 ) : (
                   <span>None</span>
@@ -119,10 +119,12 @@ const AuctionCard = ({ auction }) => {
               </p>
               <p className="text-lg font-bold text-slate-100 truncate">
                 {isWinner
-                    ? "You"
-                    : maskFirstHalf(
-                        auction.winnerId?.username
-                      )}
+                  ? "You"
+                  : maskFirstHalf(
+                      auction.winnerId?.firstName +
+                        " " +
+                        auction.winnerId?.lastName
+                    )}
                 {/* {auction.winnerId && <span>{auction.winnerId.username}</span>} */}
                 {!auction.winnerId && <span>None</span>}
               </p>

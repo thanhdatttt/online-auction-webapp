@@ -1006,6 +1006,7 @@ export const getSimilarItems = async (req, res) => {
     }
 
     const similarAuctions = await Auction.aggregate([
+      // --- CÁC BƯỚC LỌC DỮ LIỆU CŨ (GIỮ NGUYÊN) ---
       {
         $match: {
           _id: { $ne: new mongoose.Types.ObjectId(auctionId) },
@@ -1035,10 +1036,75 @@ export const getSimilarItems = async (req, res) => {
       },
       { $unwind: "$items" },
       { $replaceRoot: { newRoot: "$items" } },
+
+      // --- PHẦN CHỈNH SỬA MỚI ---
+
+      // 1. Lookup User (để thay thế winnerId)
+      {
+        $lookup: {
+          from: "users",
+          localField: "winnerId",
+          foreignField: "_id",
+          // Chỉ lấy _id, firstName, lastName
+          pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1 } }],
+          as: "winnerInfo",
+        },
+      },
+      // Unwind để biến mảng thành object (nếu mảng rỗng thì giữ nguyên document)
+      {
+        $unwind: {
+          path: "$winnerInfo",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 2. Lookup Bids (đếm số bid active)
+      {
+        $lookup: {
+          from: "bids",
+          let: { auctionId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$auctionId", "$$auctionId"] },
+                    { $eq: ["$isActive", true] },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          as: "bidCountInfo",
+        },
+      },
+
+      // 3. Format dữ liệu đầu ra: Ghi đè winnerId và thêm bidCount
+      {
+        $addFields: {
+          // GHI ĐÈ winnerId: Nếu có thông tin winner (winnerInfo) thì lấy, nếu không giữ giá trị cũ (null)
+          winnerId: { $ifNull: ["$winnerInfo", "$winnerId"] },
+
+          // Thêm bidCount
+          bidCount: {
+            $ifNull: [{ $arrayElemAt: ["$bidCountInfo.count", 0] }, 0],
+          },
+        },
+      },
+
+      // 4. Xóa các field tạm
+      {
+        $project: {
+          winnerInfo: 0,
+          bidCountInfo: 0,
+        },
+      },
     ]);
 
     return res.status(200).json({ data: similarAuctions });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: err.message });
   }
 };
