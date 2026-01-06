@@ -261,11 +261,11 @@ This project is licensed under the **MIT License**.
 
 ## 👤 Authors
 ### Auctiz team
-**Thanh Dat Pham**
+* **Thanh Dat Pham**
 Full-stack Developer
-**Van Minh Nguyen**
+* **Van Minh Nguyen**
 Full-stack Developer
-**Minh Giang Hoang**
+* **Minh Giang Hoang**
 Full-stack Developer
-**Xuan Hung Mai**
+* **Xuan Hung Mai**
 Full-stack Developer
