@@ -259,7 +259,13 @@ This project is licensed under the **MIT License**.
 
 ---
 
-## 👤 Author
-
-**Thanh Đạt Pham**
+## 👤 Authors
+### Auctiz team
+**Thanh Dat Pham**
+Full-stack Developer
+**Van Minh Nguyen**
+Full-stack Developer
+**Minh Giang Hoang**
+Full-stack Developer
+**Xuan Hung Mai**
 Full-stack Developer
