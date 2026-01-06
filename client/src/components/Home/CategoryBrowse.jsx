@@ -1,20 +1,20 @@
 import{ useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { useCategoryStore } from '@/stores/useCategory.store';
+import { Link } from 'react-router-dom'
 
 const CategoryBrowse = () => {
-  const categories = [
-    { name: 'Arts', image: 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Watches', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Games', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Automotive', image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Jewelry', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Sneakers', image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=80&w=800' },
-  ];
-  
+  const categories = useCategoryStore((state) => state.categories);
+  const { getCategories } = useCategoryStore();
+
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const isSlider = categories.length > 5;
+
+  useEffect(() => {
+    getCategories();
+  }, []);
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -110,13 +110,14 @@ const CategoryBrowse = () => {
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {categories.map((category, index) => (
+              <Link to={`/auctions?categoryId=${category.id}`}>
               <div 
                 key={index} 
                 className="group relative min-w-[320px] md:min-w-[280px] aspect-10/14 overflow-hidden rounded-[2.5rem] cursor-pointer bg-slate-50 snap-start transition-all duration-700 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] hover:-translate-y-2"
               >
                 {/* Background Image */}
                 <img 
-                  src={category.image} 
+                  src={category.image_url} 
                   alt={category.name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-1500 ease-out group-hover:scale-110"
                 />
@@ -148,6 +149,7 @@ const CategoryBrowse = () => {
                 {/* Refined Glass Border */}
                 <div className="absolute inset-0 border-10 border-transparent group-hover:border-white/5 transition-all duration-700 rounded-[2.5rem]" />
               </div>
+              </Link>
             ))}
           </div>
         </div>

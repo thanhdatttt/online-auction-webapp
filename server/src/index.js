@@ -12,7 +12,6 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
-import categoriesRoute from "./routes/category.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
 import uploadRoute from "./routes/upload.route.js";
@@ -44,7 +43,6 @@ app.use("/api/upload", uploadRoute);
 // bidder routes
 app.use(auth);
 app.use("/api/auctions", auctionRoute);
-app.use("/api/categories", categoriesRoute);
 app.use("/api/users", userRoute);
 app.use("/api/favorites", favoriteRoute);
 app.use("/api/orders", orderRoute);
