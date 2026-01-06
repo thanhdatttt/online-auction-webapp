@@ -4,10 +4,7 @@ import { useAuthStore } from "../stores/useAuth.store.js";
 // set up for calling apis
 const api = axios.create({
   // get the url with correct mode
-  baseURL:
-    import.meta.env.MODE === "development"
-      ? "http://localhost:5000/api"
-      : "/api",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
