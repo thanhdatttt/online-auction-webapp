@@ -79,7 +79,7 @@ export const auctionService = {
 
   appendDescription: async (id, data) => {
     try {
-      const res = await api.put(`/seller/auctions/${id}/description`, {
+      const res = await api.put(`/auctions/${id}/description`, {
         ...data,
       });
       return res.data;

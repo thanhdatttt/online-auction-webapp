@@ -67,7 +67,7 @@ app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
 app.use("/api/chat", chatRoute);
 // seller routes
-app.use("/api/seller", authorize("seller"), sellerRoute);
+app.use("/api", authorize("seller"), sellerRoute);
 // admin routes
 app.use("/api/admin", authorize("admin"), adminRoute);
 
