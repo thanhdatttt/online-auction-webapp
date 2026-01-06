@@ -83,14 +83,18 @@ const auctionSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  autoExtension: {
-    type: Boolean,
-    default: true,
-  },
   isDeleted: {
     type: Boolean,
     default: false,
   },
+  autoExtension: {
+    type: Boolean,
+    default: true,
+  },
+  autoExtension: {
+    type: Boolean,
+    required: true,
+  }
 });
 
 auctionSchema.pre(/^find/, function (next) {
