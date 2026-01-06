@@ -147,8 +147,8 @@ export const createUser = async (req, res) => {
     // save refresh token to cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       path: "/",
       maxAge: REFRESH_TOKEN_TTL,
     });
@@ -219,8 +219,8 @@ export const login = async (req, res) => {
     // save refresh token to cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       path: "/",
       maxAge: REFRESH_TOKEN_TTL,
     });
@@ -365,7 +365,7 @@ export const googleCallback = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: REFRESH_TOKEN_TTL,
     });
 
@@ -444,7 +444,7 @@ export const facebookCallback = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: REFRESH_TOKEN_TTL,
     });
     const redirectUrl = `${config.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
