@@ -239,30 +239,30 @@ export const placeBid = async (req, res) => {
     }
 
     // Check Rating
-    // const totalRatings = await Rating.countDocuments({
-    //   ratedUserId: userId,
-    // }).session(session);
-    // if (totalRatings === 0) {
-    //   if (!auction.allowUnratedBidder) {
-    //     throw {
-    //       status: 400,
-    //       message: "The seller does not allow unrated bidders to place bids.",
-    //     };
-    //   }
-    // } else {
-    //   const totalPositiveRatings = await Rating.countDocuments({
-    //     ratedUserId: userId,
-    //     rateType: "uprate",
-    //   }).session(session);
+    const totalRatings = await Rating.countDocuments({
+      ratedUserId: userId,
+    }).session(session);
+    if (totalRatings === 0) {
+      if (!auction.allowUnratedBidder) {
+        throw {
+          status: 400,
+          message: "The seller does not allow unrated bidders to place bids.",
+        };
+      }
+    } else {
+      const totalPositiveRatings = await Rating.countDocuments({
+        ratedUserId: userId,
+        rateType: "uprate",
+      }).session(session);
 
-    //   const positiveRatingPercent = (totalPositiveRatings / totalRatings) * 100;
-    //   if (positiveRatingPercent < 80) {
-    //     throw {
-    //       status: 403,
-    //       message: "You must have at least 80% positive rating to place a bid.",
-    //     };
-    //   }
-    // }
+      const positiveRatingPercent = (totalPositiveRatings / totalRatings) * 100;
+      if (positiveRatingPercent < 80) {
+        throw {
+          status: 403,
+          message: "You must have at least 80% positive rating to place a bid.",
+        };
+      }
+    }
 
     const rejectedBidder = await RejectedBidder.findOne({
       bidderId: userId,
@@ -432,7 +432,7 @@ export const placeBid = async (req, res) => {
       });
     }
 
-    // sendPlaceBidEmail(userId, auction, bidEntryAmount, bidMaxAmount);
+    sendPlaceBidEmail(userId, auction, bidEntryAmount, bidMaxAmount);
 
     return res.status(201).json({
       message: "Place bid successfully.",
