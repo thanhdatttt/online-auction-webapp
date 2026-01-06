@@ -15,6 +15,7 @@ export const useAuctionStore = create((set, get) => ({
   heroAuction: null,
   homeEndingSoon: [],
   homeHighestPrice: [],
+  homePopularRecommend: [],
   loadingHome: false,
 
   // Filters
@@ -338,6 +339,7 @@ export const useAuctionStore = create((set, get) => ({
       const response = await auctionService.createAuction(payload);
 
       toast.success("Create auction successfully");
+      return response;
     } catch (err) {
       console.log(err);
       toast.error("Create auction failed, please try again");
@@ -351,16 +353,18 @@ export const useAuctionStore = create((set, get) => ({
     try {
       set({ loadingHome: true });
 
-      const [hero, endingSoon, highestPrice] = await Promise.all([
+      const [hero, endingSoon, highestPrice, popular] = await Promise.all([
         auctionService.getAuctions({ page: 1, limit: 1, sort: "newest" }),
         auctionService.getAuctions({ page: 1, limit: 5, sort: "ending_soon" }),
         auctionService.getAuctions({ page: 1, limit: 5, sort: "price_desc" }),
+        auctionService.getAuctions({ page: 1, limit: 5, sort: "bid_desc" }),
       ]);
 
       set({
         heroAuction: hero.auctions[0] || null,
         homeEndingSoon: endingSoon.auctions,
         homeHighestPrice: highestPrice.auctions,
+        homePopularRecommend: popular.auctions,
       });
     } catch (err) {
       console.log(err);

@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useCategoryStore } from "../../stores/useCategory.store";
 import { ChevronDown } from "lucide-react";
 import { useAuctionConfigStore } from "../../stores/useAuctionConfig.store";
+import { useAuctionStore } from "../../stores/useAuction.store";
 
 const AuctionDetails = ({ register, control, errors, watch, setValue }) => {
   const inputs = [
@@ -16,6 +17,7 @@ const AuctionDetails = ({ register, control, errors, watch, setValue }) => {
   const auctionConfig = useAuctionConfigStore((state) => state.auctionConfig);
   const { getCategories } = useCategoryStore();
   const { getAuctionConfig, msToMinutes } = useAuctionConfigStore();
+  const { formatPrice } = useAuctionStore();
 
   useEffect(() => {
     getCategories();
@@ -125,21 +127,46 @@ const AuctionDetails = ({ register, control, errors, watch, setValue }) => {
               <label className="block text-sm font-semibold mb-1 text-gray-700">
                 {field.label}
               </label>
+              
               <div className="relative">
-                <input
-                  type="text"
-                  {...register(field.name)}
-                  className={`w-full p-2.5 pr-12 rounded border focus:outline-none bg-[#FDFBF7]
-                    ${
-                      errors[field.name]
-                        ? "border-red-500"
-                        : "border-gray-300 focus:border-[#EA8C1E]"
-                    }`}
+                <Controller
+                  name={field.name}
+                  control={control} // <--- You need to pass 'control' from useForm() here
+                  render={({ field: { onChange, value, name, ref } }) => (
+                    <input
+                      type="text"
+                      ref={ref}
+                      name={name}
+                      placeholder={formatPrice(1000000)}
+                      
+                      // 1. DISPLAY: Format the raw number (1000000) to string with dots (1.000.000)
+                      value={value && Number(value) !== 0 ? formatPrice(value) : ""}
+                      
+                      // 2. CHANGE: Remove dots before sending to React Hook Form
+                      onChange={(e) => {
+                        // "Put the function inside rawValue"
+                      const rawValue = e.target.value.replace(/\./g, ""); 
+
+                      // Only update if it's a number
+                      if (/^\d*$/.test(rawValue)) {
+                        onChange(rawValue);
+                      }
+                      }}
+
+                      className={`w-full p-2.5 pr-12 rounded border focus:outline-none bg-[#FDFBF7]
+                        ${errors[field.name]
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-[#EA8C1E]"
+                        }`}
+                    />
+                  )}
                 />
+                
                 <span className="absolute right-3 top-2.5 text-gray-500 text-sm font-medium">
                   VND
                 </span>
               </div>
+
               {errors[field.name] && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors[field.name].message}

@@ -1,6 +1,7 @@
+import AuctionCard from '../AuctionCard.jsx';
 import CardTest from "../CardTest.jsx";
 
-const PopularRecommend = () => {
+const PopularRecommend = ({ auctions }) => {
   return (
     <section className="py-16 bg-accent">
       <div className="max-w-[1800px] mx-auto px-6 relative">
@@ -14,8 +15,8 @@ const PopularRecommend = () => {
 
           {/* Grid of Cards - Responsive columns: 1 (mobile), 2 (tablet), 3 (laptop), 5 (PC) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <CardTest key={i}/>
+            {auctions.map((auction) => (
+              <AuctionCard key={auction._id} auction={auction}/>
             ))}
           </div>
         </div>

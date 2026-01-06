@@ -23,6 +23,16 @@ export const uploadService =  {
     }
   },
 
+  getCategorySignature: async () => {
+    try {
+      const res = await api.get("/upload/sign/category");
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
   uploadImage: async (file, signatureData) => {
     try {
       const { signature, timestamp, folder, transformation, cloudName, apiKey } = signatureData;

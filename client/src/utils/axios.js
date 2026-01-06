@@ -4,10 +4,7 @@ import { useAuthStore } from "../stores/useAuth.store.js";
 // set up for calling apis
 const api = axios.create({
   // get the url with correct mode
-  baseURL:
-    import.meta.env.MODE === "development"
-      ? "http://localhost:5000/api"
-      : "/api",
+  baseURL: "http://localhost:5000/api",
   withCredentials: true,
 });
 
@@ -41,9 +38,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    originRequest._retry = originRequest._retry | 0;
+
     // apis need to check token is expired or invalid
-    if (error.response.status === 401 && !originRequest._retry) {
-      originRequest._retry = true;
+    if (error.response.status === 401 && !originRequest._retry < 4) {
+      originRequest._retry += 1;
       try {
         // get token by refresh and store in state
         const res = await api.post("/auth/refresh");

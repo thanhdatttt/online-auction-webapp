@@ -12,12 +12,12 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
-import categoriesRoute from "./routes/category.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
 import guestRoute from "./routes/guest.route.js";
 import uploadRoute from "./routes/upload.route.js";
 import orderRoute from "./routes/order.route.js";
 import ratingRoute from "./routes/rating.route.js";
+import chatRoute from "./routes/chat.route.js";
 import { initSocket } from "./utils/socket.util.js";
 // create server
 const app = express();
@@ -28,7 +28,6 @@ const io = initSocket(server, config);
 
 global.io = io;
 app.set("io", io);
-
 // set up server
 app.use(cors({ origin: config.CLIENT_URL, credentials: true }));
 app.use(express.json());
@@ -43,11 +42,11 @@ app.use("/api/upload", uploadRoute);
 // bidder routes
 app.use(auth);
 app.use("/api/auctions", auctionRoute);
-app.use("/api/categories", categoriesRoute);
 app.use("/api/users", userRoute);
 app.use("/api/favorites", favoriteRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
+app.use("/api/chat", chatRoute);
 // admin routes
 app.use(authorize("admin"));
 app.use("/api/admin", adminRoute);
@@ -58,4 +57,5 @@ connectDB().then(async () => {
   server.listen(config.PORT, () =>
     console.log(`Server running on port ${config.PORT} ...`)
   );
+  import("./cron/roleExpiration.job.js");
 });

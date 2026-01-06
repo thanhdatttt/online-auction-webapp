@@ -32,6 +32,13 @@ export const initSocket = (httpServer, config) => {
       }
     });
 
+    socket.on("joinUser", (userId) => {
+      if (userId) {
+        socket.join(`user_${userId}`);
+        console.log(`Socket ${socket.id} joined user_${userId}`);
+      }
+    });
+
     socket.on("leaveAuction", (auctionId) => {
       socket.leave(`auction_${auctionId}`);
     });

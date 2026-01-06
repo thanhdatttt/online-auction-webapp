@@ -269,13 +269,13 @@ export const refreshToken = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     // check if there is token
     if (!refreshToken) {
-      return res.status(400).json({ message: "Missing refresh token" });
+      return res.status(401).json({ message: "Missing refresh token" });
     }
 
     // check if token is correct
     const user = await User.findOne({ refreshToken });
     if (!user) {
-      return res.status(400).json({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     jwt.verify(refreshToken, config.JWT_REFRESH_SECRET, (err, decoded) => {
@@ -447,12 +447,8 @@ export const facebookCallback = async (req, res) => {
       sameSite: "strict",
       maxAge: REFRESH_TOKEN_TTL,
     });
-    res.status(201).json({
-      message: "Login with Facebook successfully",
-      accessToken,
-      refreshToken,
-      user,
-    });
+    const redirectUrl = `${config.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
+    return res.redirect(redirectUrl);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

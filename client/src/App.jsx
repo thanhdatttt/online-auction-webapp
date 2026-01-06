@@ -16,11 +16,14 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AuthSuccessPage from "./pages/AuthSuccessPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import AuctionDetailPage from "./pages/AuctionDetailPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
 import ForgotPassPage from "./pages/ForgotPassPage.jsx";
 import AuctionPage from "./pages/AuctionPage.jsx";
 import CreateAuctionPage from "./pages/CreateAuctionPage.jsx";
 import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import ChatBubbleWrapper from "./components/Chat/ChatBubbleWrapper.jsx";
 import TransactionPage from "./pages/TransactionPage.jsx";
 
 
@@ -80,9 +83,15 @@ function App() {
 
           <Route element={<ProtectedRoute roles={['seller']} />}>
             <Route path="/auctions/create" element={<CreateAuctionPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
-        </Routes>
-      </Router>
+          <Route element={<AdminRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />}></Route>
+          </Route>
+      </Routes>
+
+      <ChatBubbleWrapper />
+    </Router>
     </>
   );
 }

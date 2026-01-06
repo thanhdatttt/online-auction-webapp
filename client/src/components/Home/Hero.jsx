@@ -77,6 +77,7 @@ const Hero = ({ auction }) => {
           <div className="absolute -inset-4 bg-amber-600/10 rounded-4xl blur-2xl group-hover:bg-amber-600/20 transition-all duration-700" />
           <div className="relative aspect-4/5 overflow-hidden rounded-4xl shadow-2xl">
             <img
+              onClick={() => navigate(`/auctions/${auction._id}`)}
               src={auction.product.images[0].url}
               alt={auction.title}
               className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
