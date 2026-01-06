@@ -110,9 +110,8 @@ const CategoryBrowse = () => {
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {categories.map((category, index) => (
-              <Link to={`/auctions?categoryId=${category.id}`}>
+              <Link to={`/auctions?categoryId=${category.id}`} key={index} >
               <div 
-                key={index} 
                 className="group relative min-w-[320px] md:min-w-[280px] aspect-10/14 overflow-hidden rounded-[2.5rem] cursor-pointer bg-slate-50 snap-start transition-all duration-700 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] hover:-translate-y-2"
               >
                 {/* Background Image */}
