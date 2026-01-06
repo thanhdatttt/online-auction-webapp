@@ -6,6 +6,12 @@ This project demonstrates a **modern full-stack web architecture** with a RESTfu
 
 ---
 
+## Final website
+
+```
+https://auctiz.vercel.app
+```
+
 ## 🚀 Main Features
 
 ### 🧭 User Features
@@ -56,12 +62,12 @@ online-auction-webapp/
 │   │   ├── controllers/     # Request handlers
 │   │   ├── models/          # Mongoose schemas
 │   │   ├── routes/          # API routes
+│   │   ├── cron/            # Cron
 │   │   ├── middlewares/     # Auth & error handling
-│   │   ├── config/          # Environment & DB config
-│   │   └── server.js
+│   │   ├── configs/         # Environment & DB config
+│   │   └── index.js
 │   └── package.json
-│
-├── .env.example
+├── .gitignore
 ├── README.md
 ```
 
@@ -177,7 +183,7 @@ VITE_API_URL=https://your-backend.onrender.com
 Frontend URL:
 
 ```
-https://auctiz.vercel.app
+https://your-frontend.vercel.app
 ```
 
 ---
