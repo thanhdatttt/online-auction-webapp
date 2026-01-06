@@ -98,6 +98,77 @@ online-auction-webapp/
 
 ---
 
+## 🍃 MongoDB Setup (MongoDB Atlas)
+
+This project uses **MongoDB Atlas** as the cloud database service.
+
+### 1️⃣ Create MongoDB Atlas Account
+
+1. Go to **https://www.mongodb.com/cloud/atlas**
+2. Sign up or log in
+3. Create a **Free Cluster (M0)**
+
+---
+
+### 2️⃣ Create Database User
+
+1. Navigate to **Database Access**
+2. Click **Add New Database User**
+3. Choose **Password Authentication**
+4. Set username & password
+5. Grant **Read and Write to Any Database**
+
+---
+
+### 3️⃣ Allow Network Access
+
+1. Go to **Network Access**
+2. Click **Add IP Address**
+3. Choose one option:
+   - `0.0.0.0/0` (Allow access from anywhere – development only)
+   - Or your current IP address
+
+---
+
+### 4️⃣ Get MongoDB Connection String
+
+1. Go to **Database → Connect → Connect your application**
+2. Copy the connection string:
+
+```text
+mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/<database>?retryWrites=true&w=majority
+```
+
+3. Replace `<username>`, `<password>`, and `<database>` with your values
+
+---
+
+### 5️⃣ Configure Backend Environment Variables
+
+Create a `.env` file inside the `server/` directory:
+
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/auction_db
+JWT_SECRET=your_jwt_secret
+```
+
+---
+
+### ✅ Test MongoDB Connection
+
+Start the backend server:
+
+```bash
+npm run dev
+```
+
+If connected successfully, you should see:
+
+```text
+MongoDB connected
+```
+
 ## ▶️ Running the Project Locally
 
 ### 1️⃣ Clone the Repository
