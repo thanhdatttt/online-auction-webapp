@@ -41,9 +41,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    originRequest._retry = originRequest._retry | 0;
+
     // apis need to check token is expired or invalid
-    if (error.response.status === 401 && !originRequest._retry) {
-      originRequest._retry = true;
+    if (error.response.status === 401 && !originRequest._retry < 4) {
+      originRequest._retry += 1;
       try {
         // get token by refresh and store in state
         const res = await api.post("/auth/refresh");

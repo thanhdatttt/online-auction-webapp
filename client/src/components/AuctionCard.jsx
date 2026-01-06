@@ -96,7 +96,7 @@ const AuctionCard = ({ auction }) => {
               <p className="text-2xl font-bold text-white tracking-tight leading-none">
                 {auction.currentPrice ? (
                   <span>
-                    {formatCompactNumber(auction.currentPrice) + " VND"}
+                    {formatPrice(auction.currentPrice) + " VND"}
                   </span>
                 ) : (
                   <span>None</span>

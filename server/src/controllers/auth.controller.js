@@ -269,13 +269,13 @@ export const refreshToken = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     // check if there is token
     if (!refreshToken) {
-      return res.status(400).json({ message: "Missing refresh token" });
+      return res.status(401).json({ message: "Missing refresh token" });
     }
 
     // check if token is correct
     const user = await User.findOne({ refreshToken });
     if (!user) {
-      return res.status(400).json({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     jwt.verify(refreshToken, config.JWT_REFRESH_SECRET, (err, decoded) => {
