@@ -776,7 +776,7 @@ export const getCategories = async (req, res) => {
                   },
                   { 
                     $project: { 
-                      name: 1, slug: 1, image_url: 1, auctionCount: 1 
+                      name: 1, slug: 1, image_url: 1, auctionCount: 1, parentId: 1, description: 1,
                     } 
                   },
                   { $sort: { name: 1 } }
