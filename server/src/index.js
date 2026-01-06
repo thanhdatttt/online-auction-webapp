@@ -26,8 +26,7 @@ const server = http.createServer(app);
 // set up socket for updating bidding real-time...
 const io = initSocket(server, config);
 
-// 3. Gán biến toàn cục (Để dùng trong Controller)
-global.io = io; // Cách 1: Dùng biến Global (nhanh, tiện nhưng cần cẩn thận)
+global.io = io;
 app.set("io", io);
 
 // set up server
