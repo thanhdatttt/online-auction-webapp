@@ -847,7 +847,7 @@ export const getAuctions = async (req, res) => {
         sortOptions = { endTime: 1 };
         break;
       case "newest":
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
         break;
       case "bid_desc":
         sortOptions = { bidCount: -1 };
@@ -863,7 +863,7 @@ export const getAuctions = async (req, res) => {
       //   }
       //   break;
       default:
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
     }
 
     // if (search && sort !== 'relevance') {
