@@ -92,15 +92,9 @@ export const getCreatedAuctions = async (req, res) => {
         .sort({ endTime: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("winnerId", "firstName lastName"),
+        .populate("winnerId", "firstName lastName"), // populate trả về object user
       Auction.countDocuments(filter),
     ]);
-
-    const auctionIdsOnPage = auctions.map((a) => a._id);
-
-    const ratings = await Rating.find({
-      auctionId: { $in: auctionIdsOnPage },
-    });
 
     if (auctions.length === 0) {
       return res.status(200).json({
@@ -111,6 +105,21 @@ export const getCreatedAuctions = async (req, res) => {
         totalPages: 1,
         auctions: [],
         ratings: [],
+      });
+    }
+
+    const ratingConditions = auctions
+      .filter((a) => a.winnerId)
+      .map((a) => ({
+        auctionId: a._id,
+        ratedUserId: a.winnerId._id,
+      }));
+
+    let ratings = [];
+
+    if (ratingConditions.length > 0) {
+      ratings = await Rating.find({
+        $or: ratingConditions,
       });
     }
 
