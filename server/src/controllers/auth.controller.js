@@ -186,17 +186,17 @@ export const login = async (req, res) => {
   try {
     const { username, password, captcha } = req.body;
 
-    // if (!captcha)
-    //   return res
-    //     .status(400)
-    //     .json({ field: "captcha", error: "Please verify the Captcha" });
+    if (!captcha)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "Please verify the Captcha" });
 
-    // const success = verify_captcha(captcha);
+    const success = verify_captcha(captcha);
 
-    // if (!success)
-    //   return res
-    //     .status(400)
-    //     .json({ field: "captcha", error: "OTP verification failed" });
+    if (!success)
+      return res
+        .status(400)
+        .json({ field: "captcha", error: "OTP verification failed" });
 
     // check if user exists
     const user = await User.findOne({ username });

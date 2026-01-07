@@ -91,10 +91,6 @@ const auctionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  autoExtension: {
-    type: Boolean,
-    required: true,
-  }
 });
 
 auctionSchema.pre(/^find/, function (next) {
@@ -103,8 +99,15 @@ auctionSchema.pre(/^find/, function (next) {
 });
 
 auctionSchema.pre("aggregate", function (next) {
-  // Unshift adds this stage to the VERY BEGINNING of your pipeline
-  this.pipeline().unshift({ $match: { isDeleted: false } });
+  const pipeline = this.pipeline();
+  
+  const firstStage = pipeline.length > 0 ? pipeline[0] : null;
+
+  if (firstStage && firstStage.$match && firstStage.$match.$text) {
+    firstStage.$match.isDeleted = false;
+  } else {
+    this.pipeline().unshift({ $match: { isDeleted: false } });
+  }
   next();
 });
 
