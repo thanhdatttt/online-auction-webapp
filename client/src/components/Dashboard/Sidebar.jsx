@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, Pencil, Trash2, Search, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { useAuthStore } from '@/stores/useAuth.store';
 
 export default function Sidebar({activeNav, onNavChange}) {
+    const navigate = useNavigate();
+    const { logout } = useAuthStore();
     const navItems = [
         { id: 'categories', label: 'Categories', icon: 'cate' },
         { id: 'products', label: 'Products', icon: 'prod' },
         { id: 'users', label: 'Users', icon: 'users' }
     ];
+
+    const handleLogout = async () => {
+      try {
+          await logout();
+          navigate("/signin");
+      } catch (err) {
+          throw err;
+      }
+  }
 
     return (
         <div className="w-64 bg-light p-6 flex flex-col border-decor">
@@ -48,7 +59,7 @@ export default function Sidebar({activeNav, onNavChange}) {
                 ))}
             </nav>
             
-            <button className="group flex items-center gap-3 px-4 py-3 text-dark hover:cursor-pointer hover:bg-decor hover:text-primary rounded-lg font-medium">
+            <button onClick={handleLogout} className="group flex items-center gap-3 px-4 py-3 text-dark hover:cursor-pointer hover:bg-decor hover:text-primary rounded-lg font-medium">
                 <>
                     <img src='./dashboard/logout-unselect.svg' className="w-5 h-5 block group-hover:hidden" />
                     <img src='./dashboard/logout-select.svg' className="w-5 h-5 hidden group-hover:block" />

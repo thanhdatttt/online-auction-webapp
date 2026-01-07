@@ -46,6 +46,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
     if (isOpen) {
       getCategories(); 
       reset(); // Reset form when opening
+      setPreviewUrl(null);
     }
   }, [isOpen, getCategories, reset]);
 
@@ -90,7 +91,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-dark/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-[#FDFBF7] rounded-xl shadow-2xl w-full max-w-lg border border-[#e0dad0] max-h-[90vh] flex flex-col">
+      <div className="bg-light rounded-xl shadow-2xl w-full max-w-lg border border-[#e0dad0] max-h-[90vh] flex flex-col">
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#e0dad0]">
@@ -147,7 +148,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
                     <button 
                       type="button"
                       onClick={handleRemoveImage}
-                      className="bg-white text-red-500 px-4 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 hover:bg-red-50"
+                      className="bg-white text-red-500 px-4 py-2 cursor-pointer rounded-lg font-bold shadow-lg flex items-center gap-2 hover:bg-red-50"
                     >
                       <Trash2 size={18} /> Remove Image
                     </button>
@@ -213,7 +214,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
             <button
               onClick={onClose}
               type="button"
-              className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex-1 px-4 py-2.5 bg-light hover:bg-decor cursor-pointer border border-gray-300 text-gray-700 rounded-lg font-semibold transition-colors shadow-sm"
               disabled={isSubmitting}
             >
               Cancel
@@ -221,7 +222,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 bg-[#EA8C1E] text-white rounded-lg font-semibold hover:bg-[#d9822b] transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 bg-[#EA8C1E] cursor-pointer text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

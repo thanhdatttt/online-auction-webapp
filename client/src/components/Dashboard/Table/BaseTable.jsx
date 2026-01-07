@@ -4,6 +4,23 @@ import { Search, Plus } from 'lucide-react';
 export default function BaseTable({ title, description, buttonText, buttonIcon, searchPlaceholder, searchQuery, onSearchChange, filters, columns, data, loading, onAdd, renderRow, onSortChange, sortState }) {
     return (
         <div className="flex-1 flex flex-col bg-light overflow-hidden">
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background-color: #cbd5e1;
+                    border-radius: 20px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background-color: #94a3b8;
+                    cursor: pointer;
+                }
+            `}</style>
             {/* Header */}
             <div className="px-8 py-6 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-2">
@@ -68,7 +85,7 @@ export default function BaseTable({ title, description, buttonText, buttonIcon, 
                     </div>
 
                     {/* Table Body */}
-                    <div className="flex-1 overflow-y-auto border-b border-decor">
+                    <div className="flex-1 overflow-y-auto border-b border-decor custom-scrollbar">
                         {loading ? (
                             <div className="flex items-center justify-center h-full">
                                 <div className="text-gray-500">Loading...</div>
