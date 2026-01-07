@@ -76,4 +76,15 @@ export const auctionService = {
   },
 
   submitRating: async () => {},
+
+  appendDescription: async (id, data) => {
+    try {
+      const res = await api.put(`/auctions/${id}/description`, {
+        ...data,
+      });
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
+  },
 };

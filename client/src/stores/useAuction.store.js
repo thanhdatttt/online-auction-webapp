@@ -373,4 +373,17 @@ export const useAuctionStore = create((set, get) => ({
       set({ loadingHome: false });
     }
   },
+
+  appendDescription: async (id, data) => {
+    try {
+      const res = await auctionService.appendDescription(id, {
+        description: data,
+      }); 
+      console.log(res);
+      toast.success("Update added successfully");
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
 }));

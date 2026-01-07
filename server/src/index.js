@@ -10,6 +10,7 @@ import http from "http";
 import cookieParser from "cookie-parser";
 import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
+import sellerRoute from "./routes/seller.route.js"
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
@@ -26,26 +27,8 @@ const server = http.createServer(app);
 // set up socket for updating bidding real-time...
 const io = initSocket(server, config);
 
-// 3. Gán biến toàn cục (Để dùng trong Controller)
-global.io = io; // Cách 1: Dùng biến Global (nhanh, tiện nhưng cần cẩn thận)
-app.set("io", io);
-
-io.on("connection", (socket) => {
-  socket.on("joinAuction", (auctionId) => {
-    socket.join(`auction_${auctionId}`);
-  });
-
-  socket.on("joinUser", (userId) => {
-    if (userId) {
-      socket.join(`user_${userId}`);
-      console.log(`Socket ${socket.id} joined user_${userId}`);
-    }
-  });
-  
-  socket.on("disconnect", () => {});
-});
-
 global.io = io;
+app.set("io", io);
 // set up server
 app.use(cors({ origin: config.CLIENT_URL, credentials: true }));
 app.use(express.json());
@@ -66,8 +49,9 @@ app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
 app.use("/api/chat", chatRoute);
 // admin routes
-app.use(authorize("admin"));
-app.use("/api/admin", adminRoute);
+app.use("/api/admin", authorize("admin"), adminRoute);
+// seller routes
+app.use("/api", authorize("seller"), sellerRoute);
 
 // run server
 connectDB().then(async () => {

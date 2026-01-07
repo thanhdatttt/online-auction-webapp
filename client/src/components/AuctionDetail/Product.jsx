@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { Heart, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, ChevronDown, ChevronUp, PlusCircle } from "lucide-react";
 import { useAuctionStore } from "../../stores/useAuction.store";
 import { useWatchListStore } from "../../stores/useWatchList.store";
 import { useAuthStore } from "../../stores/useAuth.store";
 import { toast } from "sonner";
 import DOMPurify from "dompurify";
+import UpdateDetailModal from "./UpdateDetailModal.jsx";
 
-const Product = ({ p, postedOn, auctionId }) => {
+const Product = ({ p, seller, postedOn, auctionId }) => {
   const [curImg, setCurImg] = useState(0);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [localDescription, setLocalDescription] = useState(p?.description || "");
   const updateCurImg = (value) => {
     setCurImg(value);
   };
@@ -19,7 +22,9 @@ const Product = ({ p, postedOn, auctionId }) => {
   const { favoriteIds, addToFavorite, removeFromFavorite, loading } =
     useWatchListStore();
 
+  const isOwner = user && p && user._id === seller._id;
   const isFavorited = favoriteIds.has(auctionId);
+  const cleanHTML = DOMPurify.sanitize(localDescription || p.description);
 
   const handleToggleFavorite = async (e) => {
     e.stopPropagation();
@@ -38,8 +43,6 @@ const Product = ({ p, postedOn, auctionId }) => {
   // -------------------
 
   if (!p) return null;
-
-  const cleanHTML = DOMPurify.sanitize(p.description);
 
   return (
     <>
@@ -144,16 +147,40 @@ const Product = ({ p, postedOn, auctionId }) => {
         </div>
       </div>
 
-      {/* DETAILS */}
+      {/* --- DETAILS SECTION (UPDATED) --- */}
       <div className="mt-8 border-b border-gray-300 pb-8 w-full overflow-hidden">
-        <h3 className="text-lg font-bold mb-3">Product Details</h3>
+        
+        {/* Header Row with Edit Button */}
+        <div className="flex items-center gap-4 mb-3">
+          <h3 className="text-lg font-bold">Product Details</h3>
+          
+          {/* Only show button if user owns this product */}
+          {isOwner && (
+            <button 
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full hover:bg-amber-100 transition-colors"
+            >
+              <PlusCircle size={14} />
+              Update Details
+            </button>
+          )}
+        </div>
+
         <div className="text-sm md:text-base text-gray-700 space-y-2 leading-relaxed font-sans border-t border-gray-300 pt-3">
           <div
-            className="prose prose-sm max-w-none text-gray-700 font-lato break-words [&_img]:max-w-full [&_img]:h-auto [&_iframe]:max-w-full"
+            className="prose prose-sm max-w-none text-gray-700 font-lato wrap-break-word [&_img]:max-w-full [&_img]:h-auto [&_iframe]:max-w-full"
             dangerouslySetInnerHTML={{ __html: cleanHTML }}
           />
         </div>
       </div>
+
+      <UpdateDetailModal 
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        auctionId={auctionId}
+        currentDescription={localDescription}
+        onSuccess={(newDesc) => setLocalDescription(newDesc)}
+      />
     </>
   );
 };

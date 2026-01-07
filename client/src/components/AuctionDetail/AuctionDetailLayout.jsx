@@ -185,6 +185,7 @@ const AuctionDetailLayout = () => {
                   {/*Product */}
                   <Product
                     p={auction.product}
+                    seller={seller}
                     postedOn={auction.startTime}
                     auctionId={auction._id}
                   ></Product>

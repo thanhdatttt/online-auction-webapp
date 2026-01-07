@@ -214,109 +214,109 @@ export const getComments = async (req, res) => {
 };
 
 export const placeBid = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const now = Date.now();
-
     const userId = req.user.id;
-
     const bidMaxAmount = Number(req.body.bidMaxAmount);
-
     const { auctionId } = req.params;
-
     const io = req.app.get("io");
 
-    const auction = await Auction.findById(auctionId);
+    const auction = await Auction.findById(auctionId).session(session);
 
-    if (!auction)
-      return res
-        .status(404)
-        .json({ message: "This auction no longer exists." });
-
-    if (userId === auction.sellerId.toString())
-      return res
-        .status(409)
-        .json({ message: "Sellers must not bid to their auctions." });
-
-    if (auction.status === "ended" || now > auction.endTime.getTime()) {
-      return res
-        .status(400)
-        .json({ message: "This auction is already closed." });
+    if (!auction) {
+      throw { status: 404, message: "This auction no longer exists." };
     }
 
-    const totalRatings = await Rating.countDocuments({ ratedUserId: userId });
+    if (userId === auction.sellerId.toString()) {
+      throw { status: 409, message: "Sellers must not bid to their auctions." };
+    }
 
+    if (auction.status === "ended" || now > auction.endTime.getTime()) {
+      throw { status: 400, message: "This auction is already closed." };
+    }
+
+    // Check Rating
+    const totalRatings = await Rating.countDocuments({
+      ratedUserId: userId,
+    }).session(session);
     if (totalRatings === 0) {
-      if (!auction.allowUnratedBidder)
-        return res.status(400).json({
+      if (!auction.allowUnratedBidder) {
+        throw {
+          status: 400,
           message: "The seller does not allow unrated bidders to place bids.",
-        });
+        };
+      }
     } else {
       const totalPositiveRatings = await Rating.countDocuments({
         ratedUserId: userId,
         rateType: "uprate",
-      });
+      }).session(session);
 
       const positiveRatingPercent = (totalPositiveRatings / totalRatings) * 100;
-
-      if (positiveRatingPercent < 80)
-        return res.status(403).json({
+      if (positiveRatingPercent < 80) {
+        throw {
+          status: 403,
           message: "You must have at least 80% positive rating to place a bid.",
-        });
+        };
+      }
     }
 
     const rejectedBidder = await RejectedBidder.findOne({
       bidderId: userId,
       auctionId: auctionId,
-    });
+    }).session(session);
 
-    if (rejectedBidder)
-      return res.status(409).json({
+    if (rejectedBidder) {
+      throw {
+        status: 409,
         message:
           "You have been rejected by the seller. You can no longer place bids on this auction.",
-      });
+      };
+    }
 
     const minBidMaxAmount = auction.winnerId
       ? auction.currentPrice + auction.gapPrice
       : auction.startPrice + auction.gapPrice;
 
-    if (!bidMaxAmount || bidMaxAmount < minBidMaxAmount)
-      return res
-        .status(400)
-        .json({ message: `Invalid bid. Min amount is ${minBidMaxAmount}` });
-
-    if ((bidMaxAmount - auction.startPrice) % auction.gapPrice !== 0) {
-      return res.status(400).json({
-        message: `Bid amount must increase in steps of ${auction.gapPrice}.`,
-      });
+    if (!bidMaxAmount || bidMaxAmount < minBidMaxAmount) {
+      throw {
+        status: 400,
+        message: `Invalid bid. Min amount is ${minBidMaxAmount}`,
+      };
     }
 
-    if (auction.buyNowPrice && bidMaxAmount === auction.buyNowPrice)
-      return res
-        .status(409)
-        .json({ message: "Bidder should purchase outright now." });
+    if ((bidMaxAmount - auction.startPrice) % auction.gapPrice !== 0) {
+      throw {
+        status: 400,
+        message: `Bid amount must increase in steps of ${auction.gapPrice}.`,
+      };
+    }
+
+    if (auction.buyNowPrice && bidMaxAmount === auction.buyNowPrice) {
+      throw { status: 409, message: "Bidder should purchase outright now." };
+    }
+
+    let isEndTimeUpdated = false;
 
     if (auction.autoExtension) {
-      const auctionConfig = await AuctionConfig.findOne();
-
+      const auctionConfig = await AuctionConfig.findOne().session(session);
       const endTime = new Date(auction.endTime).getTime();
 
       if (auctionConfig && endTime - now <= auctionConfig.extendThreshold) {
         auction.endTime = new Date(
           auction.endTime.getTime() + auctionConfig.extendDuration
         );
-
-        io.to(`auction_${auctionId}`).emit("endTimeUpdate", auction.endTime);
+        isEndTimeUpdated = true;
       }
     }
 
     let bidEntryAmount;
-
     const realTimeHistory = [];
-
     let autoBid;
-
     let hasAutoBid = false;
-
     let isNewWinner = false;
 
     if (!auction.winnerId) {
@@ -328,12 +328,12 @@ export const placeBid = async (req, res) => {
     } else {
       if (userId === auction.winnerId.toString()) {
         const minHighestPrice = auction.highestPrice + auction.gapPrice;
-
-        if (bidMaxAmount < minHighestPrice)
-          return res.status(409).json({
+        if (bidMaxAmount < minHighestPrice) {
+          throw {
+            status: 409,
             message: `Invalid bid. Min highest price is ${minHighestPrice}`,
-          });
-        else {
+          };
+        } else {
           isNewWinner = true;
           auction.highestPrice = bidMaxAmount;
           auction.currentPrice = Math.min(auction.currentPrice, bidMaxAmount);
@@ -341,24 +341,26 @@ export const placeBid = async (req, res) => {
         }
       } else {
         hasAutoBid = true;
-
         const minToWin = auction.highestPrice + auction.gapPrice;
 
         if (bidMaxAmount >= minToWin) {
-          autoBid = await Bid.create({
-            auctionId: auctionId,
-            bidderId: auction.winnerId,
-            bidEntryAmount: auction.highestPrice,
-            bidMaxAmount: auction.highestPrice,
-            bidTime: new Date(now - 1000),
-          });
+          autoBid = await Bid.create(
+            [
+              {
+                auctionId: auctionId,
+                bidderId: auction.winnerId,
+                bidEntryAmount: auction.highestPrice,
+                bidMaxAmount: auction.highestPrice,
+                bidTime: new Date(now - 1),
+              },
+            ],
+            { session }
+          );
 
           auction.currentPrice = auction.highestPrice + auction.gapPrice;
-
           auction.highestPrice = bidMaxAmount;
           auction.winnerId = userId;
           bidEntryAmount = auction.currentPrice;
-
           isNewWinner = true;
         } else {
           const potentialPrice = Math.min(
@@ -366,37 +368,56 @@ export const placeBid = async (req, res) => {
             auction.highestPrice
           );
 
-          autoBid = await Bid.create({
-            auctionId: auctionId,
-            bidderId: auction.winnerId,
-            bidEntryAmount: potentialPrice,
-            bidMaxAmount: auction.highestPrice,
-            bidTime: new Date(now + 1000),
-          });
+          autoBid = await Bid.create(
+            [
+              {
+                auctionId: auctionId,
+                bidderId: auction.winnerId,
+                bidEntryAmount: potentialPrice,
+                bidMaxAmount: auction.highestPrice,
+                bidTime: new Date(now + 1),
+              },
+            ],
+            { session }
+          );
+
           auction.currentPrice = potentialPrice;
           bidEntryAmount = bidMaxAmount;
         }
       }
     }
 
-    const newBid = await Bid.create({
-      auctionId: auctionId,
-      bidderId: userId,
-      bidEntryAmount: bidEntryAmount,
-      bidMaxAmount: bidMaxAmount,
-      bidTime: new Date(now),
-    });
+    const newBid = await Bid.create(
+      [
+        {
+          auctionId: auctionId,
+          bidderId: userId,
+          bidEntryAmount: bidEntryAmount,
+          bidMaxAmount: bidMaxAmount,
+          bidTime: new Date(now),
+        },
+      ],
+      { session }
+    );
 
-    await newBid.populate("bidderId", "firstName lastName avatar_url");
+    await auction.save({ session });
 
-    realTimeHistory.push(newBid);
+    await session.commitTransaction();
+    session.endSession();
+
+    await newBid[0].populate("bidderId", "firstName lastName avatar_url");
+    realTimeHistory.push(newBid[0]);
 
     if (hasAutoBid && autoBid) {
-      await autoBid.populate("bidderId", "firstName lastName avatar_url");
-      realTimeHistory.push(autoBid);
+      await autoBid[0].populate("bidderId", "firstName lastName avatar_url");
+      realTimeHistory.push(autoBid[0]);
     }
 
     io.to(`auction_${auctionId}`).emit("priceUpdate", auction.currentPrice);
+
+    if (isEndTimeUpdated) {
+      io.to(`auction_${auctionId}`).emit("endTimeUpdate", auction.endTime);
+    }
 
     io.to(`auction_${auctionId}`).emit(
       "historyUpdate",
@@ -411,17 +432,25 @@ export const placeBid = async (req, res) => {
       });
     }
 
-    await auction.save();
-
     sendPlaceBidEmail(userId, auction, bidEntryAmount, bidMaxAmount);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Place bid successfully.",
       realTimeHistory: realTimeHistory,
       auction: auction,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error.status) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal Server Error" });
   }
 };
 
@@ -827,10 +856,12 @@ export const getAuctions = async (req, res) => {
     if (categoryId) {
       const categoriesToInclude = await getCategoryAndDescendants(categoryId);
       // filter["product.categoryId"] = { $in: categoriesToInclude };
-      filter["product.categoryId"] = { 
-        $in: categoriesToInclude.map(id => new mongoose.Types.ObjectId(id)) 
+      filter["product.categoryId"] = {
+        $in: categoriesToInclude.map((id) => new mongoose.Types.ObjectId(id)),
       };
     }
+
+    filter.isDeleted = { $ne: true };
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -847,7 +878,7 @@ export const getAuctions = async (req, res) => {
         sortOptions = { endTime: 1 };
         break;
       case "newest":
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
         break;
       case "bid_desc":
         sortOptions = { bidCount: -1 };
@@ -863,7 +894,7 @@ export const getAuctions = async (req, res) => {
       //   }
       //   break;
       default:
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
     }
 
     // if (search && sort !== 'relevance') {
@@ -977,6 +1008,7 @@ export const getSimilarItems = async (req, res) => {
     }
 
     const similarAuctions = await Auction.aggregate([
+      // --- CÁC BƯỚC LỌC DỮ LIỆU CŨ (GIỮ NGUYÊN) ---
       {
         $match: {
           _id: { $ne: new mongoose.Types.ObjectId(auctionId) },
@@ -1006,10 +1038,75 @@ export const getSimilarItems = async (req, res) => {
       },
       { $unwind: "$items" },
       { $replaceRoot: { newRoot: "$items" } },
+
+      // --- PHẦN CHỈNH SỬA MỚI ---
+
+      // 1. Lookup User (để thay thế winnerId)
+      {
+        $lookup: {
+          from: "users",
+          localField: "winnerId",
+          foreignField: "_id",
+          // Chỉ lấy _id, firstName, lastName
+          pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1 } }],
+          as: "winnerInfo",
+        },
+      },
+      // Unwind để biến mảng thành object (nếu mảng rỗng thì giữ nguyên document)
+      {
+        $unwind: {
+          path: "$winnerInfo",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 2. Lookup Bids (đếm số bid active)
+      {
+        $lookup: {
+          from: "bids",
+          let: { auctionId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$auctionId", "$$auctionId"] },
+                    { $eq: ["$isActive", true] },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          as: "bidCountInfo",
+        },
+      },
+
+      // 3. Format dữ liệu đầu ra: Ghi đè winnerId và thêm bidCount
+      {
+        $addFields: {
+          // GHI ĐÈ winnerId: Nếu có thông tin winner (winnerInfo) thì lấy, nếu không giữ giá trị cũ (null)
+          winnerId: { $ifNull: ["$winnerInfo", "$winnerId"] },
+
+          // Thêm bidCount
+          bidCount: {
+            $ifNull: [{ $arrayElemAt: ["$bidCountInfo.count", 0] }, 0],
+          },
+        },
+      },
+
+      // 4. Xóa các field tạm
+      {
+        $project: {
+          winnerInfo: 0,
+          bidCountInfo: 0,
+        },
+      },
     ]);
 
     return res.status(200).json({ data: similarAuctions });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: err.message });
   }
 };
@@ -1024,5 +1121,38 @@ export const getAuctionConfig = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ message: err.message });
+  }
+};
+
+export const appendDescription = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+    const { description } = req.body;
+    const userId = req.user?._id;
+
+    const auction = await Auction.findById(auctionId);
+
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    if (auction.sellerId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "You are not authorized to update this auction" });
+    }
+    auction.product.description = description;
+    
+    await auction.save();
+
+    res.status(200).json({
+      message: "Description updated successfully",
+      auction: auction
+    });
+
+  } catch (err) {
+    console.error("Append Description Error:", err);
+    res.status(500).json({ 
+      message: "Failed to append description", 
+      error: err.message 
+    });
   }
 };

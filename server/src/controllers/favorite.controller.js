@@ -105,7 +105,7 @@ export const getFavorites = async (req, res) => {
 
     // sort
     const sortOptions = {
-      newest: { createdAt: -1 },
+      newest: { startTime: -1 },
       price_asc: { currentPrice: 1 },
       price_desc: { currentPrice: -1 },
       ending_soon: { endTime: 1 },
