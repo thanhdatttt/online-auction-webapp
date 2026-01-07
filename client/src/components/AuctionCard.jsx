@@ -31,7 +31,7 @@ const AuctionCard = ({ auction }) => {
 
   const user = useAuthStore((state) => state.user);
   const isGuest = user === null;
-  const isWinner = !isGuest ? user?._id === auction.winnerId : false;
+  const isWinner = !isGuest ? user?._id === auction.winnerId._id : false;
 
   // add favorite / remove favorite
   const toogleFavorite = async (e) => {
