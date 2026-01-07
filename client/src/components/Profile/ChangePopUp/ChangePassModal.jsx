@@ -68,7 +68,7 @@ const ChangePassModal = ({open, onClose}) => {
       <div>
         <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Current Password</label>
         <input 
-          type="text" 
+          type="password" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
           placeholder="Enter your current password"
           {...register("oldPassword")}
@@ -89,7 +89,7 @@ const ChangePassModal = ({open, onClose}) => {
       <div>
         <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">New Password</label>
         <input 
-          type="text" 
+          type="password" 
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
           placeholder="Enter new password"
           {...register("newPassword")}
@@ -105,7 +105,7 @@ const ChangePassModal = ({open, onClose}) => {
       <div>
         <label className="text-2xl uppercase tracking-wide text-gray-500 font-semibold">Confirm New Password</label>
         <input 
-          type="text"
+          type="password"
           className="w-full mt-1 p-2 bg-gray-400 text-xl rounded focus:outline-primary"
           placeholder="Confirm new password"
           {...register("confirmPassword")}

@@ -954,7 +954,7 @@ export const getAuctions = async (req, res) => {
         },
         { $unwind: { path: "$winnerId", preserveNullAndEmptyArrays: true } },
       ]),
-      Auction.countDocuments(filter),
+      Auction.countDocuments({ ...filter, isDeleted: false }),
     ]);
 
     res.status(200).json({

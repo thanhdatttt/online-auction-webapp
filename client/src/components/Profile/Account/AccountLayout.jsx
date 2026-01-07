@@ -82,10 +82,11 @@ const ProfileSection = () => {
       />
       <Divider/>
 
-      {!user.providers && (
+      {!user.providers.facebook.id && !user.providers.google.id && (
       <div>
         <ProfileRow
           label="Password"
+          value={"*********"}
           canChange={true}
           onChangeClick={() => handleChange("password")}
         />
