@@ -45,6 +45,9 @@ const ForgetPassForm = () => {
 
   // control step state
   const [step, setStep] = useState(1);
+  
+  // Loading
+  const loading = useAuthStore((state) => state.loading);
 
   // set up
   const { forgot_password, reset_password, verify_otp } = useAuthStore();
@@ -139,9 +142,14 @@ const ForgetPassForm = () => {
               <button
                 onClick={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition cursor-pointer"
+                className={`w-full bg-primary text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition 
+                  ${
+                    loading ? "cursor-not-allowed" 
+                    : "cursor-pointer hover:bg-accent hover:text-black"
+                  }
+                `}
               >
-                Next
+                {loading ? "Sending OTP to email..." : "Next"}
               </button>
             </div>
           </div>
@@ -177,11 +185,16 @@ const ForgetPassForm = () => {
             )}
             <div className="flex flex-col justify-center items-center">
               <button
-                className="w-1/2 bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition cursor-pointer"
+                className={`w-1/2 bg-primary text-2xl text-white font-semibold py-2 mt-8 rounded-3xl transition
+                  ${
+                    loading ? "cursor-not-allowed" 
+                    : "cursor-pointer hover:bg-accent hover:text-black"
+                  }
+                `}
                 onClick={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
               >
-                Next
+                {loading ? "Verifying OTP..." : "Next"}
               </button>
             </div>
           </div>
@@ -198,7 +211,7 @@ const ForgetPassForm = () => {
                 className={`w-full rounded-md p-2 text-black text-2xl bg-white ${
                   errors.newPassword ? "border-red-500" : "border-gray-500"
                 } focus:outline-none focus:ring-2 focus:ring-primary`}
-                type="text"
+                type="password"
                 id="newPassword"
                 placeholder="Enter new password"
                 {...register("newPassword")}
@@ -215,7 +228,7 @@ const ForgetPassForm = () => {
                 className={`w-full rounded-md p-2 text-black text-2xl bg-white ${
                   errors.username ? "border-red-500" : "border-gray-500"
                 } focus:outline-none focus:ring-2 focus:ring-primary`}
-                type="text"
+                type="password"
                 id="confirmPassword"
                 placeholder="Confirm your new password"
                 {...register("confirmPassword")}
@@ -227,10 +240,15 @@ const ForgetPassForm = () => {
 
             <button
               onClick={handleSubmit(onSubmit)}
-              className="w-full bg-primary hover:bg-accent hover:text-black text-2xl text-white font-semibold py-2 my-8 rounded-3xl transition cursor-pointer"
+              className={`w-full bg-primary text-2xl text-white font-semibold py-2 my-8 rounded-3xl transition
+                ${
+                    loading ? "cursor-not-allowed" 
+                    : "cursor-pointer hover:bg-accent hover:text-black"
+                  }
+              `}
               disabled={isSubmitting}
             >
-              Register
+              {loading ? "Resetting password..." : "Reset password"}
             </button>
           </div>
         )}
