@@ -351,11 +351,47 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                         handleShowModal(true, h.bidderId?._id);
                       }}
                     >
-                      <span className="text-gray-600">
+                      <div className="text-gray-600 flex items-center justify-center gap-1">
                         {maskFirstHalf(
-                          h.bidderId?.firstName + " " + h.bidderId?.lastName
+                          h.bidderId?.firstName + " " + h.bidderId?.lastName + " "
                         )}
-                      </span>
+                        
+                        {h.bidderId?.rating === -1 ? (
+                          isGuest ? (
+                            <span className="text-xs font-normal italic opacity-70">
+                              (New Bidder)
+                            </span>
+                          ) : (
+                            <Link to={`/feedback/${h.bidderId?._id}`} className="hover:text-primary">
+                              <span className="text-xs font-normal italic opacity-70">
+                                (New Bidder)
+                              </span>
+                            </Link>
+                          )
+                        ): (
+                          isGuest ? (
+                            <div className="flex items-center gap-1">
+                              <span>{h.bidderId?.rating}%</span>
+                              <ThumbsUp
+                                size={18}
+                                strokeWidth={2.5}
+                                className="mb-0.5"
+                              />
+                            </div>
+                          ) : (
+                            <Link to={`/feedback/${h.bidderId?._id}`} className="hover:text-primary">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs">{h.bidderId?.rating}%</span>
+                                <ThumbsUp
+                                  size={12}
+                                  strokeWidth={2.5}
+                                  className="mb-0.5"
+                                />
+                              </div>
+                            </Link>
+                          )
+                        )}
+                      </div>
                       <div className="text-right">
                         <span className="block text-gray-500 text-[10px]">
                           {formatTime(h.bidTime)}
