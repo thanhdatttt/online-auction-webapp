@@ -40,28 +40,18 @@ const formatPriceVND = (amount) =>
 //     pass: config.PASSWORD_EMAIL_APP,
 //   },
 // });
+
 const transporter = nodemailer.createTransport({
-
-  host: "smtp.gmail.com", 
-
-  port: 587,              
-
-  secure: false,       
-
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // TLS
   auth: {
-
     user: config.EMAIL_APP,
-
-    pass: config.PASSWORD_EMAIL_APP,
-
+    pass: config.PASSWORD_EMAIL_APP, // App Password
   },
-
   tls: {
-
-    ciphers: "SSLv3",
-
+    rejectUnauthorized: false,
   },
-
 });
 
 const styles = {
