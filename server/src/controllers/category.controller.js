@@ -109,7 +109,7 @@ export const deleteCategory = async (req, res) => {
 
     // 2. Check if any auctions are using this category
     // Based on Auction.js, the field is `product.categoryId`
-    const auctionCount = await Auction.countDocuments({ "product.categoryId": id });
+    const auctionCount = await Auction.countDocuments({ "product.categoryId": id, isDeleted: false });
 
     if (auctionCount > 0) {
       return res.status(400).json({ 
