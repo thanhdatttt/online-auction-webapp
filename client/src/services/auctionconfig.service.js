@@ -4,7 +4,7 @@ import api from "../utils/axios.js";
 export const auctionConfigService = {
   getAuctionConfig: async () => {
     try {
-      const res = await api.get("/auctions/auction-config");
+      const res = await api.get("/guest/auctions/auction-config");
       return res.data;
     } catch (err) {
       throw err;
