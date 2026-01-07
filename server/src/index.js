@@ -10,6 +10,7 @@ import http from "http";
 import cookieParser from "cookie-parser";
 import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
+import sellerRoute from "./routes/seller.route.js"
 import adminRoute from "./routes/admin.route.js";
 import auctionRoute from "./routes/auction.route.js";
 import favoriteRoute from "./routes/favorite.route.js";
@@ -48,8 +49,9 @@ app.use("/api/orders", orderRoute);
 app.use("/api/ratings", ratingRoute);
 app.use("/api/chat", chatRoute);
 // admin routes
-app.use(authorize("admin"));
-app.use("/api/admin", adminRoute);
+app.use("/api/admin", authorize("admin"), adminRoute);
+// seller routes
+app.use("/api", authorize("seller"), sellerRoute);
 
 // run server
 connectDB().then(async () => {

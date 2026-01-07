@@ -190,7 +190,7 @@ export const getActiveBids = async (req, res) => {
 
     // sort options
     const sortOptions = {
-      newest: { createdAt: -1 },
+      newest: { startTime: -1 },
       price_asc: { currentPrice: 1 },
       price_desc: { currentPrice: -1 },
       ending_soon: { endTime: 1 },

@@ -3,12 +3,15 @@ import { Eye, Pencil, Trash2, ChevronRight, ChevronDown, CornerDownRight } from 
 import BaseTable from "./BaseTable";
 import api from "../../../utils/axios";
 import AddCategoryModel from "../AddCategoryModel";
+import EditCategoryModal from "../EditCategoryModel";
 
 export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState(null);
 
     const [sortState, setSortState] = useState({
         auctionCount: "none",
@@ -33,8 +36,7 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
     };
 
     const handleSave = (c) => {
-        console.log('Added new Category:', c);
-        // You can add a success notification here
+        loadData();
     };
 
     const buildQueryString = () => {
@@ -62,7 +64,6 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
             setLoading(true);
 
             const query = buildQueryString();
-            console.log(query);
 
             const res = await api.get(`/admin/categories?${query}`);
 
@@ -159,10 +160,12 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
 
                 {/* Column 3: Actions */}
                 <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-primary rounded transition-colors">
-                        <Eye size={18} />
-                    </button>
-                    <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-primary rounded transition-colors">
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditOpen(true);
+                        setEditingCategory(item);
+                    }}
+                    className="cursor-pointer px-2 py-1 text-dark/80 hover:text-primary rounded transition-colors">
                         <Pencil size={18} />
                     </button>
                     <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
@@ -184,7 +187,7 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                 columns={columns}
                 data={visibleData} // We pass the processed flat data
                 loading={loading}
-                onAdd={() => setIsPopupOpen(true)}
+                onAdd={() => setIsCreateOpen(true)}
                 renderRow={renderRow}
                 // Passing empty sort props or implementing custom sort if needed
                 sortState={sortState} 
@@ -194,9 +197,18 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                 filters={null}
             />
             <AddCategoryModel
-                isOpen={isPopupOpen}
-                onClose={() => setIsPopupOpen(false)}
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
                 onSave={handleSave}
+            />
+            <EditCategoryModal
+                isOpen={isEditOpen}
+                onClose={() => {
+                    setIsEditOpen(false);
+                    setEditingCategory(null);
+                }}
+                onSave={handleSave}
+                categoryToEdit={editingCategory}
             />
         </>
 

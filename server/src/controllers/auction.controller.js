@@ -861,6 +861,8 @@ export const getAuctions = async (req, res) => {
       };
     }
 
+    filter.isDeleted = { $ne: true };
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -876,7 +878,7 @@ export const getAuctions = async (req, res) => {
         sortOptions = { endTime: 1 };
         break;
       case "newest":
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
         break;
       case "bid_desc":
         sortOptions = { bidCount: -1 };
@@ -892,7 +894,7 @@ export const getAuctions = async (req, res) => {
       //   }
       //   break;
       default:
-        sortOptions = { createdAt: -1 };
+        sortOptions = { startTime: -1 };
     }
 
     // if (search && sort !== 'relevance') {
@@ -1119,5 +1121,38 @@ export const getAuctionConfig = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ message: err.message });
+  }
+};
+
+export const appendDescription = async (req, res) => {
+  try {
+    const { auctionId } = req.params;
+    const { description } = req.body;
+    const userId = req.user?._id;
+
+    const auction = await Auction.findById(auctionId);
+
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    if (auction.sellerId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "You are not authorized to update this auction" });
+    }
+    auction.product.description = description;
+    
+    await auction.save();
+
+    res.status(200).json({
+      message: "Description updated successfully",
+      auction: auction
+    });
+
+  } catch (err) {
+    console.error("Append Description Error:", err);
+    res.status(500).json({ 
+      message: "Failed to append description", 
+      error: err.message 
+    });
   }
 };

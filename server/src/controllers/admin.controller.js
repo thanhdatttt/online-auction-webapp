@@ -26,7 +26,7 @@ export const getAuctions = async (req, res) => {
     if (categoryId && categoryId !== "all") filter["product.categoryId"] = categoryId;
 
     // 3. Sorting Logic (Matches User Table pattern)
-    let sortObj = { createdAt: -1 }; // Default sort
+    let sortObj = { startTime: -1 }; // Default sort
     if (sort) {
       sortObj = {}; 
       const fields = sort.split(",");
@@ -42,7 +42,7 @@ export const getAuctions = async (req, res) => {
         else sortObj[field] = sortOrder;
       });
 
-      if (!sortObj.createdAt) sortObj.createdAt = -1;
+      if (!sortObj.startTime) sortObj.startTime = -1;
     }
 
     const limit = 9;
@@ -607,14 +607,15 @@ export const denyRoleRequest = async (req, res) => {
 // update auction config 
 export const updateAuctionConfig = async (req, res) => {
   try {
-    const { extendThreshold, extendDuration } = req.body;
+    const { extendThreshold, extendDuration, newProductTime } = req.body;
 
     let config = await AuctionConfig.findOne();
     if (!config) {
-      config = new AuctionConfig({ extendThreshold, extendDuration });
+      config = new AuctionConfig({ extendThreshold, extendDuration, newProductTime });
     } else {
       config.extendThreshold = extendThreshold;
       config.extendDuration = extendDuration;
+      config.newProductTime = newProductTime;
     }
     await config.save();
     res.json({ success: true, config });
@@ -708,7 +709,8 @@ export const getCategories = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $in: ["$product.categoryId", "$$categoryIds"] }
+                $expr: { $in: ["$product.categoryId", "$$categoryIds"] },
+                isDeleted: { $ne: true }
               }
             }
           ],
@@ -765,7 +767,7 @@ export const getCategories = async (req, res) => {
                       from: "auctions",
                       let: { ids: "$childAllIds" },
                       pipeline: [
-                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] } } }
+                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] }, isDeleted: { $ne: true } } }
                       ],
                       as: "childAuctions"
                     }
@@ -776,7 +778,7 @@ export const getCategories = async (req, res) => {
                   },
                   { 
                     $project: { 
-                      name: 1, slug: 1, image_url: 1, auctionCount: 1 
+                      name: 1, slug: 1, image_url: 1, auctionCount: 1, parentId: 1, description: 1,
                     } 
                   },
                   { $sort: { name: 1 } }

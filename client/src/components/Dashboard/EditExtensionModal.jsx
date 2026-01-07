@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Clock } from 'lucide-react';
+import { X, Clock, Sparkles } from 'lucide-react';
 import api from '@/utils/axios';
 import { toast } from 'sonner';
 
@@ -8,7 +8,8 @@ export default function EditExtensionPopup({ isOpen, onClose, onSave }) {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     extendThreshold: 300,
-    extendDuration: 600
+    extendDuration: 600,
+    newProductTime: 86400
   });
 
   useEffect(() => {
@@ -27,8 +28,9 @@ export default function EditExtensionPopup({ isOpen, onClose, onSave }) {
       
       if (data.config) {
         setFormData({
-          extendThreshold: data.config.extendThreshold/1000 || 300,
-          extendDuration: data.config.extendDuration/1000 || 600
+          extendThreshold: data.config.extendThreshold / 1000 || 300,
+          extendDuration: data.config.extendDuration / 1000 || 600,
+          newProductTime: data.config.newProductTime / 1000 || 86400
         });
       }
     } catch (error) {
@@ -43,7 +45,8 @@ export default function EditExtensionPopup({ isOpen, onClose, onSave }) {
       setSaving(true);
       const dataToSend = {
         extendThreshold: formData.extendThreshold * 1000,
-        extendDuration: formData.extendDuration * 1000
+        extendDuration: formData.extendDuration * 1000,
+        newProductTime: formData.newProductTime * 1000
       };
       // Replace with your actual API endpoint
       const response = await api.put('/admin/auction/config', dataToSend,
@@ -78,6 +81,8 @@ export default function EditExtensionPopup({ isOpen, onClose, onSave }) {
   };
 
   const formatSeconds = (seconds) => {
+    if (seconds >= 86400) return `${(seconds / 86400).toFixed(1)} days`;
+    if (seconds >= 3600) return `${(seconds / 3600).toFixed(1)} hours`;
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}m ${secs}s`;
@@ -115,6 +120,30 @@ export default function EditExtensionPopup({ isOpen, onClose, onSave }) {
             </div>
           ) : (
             <>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-dark">
+                  New Auction Duration
+                </label>
+                <p className="text-xs text-gray-500">
+                  How long an auction is marked as "New" after creation
+                </p>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.newProductTime}
+                    onChange={(e) => handleInputChange('newProductTime', e.target.value)}
+                    className="w-full text-dark [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                    placeholder="86400"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                    seconds
+                  </span>
+                </div>
+                <div className="text-xs text-primary font-medium">
+                  = {formatSeconds(formData.newProductTime)}
+                </div>
+              </div>
               {/* Extend Threshold */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-dark">

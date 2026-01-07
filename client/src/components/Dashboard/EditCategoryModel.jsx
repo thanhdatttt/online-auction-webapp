@@ -2,21 +2,33 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, FolderPlus, UploadCloud, Trash2, ChevronDown } from 'lucide-react';
+import { X, Pencil, UploadCloud, Trash2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCategoryStore } from '../../stores/useCategory.store';
 
-// 1. Define Validation Schema with Zod
-const categorySchema = z.object({
+// 1. Validation Schema (Modified for Edit)
+// Image is optional here because user might keep the existing one
+const editCategorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
-  image: z.any().refine((files) => files?.length === 1, "Category image is required"),
   parentId: z.string().optional(),
   description: z.string().optional(),
-});
+  image: z.any(),
+  image_url: z.string().nullable().optional(),
+}).superRefine((data, ctx) => {
+  const hasNewFile = data.image && data.image.length > 0;
+  const hasExistingUrl = !!data.image_url;
 
-export default function AddCategoryModel({ isOpen, onClose, onSave }) {
-  // 2. Access Store
-  const { getCategories, createCategory } = useCategoryStore();
+  if (!hasNewFile && !hasExistingUrl) {
+    ctx.addIssue({
+      message: "An image is required. Please upload one.",
+      path: ["image"], // Point error to the file input
+    });
+    return; // Stop further checks if missing
+  }});
+
+export default function EditCategoryModal({ isOpen, onClose, onSave, categoryToEdit }) {
+  // 2. Access Store (Assuming you have an update action)
+  const { getCategories, updateCategory } = useCategoryStore();
   const categories = useCategoryStore((state) => state.categories);
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -29,60 +41,75 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
     setValue,
     formState: { errors, isSubmitting }
   } = useForm({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(editCategorySchema),
     defaultValues: {
       name: '',
-      image: '',
       parentId: '',
-      description: ''
+      description: '',
+      image: null,
+      image_url: ''
     }
   });
 
-  // Watch image URL for live preview
   const imageFile = watch("image");
 
-  // 4. Fetch categories for dropdown when modal opens
   useEffect(() => {
-    if (isOpen) {
-      getCategories(); 
-      reset(); // Reset form when opening
-    }
-  }, [isOpen, getCategories, reset]);
+    if (isOpen && categoryToEdit) {
+      getCategories();
 
+      setValue('name', categoryToEdit.name);
+      setValue('description', categoryToEdit.description || '');
+      setValue('parentId', categoryToEdit.parentId || '');
+      
+      setValue('image_url', categoryToEdit.image_url);
+      setPreviewUrl(categoryToEdit.image_url);
+      
+      setValue('image', null);
+    }
+  }, [isOpen, categoryToEdit, getCategories, setValue]);
+
+  // 5. Handle New Image Selection for Preview
   useEffect(() => {
     if (imageFile && imageFile.length > 0) {
       const file = imageFile[0];
       const newUrl = URL.createObjectURL(file);
       setPreviewUrl(newUrl);
       
-      // Cleanup to prevent memory leaks
       return () => URL.revokeObjectURL(newUrl);
     }
   }, [imageFile]);
 
+  // Handle removing the image (Clears both new file and preview)
   const handleRemoveImage = () => {
-    setValue('image', null); // Clear form value
-    setPreviewUrl(null);     // Clear preview
+    setValue('image', null);
+    setValue('image_url', null);
+    setPreviewUrl(null); 
   };
 
-  // 5. Submit Handler
+  // 6. Submit Handler
   const onSubmit = async (data) => {
     try {
       const rawImage = data.image;
-    
+      
       const cleanData = {
-        ...data,
-        parentId: data.parentId === "" ? null : data.parentId
+        name: data.name,
+        description: data.description,
+        parentId: data.parentId === "" ? null : data.parentId,
       };
 
-      const success = await createCategory(cleanData, rawImage[0]);
+      // Determine if we are sending a new file or just updating text
+      const newFile = rawImage && rawImage.length > 0 ? rawImage[0] : null;
+      
+      const success = await updateCategory(categoryToEdit._id, cleanData, newFile);
       
       console.log(success);
+      
+      toast.success("Category updated successfully");
       onSave();
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Failed to create category");
+      toast.error(error.response?.data?.message || "Failed to update category");
     }
   };
 
@@ -95,12 +122,12 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#e0dad0]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center border border-amber-200">
-              <FolderPlus className="text-[#EA8C1E]" size={20} />
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-200">
+              <Pencil className="text-blue-600" size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#2a2a35]">Create New Category</h2>
-              <p className="text-sm text-gray-500">Add a new category to your auction</p>
+              <h2 className="text-xl font-bold text-[#2a2a35]">Edit Category</h2>
+              <p className="text-sm text-gray-500">Update category details</p>
             </div>
           </div>
           <button
@@ -118,10 +145,10 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
             
             {/* Image Upload Area */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-[#2a2a35]">Category Image <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-[#2a2a35]">Category Image</label>
               
               {!previewUrl ? (
-                // 1. UPLOAD STATE
+                // UPLOAD STATE (Only shows if they removed the existing image)
                 <div className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors
                   ${errors.image ? "border-red-400 bg-red-50" : "border-gray-300 hover:border-[#EA8C1E] hover:bg-amber-50"}`}>
                   
@@ -138,7 +165,7 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
                   <p className="text-sm font-medium text-gray-700">Click to upload image</p>
                 </div>
               ) : (
-                // 2. PREVIEW STATE
+                // PREVIEW STATE (Shows current or new image)
                 <div className="relative rounded-xl overflow-hidden border border-gray-200 group h-48 w-full">
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                   
@@ -155,19 +182,16 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
                 </div>
               )}
 
-              {/* Error Message */}
               {errors.image && <p className="text-red-500 text-xs mt-1 font-medium">{errors.image.message}</p>}
             </div>
 
             {/* Name & Parent Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
-              {/* Category Name */}
               <div className="space-y-2">
                   <label className="block text-sm font-semibold text-[#2a2a35]">Name <span className="text-red-500">*</span></label>
                   <input
                       type="text"
-                      placeholder="e.g. Vintage Watches"
                       {...register("name")}
                       className={`w-full px-4 py-2.5 bg-white border rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-[#EA8C1E] transition-all
                         ${errors.name ? "border-red-500" : "border-gray-300"}`}
@@ -175,7 +199,6 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
               </div>
 
-              {/* Parent Category Dropdown */}
               <div className="space-y-2">
                   <label className="block text-sm font-semibold text-[#2a2a35]">Parent Category</label>
                   <div className="relative">
@@ -184,7 +207,10 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
                           className="w-full appearance-none px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-[#EA8C1E] transition-all cursor-pointer"
                       >
                           <option value="">None (Top Level)</option>
-                          {categories.map((cat) => (
+                          {categories
+                            // Prevent selecting itself as its own parent to avoid infinite loops
+                            .filter(cat => cat._id !== categoryToEdit?._id) 
+                            .map((cat) => (
                               <option key={cat._id || cat.id} value={cat._id || cat.id}>
                                   {cat.name}
                               </option>
@@ -195,12 +221,10 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
               </div>
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-[#2a2a35]">Description</label>
               <textarea
                   rows="3"
-                  placeholder="Describe this category..."
                   {...register("description")}
                   className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-dark focus:outline-none focus:ring-2 focus:ring-[#EA8C1E] transition-all resize-none"
               />
@@ -226,10 +250,10 @@ export default function AddCategoryModel({ isOpen, onClose, onSave }) {
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Creating...
+                  Saving...
                 </>
               ) : (
-                'Create Category'
+                'Save Changes'
               )}
             </button>
           </div>

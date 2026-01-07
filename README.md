@@ -305,28 +305,12 @@ axios.create({
 
 ---
 
-## ✅ Deployment Checklist
-
-* [ ] Backend deployed on Render
-* [ ] MongoDB Atlas network access enabled
-* [ ] Environment variables configured
-* [ ] Frontend deployed on Vercel
-* [ ] CORS allows Vercel domain
-
----
-
 ## 📌 Future Improvements
 
 * Payment gateway integration
 * Notification system
 * Admin analytics dashboard
 * Unit & integration tests
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.
 
 ---
 

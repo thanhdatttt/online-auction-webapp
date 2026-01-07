@@ -197,6 +197,7 @@ export const useAuthStore = create((set, get) => ({
   forgot_password: async ({ email }) => {
     try {
       set({ loading: true });
+      set({ registeredEmail: email });
       const data = await authService.forgot_password({ email });
     } catch (err) {
       console.log(err);
@@ -210,7 +211,18 @@ export const useAuthStore = create((set, get) => ({
     try {
       set({ loading: true });
 
-      const res = await authService.reset_password({ newPassword });
+      const { registerToken } = get();
+
+      if (!registerToken)
+        throw new Error(
+          "Something went wrong. Your token is missing."
+        );
+
+      const res = await authService.reset_password({ newPassword }, registerToken);
+      set({
+        registerToken: null,
+        registeredEmail: null,
+      });
       toast.success("Reset password successfully");
     } catch (err) {
       console.log(err);

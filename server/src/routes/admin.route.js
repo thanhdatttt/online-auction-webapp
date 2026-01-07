@@ -16,7 +16,7 @@ import {
   getCategories,
 } from "../controllers/admin.controller.js";
 
-import { createCategory } from "../controllers/category.controller.js";
+import { createCategory, updateCategory } from "../controllers/category.controller.js";
 
 const router = express.Router();
 
@@ -40,4 +40,5 @@ router.post("/auction/:auctionId/delete", deleteAuction);
 
 router.get("/categories", getCategories);
 router.post("/categories", createCategory);
+router.put("/categories/:id", updateCategory);
 export default router;

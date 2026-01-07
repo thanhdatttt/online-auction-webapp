@@ -7,6 +7,7 @@ import {
 import { Toaster } from "sonner";
 import { useAuthStore } from "./stores/useAuth.store.js";
 import useTimeStore from "./stores/useTime.store.js";
+import { useAuctionConfigStore } from "./stores/useAuctionConfig.store.js";
 import { useEffect } from "react";
 
 import SignInPage from "./pages/SignInPage.jsx";
@@ -45,9 +46,11 @@ function App() {
   }, []);
 
   const startClock = useTimeStore((state) => state.startClock);
+  const getAuctionConfig = useAuctionConfigStore((state) => state.getAuctionConfig);
 
   useEffect(() => {
     startClock();
+    getAuctionConfig();
   }, []);
 
   return (

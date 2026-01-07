@@ -46,3 +46,8 @@ export const getRelativeTime = (startDate, currentTime = new Date()) => {
   const diffInYears = Math.floor(diffInDays / 365);
   return `${diffInYears} years ago`;
 };
+
+export const getRelativeTimeNoFormat = (startDate, currentTime = new Date()) => {
+  const date = new Date(startDate);
+  return Math.floor((currentTime - date) / 1000);
+};
