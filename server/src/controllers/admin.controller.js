@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Auction from "../models/Auction.js";
 import AuctionConfig from "../models/AuctionConfig.js";
 import Category from "../models/Category.js";
+import { sendPasswordResetEmail } from "../utils/admin.util.js";
 
 const getCategoryAndDescendants = async (rootId) => {
     let ids = [rootId];
@@ -291,6 +292,40 @@ export const getUserbyId = async (req, res) => {
       return res.status(500).json({ message: "Server error" });
   }
 }
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user || user.isDeleted) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a random 8-character password
+    const newPassword = Math.random().toString(36).slice(-8);
+
+    // Update password (User model pre-save hook handles the hashing)
+    user.passwordHash = newPassword;
+    await user.save();
+
+    // Send email to the user
+    if (user.email) {
+        await sendPasswordResetEmail(user, newPassword);
+    }
+
+    res.status(200).json({ 
+        message: "Password reset successfully. Email sent to user." 
+    });
+
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ 
+        message: "Failed to reset password", 
+        error: error.message 
+    });
+  }
+};
 
 export const updateUserStatus = async (req, res) => {
     try {
