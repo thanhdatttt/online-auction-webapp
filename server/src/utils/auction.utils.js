@@ -33,12 +33,35 @@ const maskFirstHalf = (str) => {
 const formatPriceVND = (amount) =>
   new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: config.EMAIL_APP,
+//     pass: config.PASSWORD_EMAIL_APP,
+//   },
+// });
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+
+  host: "smtp.gmail.com", 
+
+  port: 587,              
+
+  secure: false,       
+
   auth: {
+
     user: config.EMAIL_APP,
+
     pass: config.PASSWORD_EMAIL_APP,
+
   },
+
+  tls: {
+
+    ciphers: "SSLv3",
+
+  },
+
 });
 
 const styles = {
