@@ -180,7 +180,7 @@ const OrderActionModal = ({order, onClose}) => {
                       </div>
                       <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Handover Complete</h3>
                       <p className="text-slate-500 text-sm mb-8">The transaction has been successfully closed and ownership has been transferred. Please confirm the delivery</p>
-                      <button onClick={handleComplete} className="w-full py-4 border-2 border-slate-100 rounded-xl font-bold hover:bg-slate-50 transition-all">
+                      <button onClick={handleComplete} className="w-full py-4 border-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-amber-600 transition-all">
                         Confirm and Close
                       </button>
                     </div>
