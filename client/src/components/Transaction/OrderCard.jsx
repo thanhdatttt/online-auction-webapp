@@ -80,7 +80,7 @@ const OrderCard = ({order}) => {
             <p className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-1">
               Final Price
             </p>
-            <p className="text-xl font-bold text-slate-900">${order.finalPrice}</p>
+            <p className="text-xl font-bold text-slate-900">{order.finalPrice} VND</p>
           </div>
           <div>
             <p className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-1">
