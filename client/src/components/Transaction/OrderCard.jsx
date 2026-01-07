@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Truck, XCircle , CreditCard, AlertCircle, User, ArrowUpRight } from 'lucide-react';
 import OrderActionModal from './OrderActionModal.jsx';
+import { useAuctionStore } from '@/stores/useAuction.store.js';
 
 // transaction status definition
 export const TransactionStatus = {
@@ -36,6 +37,7 @@ const OrderCard = ({order}) => {
   // order status
   const statusInfo = getStatusInfo(order.status);
   const StatusIcon = statusInfo.icon;
+  const {formatPrice} = useAuctionStore();
 
   // card status
   const isCancelled = order.status === TransactionStatus.CANCELED;
@@ -80,7 +82,7 @@ const OrderCard = ({order}) => {
             <p className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-1">
               Final Price
             </p>
-            <p className="text-xl font-bold text-slate-900">{order.finalPrice} VND</p>
+            <p className="text-xl font-bold text-slate-900">{formatPrice(order.finalPrice)} VND</p>
           </div>
           <div>
             <p className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-1">
