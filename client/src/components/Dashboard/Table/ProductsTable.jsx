@@ -5,15 +5,17 @@ import EditExtensionPopup from "../EditExtensionModal";
 import { useAuctionStore } from "@/stores/useAuction.store";
 import DeleteAuctionModal from "../DeleteAuctionModal";
 import api from "@/utils/axios";
+import { useCategoryStore } from "@/stores/useCategory.store";
 
 export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
 
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedAuction, setSelectedAuction] = useState(null);
 
@@ -25,12 +27,14 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
         endTime: "none"
     });
 
-    const categories = [
-        { id: 1, name: 'Arts' },
-        { id: 2, name: 'Electronics' },
-        { id: 3, name: 'Fashion' },
-        { id: 4, name: 'Collectibles' }
-    ];
+    const { categories, getCategories } = useCategoryStore();
+
+    useEffect(() => {
+        // Only fetch if we don't have them yet (optional optimization)
+        if (categories.length === 0) {
+            getCategories();
+        }
+    }, [getCategories, categories.length]);
 
     const toggleSort = (field) => {
         setSortState((prev) => {
@@ -39,7 +43,6 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
             return { product: "none", bid: "none", endTime: "none", [field]: order };
         });
     };
-
 
     const buildQueryString = () => {
         const params = new URLSearchParams();
@@ -110,12 +113,13 @@ export default function ProductsTable({ currentPage, itemsPerPage, onTotalChange
             
             <select
                 value={filterCategory}
+                onClick={() => getCategories()}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="px-4 py-2.5 bg-decor border-0 rounded-lg text-dark/80 font-lato font-medium focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
                 <option value="all">All Categories</option>
                 {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
                 ))}
             </select>
         </div>

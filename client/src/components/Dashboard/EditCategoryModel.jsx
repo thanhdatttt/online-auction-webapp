@@ -174,7 +174,7 @@ export default function EditCategoryModal({ isOpen, onClose, onSave, categoryToE
                     <button 
                       type="button"
                       onClick={handleRemoveImage}
-                      className="bg-white text-red-500 px-4 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 hover:bg-red-50"
+                      className="bg-white text-red-500 px-4 py-2 rounded-lg font-bold cursor-pointer shadow-lg flex items-center gap-2 hover:bg-red-50"
                     >
                       <Trash2 size={18} /> Remove Image
                     </button>
@@ -237,7 +237,7 @@ export default function EditCategoryModal({ isOpen, onClose, onSave, categoryToE
             <button
               onClick={onClose}
               type="button"
-              className="flex-1 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex-1 px-4 py-2.5 cursor-pointer bg-light hover:bg-decor border border-gray-300 text-gray-700 rounded-lg font-semibold transition-colors shadow-sm"
               disabled={isSubmitting}
             >
               Cancel
@@ -245,7 +245,7 @@ export default function EditCategoryModal({ isOpen, onClose, onSave, categoryToE
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 bg-[#EA8C1E] text-white rounded-lg font-semibold hover:bg-[#d9822b] transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 cursor-pointer bg-[#EA8C1E] text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

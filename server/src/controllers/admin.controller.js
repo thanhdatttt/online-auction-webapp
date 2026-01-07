@@ -4,6 +4,19 @@ import Auction from "../models/Auction.js";
 import AuctionConfig from "../models/AuctionConfig.js";
 import Category from "../models/Category.js";
 
+const getCategoryAndDescendants = async (rootId) => {
+    let ids = [rootId];
+    // Find immediate children
+    const children = await Category.find({ parentId: rootId });
+
+    // Recursively find children of children
+    for (const child of children) {
+        const descendantIds = await getCategoryAndDescendants(child._id);
+        ids = [...ids, ...descendantIds];
+    }
+    return ids;
+};
+
 export const getAuctions = async (req, res) => {
   try {
     const {
@@ -23,7 +36,10 @@ export const getAuctions = async (req, res) => {
 
     // 2. Filter Logic
     if (status && status !== "all") filter.status = status;
-    if (categoryId && categoryId !== "all") filter["product.categoryId"] = categoryId;
+    if (categoryId && categoryId !== "all") {
+      const categoriesToInclude = await getCategoryAndDescendants(categoryId);
+      filter["product.categoryId"] = { $in: categoriesToInclude };
+    }
 
     // 3. Sorting Logic (Matches User Table pattern)
     let sortObj = { createdAt: -1 }; // Default sort
@@ -708,7 +724,8 @@ export const getCategories = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $in: ["$product.categoryId", "$$categoryIds"] }
+                $expr: { $in: ["$product.categoryId", "$$categoryIds"] },
+                isDeleted: { $ne: true }
               }
             }
           ],
@@ -765,7 +782,7 @@ export const getCategories = async (req, res) => {
                       from: "auctions",
                       let: { ids: "$childAllIds" },
                       pipeline: [
-                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] } } }
+                        { $match: { $expr: { $in: ["$product.categoryId", "$$ids"] }, isDeleted: { $ne: true } } }
                       ],
                       as: "childAuctions"
                     }
