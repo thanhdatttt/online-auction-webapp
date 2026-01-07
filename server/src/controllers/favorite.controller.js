@@ -126,7 +126,7 @@ export const getFavorites = async (req, res) => {
       options: { skip, limit, sort },
       populate: {
         path: "winnerId",
-        select: "username avatar_url rating",
+        select: "username avatar_url rating firstName lastName",
       },
     });
     const total = paginated.auctions.length;

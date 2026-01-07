@@ -233,7 +233,7 @@ export const getActiveBids = async (req, res) => {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .populate("winnerId", "username"),
+        .populate("winnerId", "username firstName lastName"),
 
       Auction.countDocuments(filter),
     ]);
