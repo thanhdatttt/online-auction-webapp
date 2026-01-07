@@ -34,15 +34,10 @@ const formatPriceVND = (amount) =>
   new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS
+  service: "gmail",
   auth: {
     user: config.EMAIL_APP,
-    pass: config.PASSWORD_EMAIL_APP, // App Password
-  },
-  tls: {
-    rejectUnauthorized: false,
+    pass: config.PASSWORD_EMAIL_APP,
   },
 });
 
