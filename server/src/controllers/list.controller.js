@@ -175,6 +175,52 @@ export const getFeedbacks = async (req, res) => {
   }
 };
 
+export const getUserFeedbacks = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
+
+    const {userId} = req.params;
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    const filter = { ratedUserId: userId };
+
+    const [ratings, total] = await Promise.all([
+      Rating.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("raterId", "firstName lastName avatarUrl")
+        .populate({
+          path: "auctionId",
+          select: "product",
+        }),
+      Rating.countDocuments(filter),
+    ]);
+
+    const totalPositive = await Rating.countDocuments({
+      ratedUserId: userId,
+      rateType: "uprate",
+    });
+
+    return res.status(200).json({
+      message: "Get feedbacks successfully",
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      ratings: ratings,
+      totalPositive: totalPositive,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const getActiveBids = async (req, res) => {
   try {
     const userId = req.user.id;

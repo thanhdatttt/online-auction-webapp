@@ -192,15 +192,53 @@ export const getHistoryBid = async (req, res) => {
 
     const historyInfo = await Bid.find({ auctionId: auctionId })
       .populate("bidderId", "firstName lastName avatar_url")
-      .sort({ bidTime: -1 });
+      .sort({ bidTime: -1 })
+      .lean();
 
     const rejectedBidderIds = await RejectedBidder.find({
       auctionId: auctionId,
     }).distinct("bidderId");
 
+    const uniqueBidderIds = [
+      ...new Set(historyInfo.map((bid) => bid.bidderId._id.toString())),
+    ];
+
+    const ratingsMap = {};
+    
+    await Promise.all(
+      uniqueBidderIds.map(async (bidderId) => {
+        const totalRatings = await Rating.countDocuments({
+          ratedUserId: bidderId,
+        });
+
+        let positivePercent = -1; // Default -1 (No ratings / New Bidder)
+
+        if (totalRatings > 0) {
+          const positiveRatings = await Rating.countDocuments({
+            ratedUserId: bidderId,
+            rateType: "uprate",
+          });
+          positivePercent = Math.round((positiveRatings / totalRatings) * 100);
+        }
+
+        ratingsMap[bidderId] = positivePercent;
+      })
+    );
+
+    const historyWithRatings = historyInfo.map((bid) => {
+      const bId = bid.bidderId._id.toString();
+      return {
+        ...bid,
+        bidderId: {
+          ...bid.bidderId,
+          rating: ratingsMap[bId], // Add the calculated rating here
+        },
+      };
+    });
+
     res
       .status(200)
-      .json({ history: historyInfo, rejectedBidderIds: rejectedBidderIds });
+      .json({ history: historyWithRatings, rejectedBidderIds: rejectedBidderIds });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -260,10 +298,13 @@ export const placeBid = async (req, res) => {
       throw { status: 400, message: "This auction is already closed." };
     }
 
+    let currentBidderRating = -1;
+
     // Check Rating
     const totalRatings = await Rating.countDocuments({
       ratedUserId: userId,
     }).session(session);
+
     if (totalRatings === 0) {
       if (!auction.allowUnratedBidder) {
         throw {
@@ -278,6 +319,9 @@ export const placeBid = async (req, res) => {
       }).session(session);
 
       const positiveRatingPercent = (totalPositiveRatings / totalRatings) * 100;
+
+      currentBidderRating = Math.round(positiveRatingPercent);
+
       if (positiveRatingPercent < 80) {
         throw {
           status: 403,
@@ -428,11 +472,30 @@ export const placeBid = async (req, res) => {
     session.endSession();
 
     await newBid[0].populate("bidderId", "firstName lastName avatar_url");
-    realTimeHistory.push(newBid[0]);
+    const newBidObj = newBid[0].toObject();
+    newBidObj.bidderId.rating = currentBidderRating;
+    realTimeHistory.push(newBidObj);
 
     if (hasAutoBid && autoBid) {
       await autoBid[0].populate("bidderId", "firstName lastName avatar_url");
-      realTimeHistory.push(autoBid[0]);
+      const autoBidObj = autoBid[0].toObject();
+
+      // Calculate rating for the auto-bidder (previous winner)
+      const abBidderId = autoBidObj.bidderId._id;
+      const abTotal = await Rating.countDocuments({ ratedUserId: abBidderId });
+      let abRating = -1;
+      
+      if (abTotal > 0) {
+        const abPositive = await Rating.countDocuments({ 
+            ratedUserId: abBidderId, 
+            rateType: "uprate" 
+        });
+        abRating = Math.round((abPositive / abTotal) * 100);
+      }
+
+      // Inject rating for auto-bidder
+      autoBidObj.bidderId.rating = abRating;
+      realTimeHistory.push(autoBidObj);
     }
 
     io.to(`auction_${auctionId}`).emit("priceUpdate", auction.currentPrice);
@@ -830,6 +893,21 @@ export const buyNow = async (req, res) => {
 
     await newBid.populate("bidderId", "firstName lastName avatar_url");
 
+    const totalRatings = await Rating.countDocuments({ ratedUserId: userId });
+    let winnerPositivePercent = -1;
+
+    if (totalRatings > 0) {
+      const positiveRatings = await Rating.countDocuments({
+        ratedUserId: userId,
+        rateType: "uprate",
+      });
+      winnerPositivePercent = Math.round((positiveRatings / totalRatings) * 100);
+    }
+
+    // Convert to object to inject rating for the History list
+    const newBidObj = newBid.toObject();
+    newBidObj.bidderId.rating = winnerPositivePercent;
+
     auction.currentPrice = auction.buyNowPrice;
 
     auction.highestPrice = auction.buyNowPrice;
@@ -840,11 +918,12 @@ export const buyNow = async (req, res) => {
 
     auction.endTime = now;
 
-    io.to(`auction_${auctionId}`).emit("historyUpdate", [newBid]);
+    io.to(`auction_${auctionId}`).emit("historyUpdate", [newBidObj]);
 
     io.to(`auction_${auctionId}`).emit("winnerUpdate", {
       winner: req.user,
       highestPrice: auction.highestPrice,
+      winnerPositivePercent: winnerPositivePercent,
     });
 
     io.to(`auction_${auctionId}`).emit("priceUpdate", auction.currentPrice);

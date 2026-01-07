@@ -8,12 +8,14 @@ import {
   changePassword,
   changeAvatar,
   requestRole,
+  getUser,
 } from "../controllers/user.controller.js";
 import {
   getCreatedAuctions,
   getActiveBids,
   getWonAuctions,
   getFeedbacks,
+  getUserFeedbacks
 } from "../controllers/list.controller.js";
 
 const router = express.Router();
@@ -26,6 +28,9 @@ router.patch("/me/address", changeAddress);
 router.patch("/me/birth", changeBirth);
 router.patch("/me/password", changePassword);
 router.post("/me/requestRole", requestRole);
+
+router.get("/:userId", getUser);
+router.get("/:userId/feedbacks", getUserFeedbacks);
 
 router.get("/me/won-auctions", getWonAuctions);
 router.get("/me/created-auctions", getCreatedAuctions);

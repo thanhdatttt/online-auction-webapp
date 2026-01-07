@@ -7,6 +7,7 @@ import { NumericFormat } from "react-number-format";
 import { useAuthStore } from "../../stores/useAuth.store";
 import { useNavigate } from "react-router";
 import History from "./History";
+import { Link } from "react-router";
 
 const RightSideBar = ({
   auction,
@@ -363,12 +364,23 @@ const RightSideBar = ({
               </span>
             </p>
             <div className="flex items-center gap-2">
-              <span className="text-[16px] px-1 rounded flex items-center gap-0.5">
-                <ThumbsUp size={15} />{" "}
-                {upPercentSeller === -1
-                  ? "New seller"
-                  : Math.round(upPercentSeller) + "%"}
-              </span>
+              {isGuest || isSeller ? (
+                  <span className="text-[16px] px-1 rounded flex items-center gap-0.5">
+                    <ThumbsUp size={15} />{" "}
+                    {upPercentSeller === -1
+                        ? "New seller"
+                        : Math.round(upPercentSeller) + "%"}
+                  </span>
+                ) : (
+                  <Link to={`/feedback/${seller._id}`} className="hover:text-primary">
+                    <span className="text-[16px] px-1 rounded flex items-center gap-0.5">
+                      <ThumbsUp size={15} />{" "}
+                      {upPercentSeller === -1
+                          ? "New seller"
+                          : Math.round(upPercentSeller) + "%"}
+                    </span>
+                  </Link>
+                )}
             </div>
           </div>
         </div>
@@ -523,19 +535,40 @@ const RightSideBar = ({
                   {/* 2. Hiển thị Rating + Icon */}
                   {newWinnerPositivePercent === -1 ? (
                     // Trường hợp New Bidder
-                    <span className="text-base font-normal italic opacity-70">
-                      (New Bidder)
-                    </span>
+                    isGuest || isWinner ? (
+                      <span className="text-base font-normal italic opacity-70">
+                        (New Bidder)
+                      </span>
+                    ) : (
+                      <Link to={`/feedback/${newWinner._id}`} className="hover:text-primary">
+                        <span className="text-base font-normal italic opacity-70">
+                          (New Bidder)
+                        </span>
+                      </Link>
+                    )
                   ) : (
                     // Trường hợp có % -> Hiển thị số và Icon ThumbsUp
-                    <div className="flex items-center gap-1">
-                      <span>{newWinnerPositivePercent}%</span>
-                      <ThumbsUp
-                        size={18}
-                        strokeWidth={2.5}
-                        className="mb-0.5"
-                      />
-                    </div>
+                    isGuest || isWinner ? (
+                      <div className="flex items-center gap-1">
+                        <span>{newWinnerPositivePercent}%</span>
+                        <ThumbsUp
+                          size={18}
+                          strokeWidth={2.5}
+                          className="mb-0.5"
+                        />
+                      </div>
+                    ) : (
+                      <Link to={`/feedback/${newWinner._id}`} className="hover:text-primary">
+                        <div className="flex items-center gap-1">
+                          <span>{newWinnerPositivePercent}%</span>
+                          <ThumbsUp
+                            size={18}
+                            strokeWidth={2.5}
+                            className="mb-0.5"
+                          />
+                        </div>
+                      </Link>
+                    )
                   )}
                 </div>
               </>

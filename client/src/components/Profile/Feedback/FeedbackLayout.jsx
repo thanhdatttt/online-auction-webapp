@@ -7,7 +7,7 @@ import { useSearchParams } from "react-router-dom";
 import Pagination from "../Pagination";
 import { useMemo } from "react";
 
-const FeedbackLayout = () => {
+const FeedbackLayout = ({userId}) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get("page") || 1);
@@ -32,7 +32,11 @@ const FeedbackLayout = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const res = await api.get(`/users/me/feedbacks?${queryString}`);
+        const endpoint = userId 
+            ? `/users/${userId}/feedbacks?${queryString}`
+            : `/users/me/feedbacks?${queryString}`;
+            
+            const res = await api.get(endpoint);
 
         setFeedbacks(res.data.ratings);
         setStats({
@@ -49,7 +53,7 @@ const FeedbackLayout = () => {
 
     fetchFeedbacks();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
+  }, [page, userId]);
 
   const onPageChange = (newPage) => {
     const next = new URLSearchParams(searchParams);
@@ -108,7 +112,7 @@ const FeedbackLayout = () => {
         <>
           {feedbacks.length === 0 && (
             <div className="text-center py-10 text-gray-500">
-              You haven't received any feedback yet.
+              {userId ? "This user hasn't received any feedback yet." : "You haven't received any feedback yet."}
             </div>
           )}
 

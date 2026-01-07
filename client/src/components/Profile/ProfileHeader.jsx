@@ -1,7 +1,7 @@
 import {ShieldCheck, ArrowLeft} from "lucide-react";
 import {useNavigate} from "react-router-dom";
 
-const ProfileHeader = ({username}) => {
+const ProfileHeader = ({username, isPublic = false}) => {
   const navigate = useNavigate();
 
   return (
@@ -20,10 +20,18 @@ const ProfileHeader = ({username}) => {
 
         <div className="flex items-center space-x-3 mb-6">
           <ShieldCheck className="text-primary" size={20} />
-          <span className="text-primary font-bold uppercase tracking-[0.4em] text-lg">Profile dashboard</span>
+          <span className="text-primary font-bold uppercase tracking-[0.4em] text-lg">{isPublic ? "Public Profile" : "Profile Dashboard"}</span>
         </div>
         <h1 className="text-5xl md:text-7xl font-lora text-white mb-8 leading-tight">
-          Welcome <span className="italic font-bold text-primary">{username}</span>
+          {isPublic ? (
+            // Public View: Just the name
+            <span className="font-bold text-white">{username}</span>
+          ) : (
+            // Private View: "Welcome [Name]"
+            <>
+              Welcome <span className="italic font-bold text-primary">{username}</span>
+            </>
+          )}
         </h1>
       </div>
     </section>

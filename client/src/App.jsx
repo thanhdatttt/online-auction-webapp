@@ -26,6 +26,7 @@ import InstructionPage from "./pages/InstructionPage.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ChatBubbleWrapper from "./components/Chat/ChatBubbleWrapper.jsx";
 import TransactionPage from "./pages/TransactionPage.jsx";
+import FeedbackPage from "./pages/FeedbackPage.jsx";
 
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
           <Route element={<ProtectedRoute roles={['bidder', 'seller']} />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/transactions" element={<TransactionPage/>}/>
+            <Route path="/feedback/:userId" element={<FeedbackPage />} />
           </Route>
 
           <Route element={<ProtectedRoute roles={['seller']} />}>

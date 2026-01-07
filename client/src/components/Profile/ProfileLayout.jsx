@@ -9,9 +9,10 @@ import { AuctionWonLayout } from "./AuctionWon/AuctionWonLayout.jsx";
 import AuctionCreatedLayout from "./AuctionCreated/AuctionCreatedLayout.jsx";
 import ProfileHeader from "./ProfileHeader.jsx";
 import FeedbackLayout from "./Feedback/FeedbackLayout.jsx";
-const ProfileLayout = () => {
+const ProfileLayout = ({ isPublic = false, targetUser = null }) => {
   // user info
-  const user = useAuthStore((state) => state.user);
+  const authUser = useAuthStore((state) => state.user);
+  const user = isPublic ? targetUser : authUser;
 
   const { search } = useLocation();
   const params = new URLSearchParams(search);
@@ -32,23 +33,31 @@ const ProfileLayout = () => {
 
   // switch section
   useEffect(() => {
-    if (sectionParam && sections[sectionParam]) {
-      setActiveSection(sectionParam);
-    } else {
-      setActiveSection("account"); // default fallback
+    if (!isPublic) {
+      if (sectionParam && sections[sectionParam]) {
+        setActiveSection(sectionParam);
+      } else {
+        setActiveSection("account");
+      }
     }
-  }, [sectionParam]);
+  }, [sectionParam, isPublic]);
 
   return (
     <div className="min-h-svh bg-light mt-20">
-      <ProfileHeader username={user.username}/>
+      <ProfileHeader username={user.username} isPublic={isPublic}/>
 
       <div className="min-h-svh flex flex-col mt-4 lg:flex-row px-6 md:px-12 py-6 text-black font-lora">
         {/* side bar */}
-        <SideBar activeSection={activeSection}></SideBar>
+        {!isPublic && <SideBar activeSection={activeSection}></SideBar>}
 
         {/* main content */}
-        <div className="flex-1 ml-4">{sections[activeSection]}</div>
+        <div className="flex-1 ml-4">
+          {isPublic ? (
+              <FeedbackLayout userId={user._id} /> 
+          ) : (
+              sections[activeSection]
+          )}
+        </div>
       </div>
     </div>
   );

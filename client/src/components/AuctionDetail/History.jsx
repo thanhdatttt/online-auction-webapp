@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router";
+import { useParams, Link } from "react-router";
 import { socket } from "../../utils/socket";
 import Error from "../Error.jsx";
 import api from "../../utils/axios.js";
-import { ChevronDown, ChevronUp, Ban } from "lucide-react";
+import { ChevronDown, ChevronUp, Ban, ThumbsUp } from "lucide-react";
 import { useAuctionStore } from "../../stores/useAuction.store.js";
 
 const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
@@ -38,6 +38,8 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
         setError(null);
         const res = await api.get(`/guest/auctions/${id}/history`);
         if (!isMounted) return;
+
+        console.log(res.data);
 
         setHistory(res.data.history);
         setRejectedBidderIds(res.data.rejectedBidderIds);
@@ -271,13 +273,50 @@ const History = ({ isSeller, isBidder, isGuest, userId, endTime }) => {
                           : "flex justify-between bg-decor p-2 border-b border-gray-100"
                       }
                     >
-                      <span className="text-gray-600">
+                      
+                      <div className="text-gray-600 flex items-center justify-center gap-1">
                         {userId === h.bidderId?._id
-                          ? "You"
+                          ? "You "
                           : maskFirstHalf(
-                              h.bidderId?.firstName + " " + h.bidderId?.lastName
+                              h.bidderId?.firstName + " " + h.bidderId?.lastName + " "
                             )}
-                      </span>
+                        
+                        {h.bidderId?.rating === -1 ? (
+                          isGuest || userId === h.bidderId?._id ? (
+                            <span className="text-xs font-normal italic opacity-70">
+                              (New Bidder)
+                            </span>
+                          ) : (
+                            <Link to={`/feedback/${h.bidderId?._id}`} className="hover:text-primary">
+                              <span className="text-xs font-normal italic opacity-70">
+                                (New Bidder)
+                              </span>
+                            </Link>
+                          )
+                        ): (
+                          isGuest || userId === h.bidderId?._id ? (
+                            <div className="flex items-center gap-1">
+                              <span>{h.bidderId?.rating}%</span>
+                              <ThumbsUp
+                                size={18}
+                                strokeWidth={2.5}
+                                className="mb-0.5"
+                              />
+                            </div>
+                          ) : (
+                            <Link to={`/feedback/${h.bidderId?._id}`} className="hover:text-primary">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs">{h.bidderId?.rating}%</span>
+                                <ThumbsUp
+                                  size={12}
+                                  strokeWidth={2.5}
+                                  className="mb-0.5"
+                                />
+                              </div>
+                            </Link>
+                          )
+                        )}
+                      </div>
                       {userId === h.bidderId?._id && (
                         <div className="text-center">
                           <span className="block text-gray-500 text-[10px]">
