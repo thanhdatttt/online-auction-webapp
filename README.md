@@ -6,12 +6,6 @@ This project demonstrates a **modern full-stack web architecture** with a RESTfu
 
 ---
 
-## Final website
-
-```
-https://auctiz.vercel.app
-```
-
 ## 🚀 Main Features
 
 ### 🧭 User Features
