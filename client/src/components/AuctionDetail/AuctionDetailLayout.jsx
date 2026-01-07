@@ -26,7 +26,6 @@ const AuctionDetailLayout = () => {
   const [isAllowed, setIsAllowed] = useState(null);
   const [upPercentSeller, setUpPercentSeller] = useState(null);
   const navigate = useNavigate();
-
   const { accessToken } = useAuthStore();
 
   useEffect(() => {

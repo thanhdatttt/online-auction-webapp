@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronUp, PlusCircle } from "lucide-react";
 import { useAuctionStore } from "../../stores/useAuction.store";
 import { useWatchListStore } from "../../stores/useWatchList.store";
@@ -10,14 +10,20 @@ import UpdateDetailModal from "./UpdateDetailModal.jsx";
 const Product = ({ p, seller, postedOn, auctionId }) => {
   const [curImg, setCurImg] = useState(0);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [localDescription, setLocalDescription] = useState(p?.description || "");
+  const [localDescription, setLocalDescription] = useState(
+    p?.description || ""
+  );
+
+  // --- STATE MỚI: Theo dõi trạng thái di chuột để dừng slideshow ---
+  const [isHovered, setIsHovered] = useState(false);
+
   const updateCurImg = (value) => {
     setCurImg(value);
   };
 
   const { formatTime } = useAuctionStore();
 
-  // --- LOGIC HEART ---
+  // --- LOGIC HEART (GIỮ NGUYÊN) ---
   const { user } = useAuthStore();
   const { favoriteIds, addToFavorite, removeFromFavorite, loading } =
     useWatchListStore();
@@ -42,6 +48,19 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
   };
   // -------------------
 
+  // --- LOGIC TỰ ĐỘNG CHUYỂN ẢNH (THÊM MỚI) ---
+  useEffect(() => {
+    // Chỉ chạy khi có nhiều hơn 1 ảnh và người dùng KHÔNG di chuột vào
+    if (!p?.images || p.images.length <= 1 || isHovered) return;
+
+    const interval = setInterval(() => {
+      setCurImg((prev) => (prev + 1) % p.images.length); // Quay vòng lại ảnh đầu tiên khi hết
+    }, 4000); // 4 giây chuyển 1 lần
+
+    return () => clearInterval(interval);
+  }, [curImg, isHovered, p?.images]);
+  // ------------------------------------------
+
   if (!p) return null;
 
   return (
@@ -57,7 +76,7 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
           </p>
         </div>
 
-        {/* BUTTON HEART - STYLE UPDATED TO MATCH AUCTION CARD */}
+        {/* BUTTON HEART */}
         <button
           onClick={handleToggleFavorite}
           disabled={loading}
@@ -65,13 +84,13 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
               p-2.5 rounded-full border transition-all duration-300 shadow-sm active:scale-90
               ${
                 isFavorited
-                  ? "bg-rose-500/10 border-rose-500/50 text-rose-500" // Style Active giống AuctionCard (Rose)
-                  : "bg-light border-gray-500 text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-600" // Style Inactive cho nền trắng
+                  ? "bg-rose-500/10 border-rose-500/50 text-rose-500"
+                  : "bg-light border-gray-500 text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-600"
               }
             `}
         >
           <Heart
-            size={24} // Tăng nhẹ size vì đây là trang chi tiết
+            size={24}
             className={`transition-all duration-300 ${
               isFavorited ? "fill-current" : ""
             }`}
@@ -81,18 +100,22 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
 
       {/* GALLERY SECTION */}
       <div className="mt-6 flex gap-4 h-[350px] md:h-[450px]">
-        {/* MAIN IMAGE */}
-        <div className="flex-1 bg-light rounded-sm overflow-hidden border border-gray-300 relative group">
+        {/* MAIN IMAGE - CÓ SỰ KIỆN HOVER */}
+        <div
+          className="flex-1 bg-light rounded-sm overflow-hidden border border-gray-300 relative group"
+          onMouseEnter={() => setIsHovered(true)} // Chuột vào -> Dừng slide
+          onMouseLeave={() => setIsHovered(false)} // Chuột ra -> Tiếp tục slide
+        >
           {p.images && p.images.length > 0 && (
             <img
               src={p.images[curImg]?.url}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain transition-opacity duration-500"
               alt="Main item"
             />
           )}
         </div>
 
-        {/* THUMBNAILS */}
+        {/* THUMBNAILS (GIỮ NGUYÊN) */}
         <div className="flex flex-col gap-3 w-24 h-full justify-center">
           <div className="h-15">
             {curImg > 0 && (
@@ -147,16 +170,15 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
         </div>
       </div>
 
-      {/* --- DETAILS SECTION (UPDATED) --- */}
+      {/* --- DETAILS SECTION (GIỮ NGUYÊN) --- */}
       <div className="mt-8 border-b border-gray-300 pb-8 w-full overflow-hidden">
-        
         {/* Header Row with Edit Button */}
         <div className="flex items-center gap-4 mb-3">
           <h3 className="text-lg font-bold">Product Details</h3>
-          
+
           {/* Only show button if user owns this product */}
           {isOwner && (
-            <button 
+            <button
               onClick={() => setIsUpdateModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full hover:bg-amber-100 transition-colors"
             >
@@ -174,7 +196,7 @@ const Product = ({ p, seller, postedOn, auctionId }) => {
         </div>
       </div>
 
-      <UpdateDetailModal 
+      <UpdateDetailModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         auctionId={auctionId}

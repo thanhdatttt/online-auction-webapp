@@ -31,6 +31,8 @@ const RightSideBar = ({
   const newWinner = dataWinner.winner;
   const newHighestPrice = dataWinner.highestPrice;
 
+  const newWinnerPositivePercent = dataWinner.winnerPositivePercent;
+
   const calculateTimeLeft = () => {
     if (!newEndTime) return null;
     const difference = new Date(newEndTime) - new Date();
@@ -500,24 +502,48 @@ const RightSideBar = ({
           <div className="flex items-center justify-center mt-3 gap-2 w-full">
             {newWinner && (
               <>
-                <Crown></Crown>
-                <p
-                  className={
-                    isWinner
-                      ? "text-amber-700 font-extrabold text-[20px]"
-                      : "text-[20px]"
-                  }
+                {/* Crown Icon */}
+                <Crown className={isWinner ? "text-amber-700" : "text-black"} />
+
+                {/* Wrapper chứa Tên và Rating */}
+                <div
+                  className={`flex items-center gap-2 text-[20px] ${
+                    isWinner ? "text-amber-700 font-extrabold" : "text-black"
+                  }`}
                 >
-                  {isWinner
-                    ? "You"
-                    : maskFirstHalf(
-                        newWinner.firstName + " " + newWinner.lastName
-                      )}
-                </p>
+                  {/* 1. Hiển thị Tên */}
+                  <span>
+                    {isWinner
+                      ? "You"
+                      : maskFirstHalf(
+                          newWinner.firstName + " " + newWinner.lastName
+                        )}
+                  </span>
+
+                  {/* 2. Hiển thị Rating + Icon */}
+                  {newWinnerPositivePercent === -1 ? (
+                    // Trường hợp New Bidder
+                    <span className="text-base font-normal italic opacity-70">
+                      (New Bidder)
+                    </span>
+                  ) : (
+                    // Trường hợp có % -> Hiển thị số và Icon ThumbsUp
+                    <div className="flex items-center gap-1">
+                      <span>{newWinnerPositivePercent}%</span>
+                      <ThumbsUp
+                        size={18}
+                        strokeWidth={2.5}
+                        className="mb-0.5"
+                      />
+                    </div>
+                  )}
+                </div>
               </>
             )}
+
+            {/* Trường hợp chưa có winner */}
             {!newWinner && (
-              <p>
+              <p className="text-gray-500 italic">
                 {isOnGoing
                   ? "No one has placed a bid yet. Be the first!"
                   : "There is no winner."}

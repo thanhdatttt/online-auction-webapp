@@ -130,6 +130,24 @@ export const getAuctionDetail = async (req, res) => {
       ? await User.findById(auction.winnerId)
       : null;
 
+    let winnerPositivePercent = -1;
+
+    if (winner) {
+      const winnerRatingCount = await Rating.countDocuments({
+        ratedUserId: winner._id,
+      });
+
+      if (winnerRatingCount != 0) {
+        const winnerPositiveRatingCount = await Rating.countDocuments({
+          ratedUserId: winner._id,
+          rateType: "uprate",
+        });
+        winnerPositivePercent = Math.round(
+          (winnerPositiveRatingCount / winnerRatingCount) * 100
+        );
+      }
+    }
+
     const highestPrice = auction.highestPrice;
 
     let upPercentSeller = -1;
@@ -150,7 +168,11 @@ export const getAuctionDetail = async (req, res) => {
     res.status(200).json({
       auction: auction,
       seller: seller,
-      dataWinner: { winner: winner, highestPrice: highestPrice },
+      dataWinner: {
+        winner: winner,
+        highestPrice: highestPrice,
+        winnerPositivePercent: winnerPositivePercent,
+      },
       showAlert: showAlert,
       upPercentSeller: upPercentSeller,
     });
@@ -426,9 +448,29 @@ export const placeBid = async (req, res) => {
 
     if (isNewWinner) {
       const winner = await User.findById(auction.winnerId);
+
+      let winnerPositivePercent = -1;
+
+      if (winner) {
+        const winnerRatingCount = await Rating.countDocuments({
+          ratedUserId: winner._id,
+        });
+
+        if (winnerRatingCount != 0) {
+          const winnerPositiveRatingCount = await Rating.countDocuments({
+            ratedUserId: winner._id,
+            rateType: "uprate",
+          });
+          winnerPositivePercent = Math.round(
+            (winnerPositiveRatingCount / winnerRatingCount) * 100
+          );
+        }
+      }
+
       io.to(`auction_${auctionId}`).emit("winnerUpdate", {
         winner: winner,
         highestPrice: auction.highestPrice,
+        winnerPositivePercent: winnerPositivePercent,
       });
     }
 
@@ -1137,22 +1179,23 @@ export const appendDescription = async (req, res) => {
     }
 
     if (auction.sellerId.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "You are not authorized to update this auction" });
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this auction" });
     }
     auction.product.description = description;
-    
+
     await auction.save();
 
     res.status(200).json({
       message: "Description updated successfully",
-      auction: auction
+      auction: auction,
     });
-
   } catch (err) {
     console.error("Append Description Error:", err);
-    res.status(500).json({ 
-      message: "Failed to append description", 
-      error: err.message 
+    res.status(500).json({
+      message: "Failed to append description",
+      error: err.message,
     });
   }
 };

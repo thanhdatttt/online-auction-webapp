@@ -33,24 +33,11 @@ const maskFirstHalf = (str) => {
 const formatPriceVND = (amount) =>
   new Intl.NumberFormat("vi-VN").format(amount) + " VND";
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: config.EMAIL_APP,
-//     pass: config.PASSWORD_EMAIL_APP,
-//   },
-// });
-
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS
+  service: "gmail",
   auth: {
     user: config.EMAIL_APP,
-    pass: config.PASSWORD_EMAIL_APP, // App Password
-  },
-  tls: {
-    rejectUnauthorized: false,
+    pass: config.PASSWORD_EMAIL_APP,
   },
 });
 
@@ -569,14 +556,23 @@ cron.schedule("*/1 * * * *", async () => {
               participants: [auction.sellerId, auction.winnerId],
             });
 
-            await conversation.populate("participants", "firstName lastName avatar_url email");
+            await conversation.populate(
+              "participants",
+              "firstName lastName avatar_url email"
+            );
             console.log(`Conversation created for Auction ${auction._id}`);
-            
+
             // Emit to Seller
-            io.to(`user_${auction.sellerId}`).emit("newConversation", conversation);
-            
+            io.to(`user_${auction.sellerId}`).emit(
+              "newConversation",
+              conversation
+            );
+
             // Emit to Winner
-            io.to(`user_${auction.winnerId}`).emit("newConversation", conversation);
+            io.to(`user_${auction.winnerId}`).emit(
+              "newConversation",
+              conversation
+            );
           }
         } catch (convErr) {
           console.error("Error creating conversation:", convErr);
