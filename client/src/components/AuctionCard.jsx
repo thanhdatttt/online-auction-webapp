@@ -19,8 +19,10 @@ const AuctionCard = ({ auction }) => {
   const endTime = getFormattedTimeDiff(auction.endTime, now);
   const startTime = getRelativeTime(auction.startTime, now);
 
-  const newProductTime = useAuctionConfigStore((state) => state.auctionConfig.newProductTime) / 1000;
-  const isNew = getRelativeTimeNoFormat(auction.startTime, now) <= newProductTime;
+  const newProductTime =
+    useAuctionConfigStore((state) => state.auctionConfig.newProductTime) / 1000;
+  const isNew =
+    getRelativeTimeNoFormat(auction.startTime, now) <= newProductTime;
 
   // favorite
   const favoriteIds = useWatchListStore((state) => state.favoriteIds);
@@ -32,6 +34,8 @@ const AuctionCard = ({ auction }) => {
   const user = useAuthStore((state) => state.user);
   const isGuest = user === null;
   const isWinner = !isGuest ? user?._id === auction.winnerId : false;
+
+  console.log(isWinner);
 
   // add favorite / remove favorite
   const toogleFavorite = async (e) => {
