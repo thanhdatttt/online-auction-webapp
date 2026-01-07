@@ -14,6 +14,7 @@ import {
   getAuctionConfig,
   deleteAuction,
   getCategories,
+  resetPassword,
 } from "../controllers/admin.controller.js";
 
 import { createCategory, deleteCategory, updateCategory } from "../controllers/category.controller.js";
@@ -32,6 +33,7 @@ router.get("/users/:userId", getUserbyId);
 router.patch("/users/:userId", updateUserInfo);
 router.post("/users/:userId/delete", deleteUser);
 router.patch("/users/:userId/status", updateUserStatus);
+router.post("/users/:userId/reset-password", resetPassword);
 
 router.get("/auctions", getAuctions);
 router.get("/auction/config", getAuctionConfig);

@@ -98,10 +98,17 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
         setIsResettingPassword(true);
 
         try {
-            await api.post(`/admin/users/${miniuser._id}/reset-password`);
-            setSuccessMessage('Password reset email sent successfully!');
+            const res = await api.post(`/admin/users/${miniuser._id}/reset-password`);
+            if (res.status === 200) {
+                toast.success("Reset User Password Successfully!")
+    
+                setTimeout(() => {
+                    onClose();
+                    onUserUpdated?.();
+                }, 1200);
+            }
         } catch (err) {
-            setServerError(err.response?.data?.message || 'Failed to reset password');
+            toast.error("Reset User Password Unsuccessfully!")
         } finally {
             setIsResettingPassword(false);
         }
@@ -300,13 +307,13 @@ export default function EditUserModal({ open, onClose, miniuser, onUserUpdated }
                             <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
                                 <h3 className="text-base font-semibold text-gray-900 mb-2">Account Security</h3>
                                 <div>
-                                    <label className="block text-sm font-medium text-dark mb-2">Password</label>
-                                    <input
+                                    {/* <label className="block text-sm font-medium text-dark mb-2">Password</label> */}
+                                    {/* <input
                                         type="password"
                                         disabled={providers}
                                         placeholder="••••••••"
                                         className="w-full px-3 py-2 border border-decor rounded-lg text-gray-500 bg-gray-50 mb-1.5"
-                                    />
+                                    /> */}
                                     <p className="text-xs text-dark/60 mt-0">Set a new password for the user</p>
                                     <button
                                         type="button"
