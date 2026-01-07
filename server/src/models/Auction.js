@@ -102,4 +102,10 @@ auctionSchema.pre(/^find/, function (next) {
   next();
 });
 
+auctionSchema.pre("aggregate", function (next) {
+  // Unshift adds this stage to the VERY BEGINNING of your pipeline
+  this.pipeline().unshift({ $match: { isDeleted: false } });
+  next();
+});
+
 export default mongoose.model("Auction", auctionSchema);

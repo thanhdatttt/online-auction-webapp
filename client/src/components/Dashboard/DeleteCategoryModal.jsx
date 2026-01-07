@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../../utils/axios";
 import { toast } from "sonner";
 
-export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
+export default function DeleteCategoryModal({ open, onClose, item, onDeleted }) {
     const [deleting, setDeleting] = useState(false);
     
     const confirmDelete = async () => {
@@ -10,14 +10,14 @@ export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
 
         setDeleting(true);
         try {
-            const res = await api.post(`/admin/auction/${item._id}/delete`);
+            const res = await api.post(`/admin/categories/${item._id}/delete`);
             if (res.status === 200){
-                toast.success("Delete Auction successfully!");
+                toast.success("Delete Category successfully!");
                 onDeleted();
             }
         } catch (err) {
             console.error(err);
-            toast.error("Delete Auction unsuccessfully!");
+            toast.error("Delete Category unsuccessfully!");
         } finally {
             setDeleting(false);
         }
@@ -38,7 +38,7 @@ export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
                                 </svg>
                             </div>
                             <h2 className="text-2xl font-bold text-dark font-lato">
-                                Delete Auction
+                                Delete Category
                             </h2>
                         </div>
                         
@@ -56,7 +56,7 @@ export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
                     <div className="mb-6">
                         <p className="text-dark font-lato leading-relaxed">
                             Are you sure you want to delete{" "}
-                            <span className="font-semibold text-dark">{item?.product.name.length > 50 ? item?.product.name.slice(0,50) + "..." : item?.product.name}</span>?
+                            <span className="font-semibold text-dark">{item?.name.length > 50 ? item?.name.slice(0,50) + "..." : item?.name}</span>?
                         </p>
                         <p className="text-dark/70 font-lato mt-2 text-sm">
                             This action cannot be undone. All user data will be permanently removed.
@@ -87,7 +87,7 @@ export default function DeleteAuctionModal({ open, onClose, item, onDeleted }) {
                                     Deleting...
                                 </span>
                             ) : (
-                                'Delete Auction'
+                                'Delete Category'
                             )}
                         </button>
                     </div>

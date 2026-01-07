@@ -4,6 +4,7 @@ import BaseTable from "./BaseTable";
 import api from "../../../utils/axios";
 import AddCategoryModel from "../AddCategoryModel";
 import EditCategoryModal from "../EditCategoryModel";
+import DeleteCategoryModal from "../DeleteCategoryModal";
 
 export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChange }) {
     const [data, setData] = useState([]);
@@ -12,6 +13,9 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     const [sortState, setSortState] = useState({
         auctionCount: "none",
@@ -103,14 +107,14 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
     }, [data, expandedRows]);
 
     const columns = [
-        { header: 'Category Name', width: '3fr', sortField: "category" },
-        { header: 'No. of Auctions', width: '1fr', sortField: "auctionCount" },
-        { header: 'Actions', width: '1fr' }
+        { header: 'Category Name', width: '2fr', sortField: "category"},
+        { header: 'No. of Auctions', width: '1fr', sortField: "auctionCount"},
+        { header: '', width: '1fr'}
     ];
 
     const renderRow = (item) => {
         const hasChildren = item.children && item.children.length > 0;
-        const isExpanded = expandedRows[item.id];
+        const isExpanded = expandedRows[item._id];
         
         // Dynamic indentation based on level
         const paddingLeft = item.level * 40; 
@@ -130,7 +134,7 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                     {/* Icon Area */}
                     <div className="w-8 flex justify-center shrink-0">
                         {hasChildren ? (
-                            <button className="p-1 hover:bg-black/5 rounded text-dark/60">
+                            <button className="p-1 cursor-pointer hover:bg-black/5 rounded text-dark/60">
                                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                             </button>
                         ) : item.level > 0 ? (
@@ -154,12 +158,12 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                 </div>
 
                 {/* Column 2: Product Count */}
-                <div className="text-dark/80 font-lato font-medium flex items-center">
+                <div className="text-dark/80 font-lato font-medium flex items-center justify-center">
                     {item.auctionCount}
                 </div>
 
                 {/* Column 3: Actions */}
-                <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-end gap-2 mr-6" onClick={(e) => e.stopPropagation()}>
                     <button onClick={(e) => {
                         e.stopPropagation();
                         setIsEditOpen(true);
@@ -168,7 +172,10 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                     className="cursor-pointer px-2 py-1 text-dark/80 hover:text-primary rounded transition-colors">
                         <Pencil size={18} />
                     </button>
-                    <button className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
+                    <button onClick={() => {
+                        setShowDeleteModal(true);
+                        setSelectedCategory(item);
+                    }} className="cursor-pointer px-2 py-1 text-dark/80 hover:text-secondary rounded transition-colors">
                         <Trash2 size={18} />
                     </button>
                 </div>
@@ -196,11 +203,26 @@ export default function CategoriesTable({ currentPage, itemsPerPage, onTotalChan
                 onSearchChange={setSearchQuery}
                 filters={null}
             />
+
+            <DeleteCategoryModal
+                open={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                }}
+                onDeleted={() => {
+                    setShowDeleteModal(false);
+                    setSelectedCategory(null);
+                    loadData();
+                }}
+                item={selectedCategory}
+            />
+
             <AddCategoryModel
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
                 onSave={handleSave}
             />
+
             <EditCategoryModal
                 isOpen={isEditOpen}
                 onClose={() => {
